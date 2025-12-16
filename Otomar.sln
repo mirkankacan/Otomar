@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11304.174 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{F88B6782-A8DD-48B2-924E-CA0DD348A403}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Api", "Api", "{575F6FDC-52A5-4A8B-AC9A-2E344A99979A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "App", "App", "{132B3F4A-508B-4312-8023-7033C5683309}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Otomar.Application", "core\Otomar.Application\Otomar.Application.csproj", "{513C29EE-A635-4BB3-BB7C-310047252489}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Otomar.WebApp", "app\Otomar.WebApp\Otomar.WebApp.csproj", "{0EB50460-BA9D-4ED0-BD0D-058A0123C3DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Otomar.WebApi", "api\Otomar.WebApi\Otomar.WebApi.csproj", "{E7212333-2048-4631-9477-882FD5E8ACAE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Otomar.Persistance", "infrastructure\Otomar.Persistance\Otomar.Persistance.csproj", "{D029A8E1-BD31-4D05-9657-E78CA13117AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{513C29EE-A635-4BB3-BB7C-310047252489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{513C29EE-A635-4BB3-BB7C-310047252489}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{513C29EE-A635-4BB3-BB7C-310047252489}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{513C29EE-A635-4BB3-BB7C-310047252489}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EB50460-BA9D-4ED0-BD0D-058A0123C3DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EB50460-BA9D-4ED0-BD0D-058A0123C3DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EB50460-BA9D-4ED0-BD0D-058A0123C3DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EB50460-BA9D-4ED0-BD0D-058A0123C3DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7212333-2048-4631-9477-882FD5E8ACAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7212333-2048-4631-9477-882FD5E8ACAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7212333-2048-4631-9477-882FD5E8ACAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7212333-2048-4631-9477-882FD5E8ACAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D029A8E1-BD31-4D05-9657-E78CA13117AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D029A8E1-BD31-4D05-9657-E78CA13117AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D029A8E1-BD31-4D05-9657-E78CA13117AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D029A8E1-BD31-4D05-9657-E78CA13117AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{513C29EE-A635-4BB3-BB7C-310047252489} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{0EB50460-BA9D-4ED0-BD0D-058A0123C3DE} = {132B3F4A-508B-4312-8023-7033C5683309}
+		{E7212333-2048-4631-9477-882FD5E8ACAE} = {575F6FDC-52A5-4A8B-AC9A-2E344A99979A}
+		{D029A8E1-BD31-4D05-9657-E78CA13117AD} = {F88B6782-A8DD-48B2-924E-CA0DD348A403}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A1F4FAB6-7C98-4530-86E2-30E48CBFE56D}
+	EndGlobalSection
+EndGlobal

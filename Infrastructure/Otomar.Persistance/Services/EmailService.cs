@@ -1,0 +1,246 @@
+﻿using System.Globalization;
+using System.Net;
+using Humanizer;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.Extensions.Logging;
+using MimeKit;
+using Otomar.Application.Contracts.Services;
+using Otomar.Persistance.Options;
+
+namespace Otomar.Persistance.Services
+{
+    public class EmailService(
+        ILogger<EmailService> logger, EmailOptions emailOptions, IIdentityService identityService, IOrderService orderService, IPaymentService paymentService) : IEmailService
+    {
+        public async Task SendPaymentFailedMailAsync(CancellationToken cancellationToken)
+        {
+            var to = emailOptions.ErrorTo;
+            if (string.IsNullOrWhiteSpace(to))
+            {
+                logger.LogWarning("Hatayı gönderilecek e-posta adresi bulunamadı. Ödeme başarısız maili gönderilemedi.");
+                return;
+            }
+
+            var body = LoadTemplate("PaymentFailedMailTemplate.html");
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                logger.LogWarning("PaymentFailedMailTemplate.html yüklenemedi, e-posta gönderilmedi.");
+                return;
+            }
+
+            const string subject = "Ödemede Hata ❌";
+            await SendInternalAsync(subject, body, to, null, null, isHtml: true, cancellationToken);
+        }
+
+        public async Task SendPaymentSuccessMailAsync(Guid orderId, CancellationToken cancellationToken)
+        {
+            var order = await orderService.GetOrderByIdAsync(orderId);
+            if (order.Data == null)
+            {
+                logger.LogWarning($"{orderId} ID'li sipariş bulunamadı");
+                return;
+            }
+            var body = LoadTemplate("OrderSuccessMailTemplate.html");
+
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                logger.LogWarning("OrderSuccessMailTemplate.html yüklenemedi, e-posta gönderilmedi.");
+                return;
+            }
+            var itemsTableRows = string.Join(Environment.NewLine, order.Data.Items.Select(item =>
+                     $@"
+                    <tr>
+                        <td style='padding: 10px; border: 1px solid #ccc; text-align: left;'>{WebUtility.HtmlEncode(item.ProductName)}</td>
+       <td style='padding: 10px; border: 1px solid #ccc; text-align: right;'>{item.UnitPrice.ToString("C2", new CultureInfo("tr-TR"))}</td>
+                        <td style='padding: 10px; border: 1px solid #ccc; text-align: center;'>{item.Quantity}</td>
+       <td style='padding: 10px; border: 1px solid #ccc; text-align: right;'>{(item.UnitPrice * item.Quantity).ToString("C2", new CultureInfo("tr-TR"))}</td>
+                    </tr>")) +
+                     $@"
+                <tr>
+                <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Alt Toplam</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.SubTotalAmount}</td>
+            </tr>
+            <tr>
+                <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Kargo</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.ShippingAmount}</td>
+            </tr>
+            <tr>
+                <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Toplam</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.TotalAmount}</td>
+            </tr>";
+            body = body
+                          .Replace("{{Name}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Name))
+                          .Replace("{{IdentityNumber}}", WebUtility.HtmlEncode(order.Data.IdentityNumber))
+                          .Replace("{{OrderCode}}", WebUtility.HtmlEncode(order.Data.Code))
+                          .Replace("{{CreatedAt}}", order.Data.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                          .Replace("{{ItemsTable}}", itemsTableRows)
+                          .Replace("{{BillingStreet}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Street))
+                          .Replace("{{BillingDistrict}}", WebUtility.HtmlEncode(order.Data.BillingAddress.District))
+                          .Replace("{{BillingCity}}", WebUtility.HtmlEncode(order.Data.BillingAddress.City))
+                          .Replace("{{BillingPhone}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Phone))
+                          .Replace("{{CompanyName}}", WebUtility.HtmlEncode(order.Data.Corporate?.CompanyName ?? string.Empty))
+                          .Replace("{{TaxOffice}}", WebUtility.HtmlEncode(order.Data.Corporate?.TaxOffice ?? string.Empty))
+                          .Replace("{{TaxNumber}}", WebUtility.HtmlEncode(order.Data.Corporate?.TaxNumber ?? string.Empty))
+                          .Replace("{{Email}}", WebUtility.HtmlEncode(order.Data.Email))
+                          .Replace("{{ShippingName}}", WebUtility.HtmlEncode(order.Data.ShippingAddress.Name))
+                          .Replace("{{ShippingStreet}}", WebUtility.HtmlEncode(order.Data.ShippingAddress.Street))
+                          .Replace("{{ShippingDistrict}}", WebUtility.HtmlEncode(order.Data.ShippingAddress.District))
+                          .Replace("{{ShippingCity}}", WebUtility.HtmlEncode(order.Data.ShippingAddress.City))
+                          .Replace("{{ShippingPhone}}", WebUtility.HtmlEncode(order.Data.ShippingAddress.Phone));
+            const string subject = "Sipariş Onayı ✅";
+            await SendInternalAsync(subject, body, order.Data.Email, null, null, isHtml: true, cancellationToken);
+        }
+
+        public async Task SendVirtualPosPaymentSuccessMailAsync(Guid orderId, CancellationToken cancellationToken)
+        {
+            var order = await orderService.GetOrderByIdAsync(orderId);
+            if (order.Data == null)
+            {
+                logger.LogWarning($"{orderId} ID'li sipariş bulunamadı");
+                return;
+            }
+            var payment = await paymentService.GetPaymentByOrderCodeAsync(order.Data.Code);
+
+            if (payment.Data == null)
+            {
+                logger.LogWarning($"{order.Data.Code} sipariş kodlu ödeme bulunamadı");
+                return;
+            }
+            var body = LoadTemplate("VirtualPosPaymentSuccessMailTemplate.html");
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                logger.LogWarning("VirtualPosPaymentSuccessMailTemplate.html yüklenemedi, e-posta gönderilmedi.");
+                return;
+            }
+            body = body
+                         .Replace("{{Name}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Name))
+                         .Replace("{{BillingPhone}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Phone ?? string.Empty))
+                         .Replace("{{Email}}", WebUtility.HtmlEncode(order.Data.Email ?? string.Empty))
+                         .Replace("{{CreditCardNumber}}", WebUtility.HtmlEncode(payment.Data.CardNumber))
+                         .Replace("{{CardBrand}}", WebUtility.HtmlEncode(payment.Data.CardBrand))
+                         .Replace("{{Amount}}", payment.Data.TotalAmount.ToString("C2", new CultureInfo("tr-TR"))
+                         .Replace("{{AmountInType}}", ConvertAmountToTurkishWords(payment.Data.TotalAmount))
+                         .Replace("{{CreatedAt}}", order.Data.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                         .Replace("{{OrderCode}}", WebUtility.HtmlEncode(order.Data.Code)));
+            const string subject = "Ödeme Onayı ✅";
+            await SendInternalAsync(subject, body, order.Data.Email, null, null, isHtml: true, cancellationToken);
+        }
+
+        private string ConvertAmountToTurkishWords(decimal amount)
+        {
+            // Tam sayı kısmını al
+            int wholePart = (int)amount;
+
+            // Kuruş kısmını al
+            int fractionalPart = (int)((amount - wholePart) * 100);
+
+            // Sayıları Türkçe yazıya çevir
+            string wholePartInWords = wholePart.ToWords(new CultureInfo("tr-TR"));
+            string fractionalPartInWords = fractionalPart > 0
+                ? $"{fractionalPart.ToWords(new CultureInfo("tr-TR"))} kuruş"
+                : "";
+
+            // Sonuç oluştur
+            string result = fractionalPart > 0
+                ? $"{wholePartInWords} Türk lirası ve {fractionalPartInWords}"
+                : $"{wholePartInWords} Türk lirası";
+
+            // İlk harfi büyük yap
+            return char.ToUpper(result[0]) + result.Substring(1);
+        }
+
+        private async Task SendInternalAsync(
+            string subject,
+            string body,
+            string to,
+            string? cc,
+            string? bcc,
+            bool isHtml,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var message = new MimeMessage();
+                message.From.Add(MailboxAddress.Parse(emailOptions.Credentials.UserName));
+                message.To.Add(MailboxAddress.Parse(to));
+
+                // Optional CC/BCC from method parameters
+                if (!string.IsNullOrWhiteSpace(cc))
+                {
+                    message.Cc.Add(MailboxAddress.Parse(cc));
+                }
+
+                if (!string.IsNullOrWhiteSpace(bcc))
+                {
+                    message.Bcc.Add(MailboxAddress.Parse(bcc));
+                }
+
+                // Required CC/BCC from configuration
+                foreach (var requiredCc in emailOptions.GetRequiredCcList())
+                {
+                    message.Cc.Add(MailboxAddress.Parse(requiredCc));
+                }
+
+                foreach (var requiredBcc in emailOptions.GetRequiredBccList())
+                {
+                    message.Bcc.Add(MailboxAddress.Parse(requiredBcc));
+                }
+
+                message.Subject = subject;
+
+                var builder = new BodyBuilder();
+                if (isHtml)
+                {
+                    builder.HtmlBody = body;
+                }
+                else
+                {
+                    builder.TextBody = body;
+                }
+
+                message.Body = builder.ToMessageBody();
+
+                using var client = new SmtpClient();
+
+                var secureOption = emailOptions.EnableSsl
+                    ? SecureSocketOptions.SslOnConnect
+                    : SecureSocketOptions.StartTlsWhenAvailable;
+
+                await client.ConnectAsync(emailOptions.Host, emailOptions.Port, secureOption, cancellationToken);
+                await client.AuthenticateAsync(emailOptions.Credentials.UserName, emailOptions.Credentials.Password, cancellationToken);
+                await client.SendAsync(message, cancellationToken);
+                await client.DisconnectAsync(true, cancellationToken);
+
+                logger.LogInformation("E-posta gönderildi. Konu: {Subject}, Alıcı: {To}", subject, to);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "E-posta gönderilirken bir hata oluştu. Konu: {Subject}, Alıcı: {To}", subject, to);
+                throw;
+            }
+        }
+
+        private string LoadTemplate(string templateFileName)
+        {
+            try
+            {
+                var baseDirectory = AppContext.BaseDirectory;
+                var fullPath = Path.Combine(baseDirectory, "MailTemplates", templateFileName);
+
+                if (!File.Exists(fullPath))
+                {
+                    logger.LogError("Mail template dosyası bulunamadı. Path: {Path}", fullPath);
+                    return string.Empty;
+                }
+
+                return File.ReadAllText(fullPath);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Mail template okunurken hata oluştu. Template: {Template}", templateFileName);
+                return string.Empty;
+            }
+        }
+    }
+}
