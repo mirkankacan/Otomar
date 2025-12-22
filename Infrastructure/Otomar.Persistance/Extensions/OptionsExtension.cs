@@ -11,6 +11,7 @@ namespace Otomar.Persistance.Extensions
             services.AddValidatedOptions<PaymentOptions>();
             services.AddValidatedOptions<EmailOptions>();
             services.AddValidatedOptions<ShippingOptions>();
+            services.AddValidatedOptions<RedisOptions>();
 
             return services;
         }
