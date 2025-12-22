@@ -22,6 +22,8 @@ namespace Otomar.Persistance.Extensions
             services.AddScoped<IClientService, ClientService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IListSearchService, ListSearchService>();
+
+            services.AddDistributedMemoryCache();
             return services;
         }
     }

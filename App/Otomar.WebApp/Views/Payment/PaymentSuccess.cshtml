@@ -1,7 +1,154 @@
-﻿@model PaymentDto
+﻿@model Otomar.WebApp.Models.Payment.PaymentDto
 @{
     ViewData["Title"] = "Ödeme Başarılı";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>PaymentSuccess</h1>
+<!-- Start breadcrumb section -->
+<section class="breadcrumb__section breadcrumb__bg">
+    <div class="container">
+        <div class="row row-cols-1">
+            <div class="col">
+                <div class="breadcrumb__content text-center">
+                    <h1 class="breadcrumb__content--title mb-15">Ödeme Başarılı</h1>
+                    <ul class="breadcrumb__content--menu d-flex justify-content-center">
+                        <li class="breadcrumb__content--menu__items"><a href="/">Ana Sayfa</a></li>
+                        <li class="breadcrumb__content--menu__items"><span>Ödeme Başarılı</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End breadcrumb section -->
+
+<!-- Start payment success section -->
+<section class="checkout__section section--padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="checkout__form--inner">
+                    <div class="payment__success">
+                        <div class="payment__success--icon text-center mb-30">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="#28a745" stroke-width="2" fill="#d4edda"/>
+                                <path d="M8 12l2 2 4-4" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="payment__success--content text-center mb-30">
+                            <h2 class="payment__success--title mb-15">Ödemeniz Başarıyla Tamamlandı!</h2>
+                            <p class="payment__success--desc mb-20">
+                                Ödeme işleminiz başarıyla gerçekleştirilmiştir. 
+                                Sipariş detaylarınızı aşağıda görebilirsiniz.
+                            </p>
+                        </div>
+                        @if (Model != null)
+                        {
+                            <div class="payment__success--details">
+                                <div class="checkout__summary">
+                                    <div class="checkout__summary--inner">
+                                        <h3 class="checkout__summary--title mb-20">Ödeme Detayları</h3>
+                                        <table class="checkout__summary--total__table">
+                                            <tbody>
+                                                <tr class="checkout__summary--total__list">
+                                                    <td class="checkout__summary--total__title text-left">Sipariş Kodu</td>
+                                                    <td class="checkout__summary--amount text-right">
+                                                        <strong>@Model.OrderCode</strong>
+                                                    </td>
+                                                </tr>
+                                                <tr class="checkout__summary--total__list">
+                                                    <td class="checkout__summary--total__title text-left">Kart Numarası</td>
+                                                    <td class="checkout__summary--amount text-right">
+                                                        @Model.CardNumber
+                                                    </td>
+                                                </tr>
+                                                <tr class="checkout__summary--total__list">
+                                                    <td class="checkout__summary--total__title text-left">Kart Markası</td>
+                                                    <td class="checkout__summary--amount text-right">
+                                                        @Model.CardBrand
+                                                    </td>
+                                                </tr>
+                                                <tr class="checkout__summary--total__list">
+                                                    <td class="checkout__summary--total__title text-left">Ödeme Durumu</td>
+                                                    <td class="checkout__summary--amount text-right">
+                                                        <span class="badge badge-success">@Model.Status</span>
+                                                    </td>
+                                                </tr>
+                                                <tr class="checkout__summary--total__list">
+                                                    <td class="checkout__summary--total__title text-left">Tutar</td>
+                                                    <td class="checkout__summary--amount text-right">
+                                                        <strong>@Model.TotalAmount.ToString("N2") ₺</strong>
+                                                    </td>
+                                                </tr>
+                                                <tr class="checkout__summary--total__list">
+                                                    <td class="checkout__summary--total__title text-left">Tarih</td>
+                                                    <td class="checkout__summary--amount text-right">
+                                                        @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div class="payment__success--actions text-center mt-30">
+                            <a href="/" class="primary__btn mr-15">Ana Sayfaya Dön</a>
+                            <a href="/siparislerim" class="secondary__btn">Siparişlerim</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End payment success section -->
+
+@section Styles {
+    <style>
+        .payment__success {
+            padding: 40px 20px;
+        }
+        .payment__success--icon svg {
+            animation: scaleIn 0.5s ease-out;
+        }
+        @@keyframes scaleIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .checkout__summary {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .secondary__btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .secondary__btn:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+        .mr-15 {
+            margin-right: 15px;
+        }
+    </style>
+}

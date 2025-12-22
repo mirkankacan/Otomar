@@ -15,7 +15,7 @@ namespace Otomar.Application.Dtos.Order
         public decimal TotalAmount { get; set; }
         public decimal ShippingAmount { get; set; }
         public decimal SubTotalAmount { get; set; }
-        public IEnumerable<OrderItemDto> Items { get; set; } = Enumerable.Empty<OrderItemDto>();
+        public List<OrderItemDto> Items { get; set; } = new();
         public AddressDto? BillingAddress { get; set; }
         public AddressDto? ShippingAddress { get; set; }
         public CorporateDto? Corporate { get; set; }

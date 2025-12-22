@@ -8,7 +8,7 @@ namespace Otomar.Persistance.Options
         public string ClientId { get; set; } = default!;
 
         [Required]
-        public string UserName { get; set; } = default!;
+        public string Username { get; set; } = default!;
 
         [Required]
         public string Password { get; set; } = default!;
@@ -17,6 +17,33 @@ namespace Otomar.Persistance.Options
         public string ApiUrl { get; set; } = default!;
 
         [Required]
-        public decimal ShippingThreshold { get; set; } = default!;
+        public string StoreKey { get; set; } = default!;
+
+        [Required]
+        public string ThreeDVerificationUrl { get; set; } = default!;
+
+        [Required]
+        public string TransactionType { get; set; } = default!;
+
+        [Required]
+        public string Currency { get; set; } = default!;
+
+        [Required]
+        public string OkUrl { get; set; } = default!;
+
+        [Required]
+        public string FailUrl { get; set; } = default!;
+
+        [Required]
+        public string StoreType { get; set; } = default!;
+
+        [Required]
+        public string HashAlgorithm { get; set; } = default!;
+
+        [Required]
+        public string Lang { get; set; } = default!;
+
+        [Required]
+        public string RefreshTime { get; set; } = default!;
     }
 }

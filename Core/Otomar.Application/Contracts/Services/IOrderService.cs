@@ -1,5 +1,6 @@
 ﻿using Otomar.Application.Common;
 using Otomar.Application.Dtos.Order;
+using System.Data;
 
 namespace Otomar.Application.Contracts.Services
 {
@@ -10,6 +11,8 @@ namespace Otomar.Application.Contracts.Services
         Task<ServiceResult<IEnumerable<OrderDto>>> GetOrdersAsync();
 
         Task<ServiceResult<OrderDto>> GetOrderByIdAsync(Guid id);
+
+        Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto, IDbTransaction transaction);
 
         Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto);
     }

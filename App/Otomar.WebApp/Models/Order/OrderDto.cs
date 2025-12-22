@@ -12,11 +12,10 @@ namespace Otomar.WebApp.Models.Order
         public DateTime CreatedAt { get; set; }
         public string? Email { get; set; }
         public string? IdentityNumber { get; set; }
-        public IEnumerable<OrderItemDto> Items { get; set; } = Enumerable.Empty<OrderItemDto>();
+        public List<OrderItemDto> Items { get; set; } = new();
         public AddressDto? BillingAddress { get; set; }
         public AddressDto? ShippingAddress { get; set; }
         public CorporateDto? Corporate { get; set; }
         public PaymentDto Payment { get; set; }
     }
 }
-

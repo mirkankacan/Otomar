@@ -6,7 +6,7 @@ namespace Otomar.WebApp.Options
     {
         public static IServiceCollection AddOptionsExtensions(this IServiceCollection services)
         {
-            services.AddValidatedOptions<PaymentOptions>();
+            services.AddValidatedOptions<ShippingOptions>();
 
             return services;
         }

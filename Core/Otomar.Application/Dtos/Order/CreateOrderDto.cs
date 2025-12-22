@@ -2,10 +2,10 @@
 {
     public class CreateOrderDto
     {
+        public string Code { get; set; }
         public string Email { get; set; }
         public string IdentityNumber { get; set; }
-        public decimal ShippingAmount { get; set; }
-        public IEnumerable<CreateOrderItemDto> Items { get; set; } = Enumerable.Empty<CreateOrderItemDto>();
+        public List<CreateOrderItemDto> Items { get; set; } = new();
         public AddressDto? BillingAddress { get; set; }
         public AddressDto? ShippingAddress { get; set; }
         public CorporateDto? Corporate { get; set; }

@@ -1,6 +1,6 @@
-﻿using Otomar.WebApp.Models.Order;
+﻿using Otomar.Application.Dtos.Order;
 
-namespace Otomar.WebApp.Models.Payment
+namespace Otomar.Application.Dtos.Payment
 {
     public class InitializePaymentDto
     {

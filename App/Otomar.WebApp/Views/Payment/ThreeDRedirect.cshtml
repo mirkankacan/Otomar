@@ -1,0 +1,35 @@
+@model Dictionary<string, string>
+
+@{
+    ViewData["Title"] = "Ödeme Yönlendirme";
+    Layout = null;
+}
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <script type="text/javascript" language="javascript">
+        function moveWindow() {
+            document.pay_form.submit();
+        }
+    </script>
+</head>
+
+<body onload="javascript:moveWindow()">
+
+    <form name="pay_form" method="post" action="@ViewBag.ThreeDVerificationUrl">
+
+        <center>
+            <h3>Güvenli ödeme sayfasına yönlendiriliyorsunuz...</h3>
+            <p>Lütfen bekleyiniz. Sayfa otomatik olarak yönlendirilecektir.</p>
+        </center>
+        @foreach (var param in Model)
+        {
+            <input type="hidden" name="@param.Key" value="@param.Value" />
+        }
+
+    </form>
+
+</body>
+
+</html>

@@ -1,7 +1,163 @@
-﻿@model string
 @{
     ViewData["Title"] = "3D Doğrulama Başarısız";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>ThreeDFailed</h1>
+<!-- Start breadcrumb section -->
+<section class="breadcrumb__section breadcrumb__bg">
+    <div class="container">
+        <div class="row row-cols-1">
+            <div class="col">
+                <div class="breadcrumb__content text-center">
+                    <h1 class="breadcrumb__content--title mb-15">3D Doğrulama Başarısız</h1>
+                    <ul class="breadcrumb__content--menu d-flex justify-content-center">
+                        <li class="breadcrumb__content--menu__items"><a href="/">Ana Sayfa</a></li>
+                        <li class="breadcrumb__content--menu__items"><span>3D Doğrulama</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End breadcrumb section -->
+
+<!-- Start 3D verification failed section -->
+<section class="checkout__section section--padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="checkout__form--inner">
+                    <div class="verification__failed">
+                        <div class="verification__failed--icon text-center mb-30">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="#ffc107" stroke-width="2" fill="#fff3cd"/>
+                                <path d="M12 8v4M12 16h.01" stroke="#ffc107" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="verification__failed--content text-center mb-30">
+                            <h2 class="verification__failed--title mb-15">3D Doğrulama Başarısız</h2>
+                            <p class="verification__failed--desc mb-20">
+                                3D Secure doğrulama işlemi tamamlanamadı. 
+                                Lütfen kart bilgilerinizi kontrol ederek tekrar deneyiniz.
+                            </p>
+                            @if (ViewBag.ErrorMessage != null)
+                            {
+                                <div class="alert alert-warning mb-20">
+                                    <strong>Hata:</strong> @ViewBag.ErrorMessage
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning mb-20">
+                                    <strong>Bilgi:</strong> 3D Secure doğrulama işlemi başarısız oldu. 
+                                    Lütfen kartınızın 3D Secure özelliğinin aktif olduğundan emin olunuz.
+                                </div>
+                            }
+                        </div>
+                        <div class="verification__failed--info mb-30">
+                            <div class="checkout__summary">
+                                <div class="checkout__summary--inner">
+                                    <h3 class="checkout__summary--title mb-20">Olası Nedenler</h3>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-10">
+                                            <i class="fas fa-exclamation-circle text-warning mr-10"></i>
+                                            Kartınızın 3D Secure özelliği aktif değil olabilir
+                                        </li>
+                                        <li class="mb-10">
+                                            <i class="fas fa-exclamation-circle text-warning mr-10"></i>
+                                            Yanlış şifre veya doğrulama kodu girilmiş olabilir
+                                        </li>
+                                        <li class="mb-10">
+                                            <i class="fas fa-exclamation-circle text-warning mr-10"></i>
+                                            İşlem süresi dolmuş olabilir
+                                        </li>
+                                        <li class="mb-10">
+                                            <i class="fas fa-exclamation-circle text-warning mr-10"></i>
+                                            Bankanız tarafından işlem reddedilmiş olabilir
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="verification__failed--actions text-center mt-30">
+                            <a href="/odeme" class="primary__btn mr-15">Tekrar Dene</a>
+                            <a href="/" class="secondary__btn">Ana Sayfaya Dön</a>
+                        </div>
+                        <div class="verification__failed--help text-center mt-30">
+                            <p class="text-muted">
+                                Sorun devam ederse lütfen <a href="/iletisim">müşteri hizmetlerimiz</a> ile iletişime geçiniz 
+                                veya bankanızla iletişime geçerek 3D Secure ayarlarınızı kontrol ediniz.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End 3D verification failed section -->
+
+@section Styles {
+    <style>
+        .verification__failed {
+            padding: 40px 20px;
+        }
+        .verification__failed--icon svg {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @@keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .checkout__summary {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .list-unstyled {
+            list-style: none;
+            padding-left: 0;
+        }
+        .mb-10 {
+            margin-bottom: 10px;
+        }
+        .mr-10 {
+            margin-right: 10px;
+        }
+        .text-warning {
+            color: #ffc107;
+        }
+        .secondary__btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .secondary__btn:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+        .mr-15 {
+            margin-right: 15px;
+        }
+        .text-muted {
+            color: #6c757d;
+        }
+    </style>
+}
+

@@ -5,6 +5,13 @@ using Otomar.WebApp.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.Cookie.Name = "__RequestVerificationToken";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+});
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
@@ -12,8 +19,8 @@ builder.Services.AddControllersWithViews()
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
         options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
     }).AddRazorRuntimeCompilation();
+builder.Services.AddDistributedMemoryCache();
 
-// Minimal API için (eðer kullanýyorsanýz)
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = null;
@@ -27,6 +34,8 @@ builder.Services.AddHttpClient<IApiService, ApiService>(client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+builder.Services.AddScoped<IPaymentApiService, PaymentApiService>();
+builder.Services.AddScoped<IOrderApiService, OrderApiService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

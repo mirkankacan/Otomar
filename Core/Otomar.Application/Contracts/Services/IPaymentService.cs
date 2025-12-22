@@ -5,6 +5,10 @@ namespace Otomar.Application.Contracts.Services
 {
     public interface IPaymentService
     {
+        Task<ServiceResult<Dictionary<string, string>>> InitializePaymentAsync(InitializePaymentDto initializePaymentDto, CancellationToken cancellationToken);
+
+        Task<ServiceResult<Dictionary<string, string>>> GetPaymentParamsAsync(string orderCode, CancellationToken cancellationToken);
+
         Task<ServiceResult<Guid>> CreatePaymentAsync(Dictionary<string, string> parameters, CancellationToken cancellationToken);
 
         Task<ServiceResult<IEnumerable<PaymentDto>>> GetPaymentsByUserAsync(string userId);

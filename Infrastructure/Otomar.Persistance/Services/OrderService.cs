@@ -7,27 +7,30 @@ using Otomar.Application.Dtos.Order;
 using Otomar.Application.Dtos.Payment;
 using Otomar.Application.Enums;
 using Otomar.Persistance.Data;
+using Otomar.Persistance.Options;
+using System.Data;
 using System.Net;
 
 namespace Otomar.Persistance.Services
 {
-    public class OrderService(IAppDbContext context, IIdentityService identityService, ILogger<OrderService> logger) : IOrderService
+    public class OrderService(IAppDbContext context, IIdentityService identityService, ILogger<OrderService> logger, ShippingOptions shippingOptions) : IOrderService
     {
-        public async Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto)
+        public async Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto, IDbTransaction transaction)
         {
-            using var transaction = context.Connection.BeginTransaction();
             try
             {
-                //if (!createOrderDto.Items.Any())
-                //{
-                //    return ServiceResult<Guid>.Error("Sipariş kalemleri boş olamaz", HttpStatusCode.BadRequest);
-                //}
                 // 1. Order'ı oluştur
                 var orderId = NewId.NextGuid();
                 var userId = identityService.GetUserId() ?? null;
 
                 var subTotalAmount = createOrderDto.Items.Sum(item => item.UnitPrice * item.Quantity);
-                var totalAmount = subTotalAmount + createOrderDto.ShippingAmount;
+                var totalAmount = subTotalAmount;
+                decimal shippingCost = 0;
+                if (subTotalAmount < shippingOptions.Threshold)
+                {
+                    shippingCost = shippingOptions.Cost;
+                    totalAmount = shippingCost + subTotalAmount;
+                }
 
                 var orderInsertQuery = @"
             INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,ShippingAmount,SubTotalAmount, BillingName, BillingPhone, BillingCity, BillingDistrict, BillingStreet, ShippingName, ShippingPhone, ShippingCity,ShippingDistrict, ShippingStreet, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, IsEInvoiceUser, Email, IdentityNumber)
@@ -35,13 +38,13 @@ namespace Otomar.Persistance.Services
 
                 var orderParameters = new DynamicParameters();
                 orderParameters.Add("Id", orderId);
-                orderParameters.Add("Code", orderCode);
+                orderParameters.Add("Code", createOrderDto.Code);
                 orderParameters.Add("BuyerId", userId);
                 orderParameters.Add("Status", OrderStatus.WaitingForPayment);
                 orderParameters.Add("CreatedAt", DateTime.Now);
                 orderParameters.Add("PaymentId", null);
                 orderParameters.Add("TotalAmount", totalAmount);
-                orderParameters.Add("ShippingAmount", createOrderDto.ShippingAmount);
+                orderParameters.Add("ShippingAmount", shippingOptions.Cost);
                 orderParameters.Add("SubTotalAmount", subTotalAmount);
                 orderParameters.Add("BillingName", createOrderDto.BillingAddress?.Name);
                 orderParameters.Add("BillingPhone", createOrderDto.BillingAddress?.Phone);
@@ -83,6 +86,24 @@ namespace Otomar.Persistance.Services
                 logger.LogInformation($"{orderId} ID'li sipariş oluşturuldu");
 
                 return ServiceResult<Guid>.SuccessAsCreated(orderId, $"/api/orders/{orderId}");
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                logger.LogError(ex, "CreateOrderAsync işleminde hata");
+                throw;
+            }
+        }
+
+        public async Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto)
+        {
+            using var transaction = context.Connection.BeginTransaction();
+
+            try
+            {
+                var result = await CreateOrderAsync(createOrderDto, transaction);
+                transaction.Commit();
+                return result;
             }
             catch (Exception ex)
             {
