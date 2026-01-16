@@ -17,6 +17,7 @@ namespace Otomar.WebApi.Extensions
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             services.AddScoped<GlobalExceptionMiddleware>();
+            services.AddEndpointsApiExplorer();
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
@@ -61,6 +62,7 @@ namespace Otomar.WebApi.Extensions
                 .CreateLogger();
 
             host.UseSerilog();
+            services.AddEndpointsApiExplorer();
 
             services.AddSwaggerGen(options =>
             {
@@ -98,7 +100,6 @@ namespace Otomar.WebApi.Extensions
             });
 
             services.AddCarter();
-            services.AddEndpointsApiExplorer();
 
             return services;
         }

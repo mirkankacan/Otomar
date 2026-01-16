@@ -1,41 +1,59 @@
-﻿// Infrastructure/Otomar.Persistance/Services/CartService.cs
+﻿using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
 using Otomar.Application.Dtos.Cart;
 using Otomar.Persistance.Options;
-using StackExchange.Redis;
 using System.Net;
 using System.Text.Json;
 
 namespace Otomar.Persistance.Services
 {
-    public class CartService(
-        IConnectionMultiplexer redis,
-        IProductService productService,
-        ShippingOptions shippingOptions,
-        ILogger<CartService> logger,
-        RedisOptions redisOptions) : ICartService
+    public class CartService : ICartService
     {
-        private readonly IDatabase _redis = redis.GetDatabase();
-        private readonly TimeSpan _cartExpiration = TimeSpan.FromDays(redisOptions.CartExpirationDays);
+        private readonly IDistributedCache _cache;
+        private readonly IProductService _productService;
+        private readonly ShippingOptions _shippingOptions;
+        private readonly ILogger<CartService> _logger;
+        private readonly TimeSpan _cartExpiration;
 
+        public CartService(
+            IDistributedCache cache,
+            IProductService productService,
+            IOptions<ShippingOptions> shippingOptions,
+            IOptions<RedisOptions> redisOptions,
+            ILogger<CartService> logger)
+        {
+            _cache = cache;
+            _productService = productService;
+            _shippingOptions = shippingOptions.Value;
+            _logger = logger;
+            _cartExpiration = TimeSpan.FromDays(redisOptions.Value.CartExpirationDays);
+        }
 
-        public async Task<ServiceResult<CartDto>> AddToCartAsync(string cartKey, AddToCartDto dto, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<CartDto>> AddToCartAsync(
+            string cartKey,
+            AddToCartDto dto,
+            CancellationToken cancellationToken = default)
         {
             try
             {
                 if (dto.Quantity <= 0)
                 {
-                    return ServiceResult<CartDto>.Error("Miktar 0'dan büyük olmalıdır", HttpStatusCode.BadRequest);
+                    return ServiceResult<CartDto>.Error(
+                        "Miktar 0'dan büyük olmalıdır",
+                        HttpStatusCode.BadRequest);
                 }
 
                 // Ürün bilgilerini getir
-                var productResult = await productService.GetProductByIdAsync(dto.ProductId);
+                var productResult = await _productService.GetProductByIdAsync(dto.ProductId);
                 if (!productResult.IsSuccess || productResult.Data == null)
                 {
-                    logger.LogWarning($"Ürün bulunamadı: {dto.ProductId}");
-                    return ServiceResult<CartDto>.Error("Ürün bulunamadı", HttpStatusCode.NotFound);
+                    _logger.LogWarning("Ürün bulunamadı: {ProductId}", dto.ProductId);
+                    return ServiceResult<CartDto>.Error(
+                        "Ürün bulunamadı",
+                        HttpStatusCode.NotFound);
                 }
 
                 var product = productResult.Data;
@@ -43,11 +61,13 @@ namespace Otomar.Persistance.Services
                 // Stok kontrolü
                 if (product.STOK_BAKIYE.HasValue && product.STOK_BAKIYE < dto.Quantity)
                 {
-                    return ServiceResult<CartDto>.Error($"Yeterli stok yok. Mevcut: {product.STOK_BAKIYE}", HttpStatusCode.BadRequest);
+                    return ServiceResult<CartDto>.Error(
+                        $"Yeterli stok yok. Mevcut: {product.STOK_BAKIYE}",
+                        HttpStatusCode.BadRequest);
                 }
 
                 // Mevcut sepeti getir
-                var cart = await GetCartInternalAsync(cartKey);
+                var cart = await GetCartInternalAsync(cartKey, cancellationToken);
 
                 // Ürün sepette var mı kontrol et
                 var existingItem = cart.Items.FirstOrDefault(x => x.ProductId == dto.ProductId);
@@ -60,7 +80,9 @@ namespace Otomar.Persistance.Services
                     // Stok kontrolü tekrar
                     if (product.STOK_BAKIYE.HasValue && product.STOK_BAKIYE < newQuantity)
                     {
-                        return ServiceResult<CartDto>.Error($"Yeterli stok yok. Mevcut: {product.STOK_BAKIYE}", HttpStatusCode.BadRequest);
+                        return ServiceResult<CartDto>.Error(
+                            $"Yeterli stok yok. Mevcut: {product.STOK_BAKIYE}",
+                            HttpStatusCode.BadRequest);
                     }
 
                     existingItem.Quantity = newQuantity;
@@ -82,37 +104,46 @@ namespace Otomar.Persistance.Services
                 }
 
                 // Kargo ücreti hesapla
-                cart.ShippingCost = cart.SubTotal >= shippingOptions.Threshold ? 0 : shippingOptions.Cost;
+                cart.ShippingCost = CalculateShippingCost(cart.SubTotal);
 
                 // Redis'e kaydet
-                await SaveCartAsync(cartKey, cart);
+                await SaveCartAsync(cartKey, cart, cancellationToken);
 
-                logger.LogInformation($"Sepete ürün eklendi. CartKey: {cartKey}, ProductId: {dto.ProductId}, Quantity: {dto.Quantity}");
+                _logger.LogInformation(
+                    "Sepete ürün eklendi. CartKey: {CartKey}, ProductId: {ProductId}, Quantity: {Quantity}",
+                    cartKey, dto.ProductId, dto.Quantity);
 
                 return ServiceResult<CartDto>.SuccessAsOk(cart);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "AddToCartAsync işleminde hata");
+                _logger.LogError(ex, "AddToCartAsync işleminde hata. CartKey: {CartKey}", cartKey);
                 throw;
             }
         }
 
-        public async Task<ServiceResult<CartDto>> UpdateCartItemAsync(string cartKey, UpdateCartItemDto dto, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<CartDto>> UpdateCartItemAsync(
+            string cartKey,
+            UpdateCartItemDto dto,
+            CancellationToken cancellationToken = default)
         {
             try
             {
                 if (dto.Quantity < 0)
                 {
-                    return ServiceResult<CartDto>.Error("Miktar 0'dan küçük olamaz", HttpStatusCode.BadRequest);
+                    return ServiceResult<CartDto>.Error(
+                        "Miktar 0'dan küçük olamaz",
+                        HttpStatusCode.BadRequest);
                 }
 
-                var cart = await GetCartInternalAsync(cartKey);
+                var cart = await GetCartInternalAsync(cartKey, cancellationToken);
 
                 var item = cart.Items.FirstOrDefault(x => x.ProductId == dto.ProductId);
                 if (item == null)
                 {
-                    return ServiceResult<CartDto>.Error("Ürün sepette bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<CartDto>.Error(
+                        "Ürün sepette bulunamadı",
+                        HttpStatusCode.NotFound);
                 }
 
                 if (dto.Quantity == 0)
@@ -125,131 +156,175 @@ namespace Otomar.Persistance.Services
                     // Stok kontrolü
                     if (item.StockQuantity.HasValue && item.StockQuantity < dto.Quantity)
                     {
-                        return ServiceResult<CartDto>.Error($"Yeterli stok yok. Mevcut: {item.StockQuantity}", HttpStatusCode.BadRequest);
+                        return ServiceResult<CartDto>.Error(
+                            $"Yeterli stok yok. Mevcut: {item.StockQuantity}",
+                            HttpStatusCode.BadRequest);
                     }
 
                     item.Quantity = dto.Quantity;
                 }
 
                 // Kargo ücreti hesapla
-                cart.ShippingCost = cart.SubTotal >= shippingOptions.Threshold ? 0 : shippingOptions.Cost;
+                cart.ShippingCost = CalculateShippingCost(cart.SubTotal);
 
-                await SaveCartAsync(cartKey, cart);
+                await SaveCartAsync(cartKey, cart, cancellationToken);
 
-                logger.LogInformation($"Sepet güncellendi. CartKey: {cartKey}, ProductId: {dto.ProductId}, Quantity: {dto.Quantity}");
+                _logger.LogInformation(
+                    "Sepet güncellendi. CartKey: {CartKey}, ProductId: {ProductId}, Quantity: {Quantity}",
+                    cartKey, dto.ProductId, dto.Quantity);
 
                 return ServiceResult<CartDto>.SuccessAsOk(cart);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "UpdateCartItemAsync işleminde hata");
+                _logger.LogError(ex, "UpdateCartItemAsync işleminde hata. CartKey: {CartKey}", cartKey);
                 throw;
             }
         }
 
-        public async Task<ServiceResult<CartDto>> RemoveFromCartAsync(string cartKey, int productId, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<CartDto>> RemoveFromCartAsync(
+            string cartKey,
+            int productId,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                var cart = await GetCartInternalAsync(cartKey);
+                var cart = await GetCartInternalAsync(cartKey, cancellationToken);
 
                 var item = cart.Items.FirstOrDefault(x => x.ProductId == productId);
                 if (item == null)
                 {
-                    return ServiceResult<CartDto>.Error("Ürün sepette bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<CartDto>.Error(
+                        "Ürün sepette bulunamadı",
+                        HttpStatusCode.NotFound);
                 }
 
                 cart.Items.Remove(item);
 
                 // Kargo ücreti hesapla
-                cart.ShippingCost = cart.SubTotal >= shippingOptions.Threshold ? 0 : shippingOptions.Cost;
+                cart.ShippingCost = CalculateShippingCost(cart.SubTotal);
 
-                await SaveCartAsync(cartKey, cart);
+                await SaveCartAsync(cartKey, cart, cancellationToken);
 
-                logger.LogInformation($"Ürün sepetten silindi. CartKey: {cartKey}, ProductId: {productId}");
+                _logger.LogInformation(
+                    "Ürün sepetten silindi. CartKey: {CartKey}, ProductId: {ProductId}",
+                    cartKey, productId);
 
                 return ServiceResult<CartDto>.SuccessAsOk(cart);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "RemoveFromCartAsync işleminde hata");
+                _logger.LogError(ex, "RemoveFromCartAsync işleminde hata. CartKey: {CartKey}", cartKey);
                 throw;
             }
         }
 
-        public async Task<ServiceResult<CartDto>> GetCartAsync(string cartKey, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<CartDto>> GetCartAsync(
+            string cartKey,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                var cart = await GetCartInternalAsync(cartKey);
+                var cart = await GetCartInternalAsync(cartKey, cancellationToken);
 
                 // Kargo ücreti hesapla
-                cart.ShippingCost = cart.SubTotal >= shippingOptions.Threshold ? 0 : shippingOptions.Cost;
+                cart.ShippingCost = CalculateShippingCost(cart.SubTotal);
 
                 return ServiceResult<CartDto>.SuccessAsOk(cart);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "GetCartAsync işleminde hata");
+                _logger.LogError(ex, "GetCartAsync işleminde hata. CartKey: {CartKey}", cartKey);
                 throw;
             }
         }
 
-        public async Task<ServiceResult> ClearCartAsync(string cartKey, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult> ClearCartAsync(
+            string cartKey,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                await _redis.KeyDeleteAsync(cartKey);
+                await _cache.RemoveAsync(cartKey, cancellationToken);
 
-                logger.LogInformation($"Sepet temizlendi. CartKey: {cartKey}");
+                _logger.LogInformation("Sepet temizlendi. CartKey: {CartKey}", cartKey);
 
                 return ServiceResult.SuccessAsNoContent();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "ClearCartAsync işleminde hata");
+                _logger.LogError(ex, "ClearCartAsync işleminde hata. CartKey: {CartKey}", cartKey);
                 throw;
             }
         }
 
-        public async Task<ServiceResult> RefreshCartAsync(string cartKey, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult> RefreshCartAsync(
+            string cartKey,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                var exists = await _redis.KeyExistsAsync(cartKey);
-                if (exists)
+                // Cache'den sepeti al
+                var cartJson = await _cache.GetStringAsync(cartKey, cancellationToken);
+
+                if (string.IsNullOrEmpty(cartJson))
                 {
-                    await _redis.KeyExpireAsync(cartKey, _cartExpiration);
-                    logger.LogInformation($"Sepet TTL'i yenilendi. CartKey: {cartKey}");
+                    _logger.LogWarning("Yenilenecek sepet bulunamadı. CartKey: {CartKey}", cartKey);
+                    return ServiceResult.SuccessAsNoContent();
                 }
 
+                // Tekrar kaydet (TTL yenilenir)
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = _cartExpiration
+                };
+
+                await _cache.SetStringAsync(cartKey, cartJson, cacheOptions, cancellationToken);
+
+                _logger.LogInformation("Sepet TTL'i yenilendi. CartKey: {CartKey}", cartKey);
+
                 return ServiceResult.SuccessAsNoContent();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "RefreshCartAsync işleminde hata");
+                _logger.LogError(ex, "RefreshCartAsync işleminde hata. CartKey: {CartKey}", cartKey);
                 throw;
             }
         }
 
         // Private helper methods
-        private async Task<CartDto> GetCartInternalAsync(string cartKey)
+        private async Task<CartDto> GetCartInternalAsync(
+            string cartKey,
+            CancellationToken cancellationToken = default)
         {
-            var cartJson = await _redis.StringGetAsync(cartKey);
+            var cartJson = await _cache.GetStringAsync(cartKey, cancellationToken);
 
-            if (cartJson.IsNullOrEmpty)
+            if (string.IsNullOrEmpty(cartJson))
             {
                 return new CartDto();
             }
 
-            var cart = JsonSerializer.Deserialize<CartDto>(cartJson.ToString());
+            var cart = JsonSerializer.Deserialize<CartDto>(cartJson);
             return cart ?? new CartDto();
         }
 
-        private async Task SaveCartAsync(string cartKey, CartDto cart)
+        private async Task SaveCartAsync(
+            string cartKey,
+            CartDto cart,
+            CancellationToken cancellationToken = default)
         {
+            var cacheOptions = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = _cartExpiration
+            };
+
             var cartJson = JsonSerializer.Serialize(cart);
-            await _redis.StringSetAsync(cartKey, cartJson, _cartExpiration);
+            await _cache.SetStringAsync(cartKey, cartJson, cacheOptions, cancellationToken);
+        }
+
+        private decimal CalculateShippingCost(decimal subTotal)
+        {
+            return subTotal >= _shippingOptions.Threshold ? 0 : _shippingOptions.Cost;
         }
     }
 }

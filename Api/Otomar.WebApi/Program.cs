@@ -5,19 +5,15 @@ using Otomar.WebApi.Extensions;
 using Otomar.WebApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    // kasA_ADI => KASA_ADI olarak gelsin diye eklendi
-    options.SerializerOptions.PropertyNamingPolicy = null;
-});
 builder.Services.AddOptionsExtensions();
 
 builder.Services.AddApplicationServices()
-                .AddPersistanceServices()
+                .AddPersistanceServices(builder.Configuration)
                 .AddWebApiServices(builder.Configuration, builder.Host);
+
+builder.Services.AddHealthCheckServices(builder.Configuration);
+
 var app = builder.Build();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
@@ -30,5 +26,7 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = "swagger";
     });
 }
+app.MapHealthCheckServices();
+
 app.MapCarter();
 app.Run();

@@ -5,7 +5,7 @@ using Otomar.WebApp.Services.Interfaces;
 namespace Otomar.WebApp.Controllers
 {
     [Route("odeme")]
-    public class PaymentController(IPaymentApiService paymentApiService) : Controller
+    public class PaymentController(IPaymentApiService paymentApiService, ILogger<PaymentController> logger) : Controller
     {
         [HttpGet("")]
         public IActionResult Index()
@@ -33,8 +33,9 @@ namespace Otomar.WebApp.Controllers
                     return BadRequest("/odeme/3d/basarisiz");
                 }
 
-                var orderCode = result.Data.GetValueOrDefault("oid");
-                return Ok($"/odeme/3d/yonlendirme/{orderCode}");
+                TempData["ThreeDVerificationUrl"] = result.Data.GetValueOrDefault("ThreeDVerificationUrl");
+                TempData["OrderCode"] = result.Data.GetValueOrDefault("oid");
+                return Ok($"/odeme/3d/yonlendirme");
             }
             catch (Exception ex)
             {
@@ -43,11 +44,13 @@ namespace Otomar.WebApp.Controllers
             }
         }
 
-        [HttpGet("3d/yonlendirme/{orderCode}")]
-        public async Task<IActionResult> ThreeDRedirect(string orderCode, CancellationToken cancellationToken)
+        [HttpGet("3d/yonlendirme")]
+        public async Task<IActionResult> ThreeDRedirect(CancellationToken cancellationToken)
         {
             try
             {
+                var orderCode = TempData["OrderCode"] as string;
+                var ThreeDVerificationUrl = TempData["ThreeDVerificationUrl"] as string;
                 if (string.IsNullOrEmpty(orderCode))
                 {
                     TempData["ErrorMessage"] = "Sipariş kodu bulunamadı. Lütfen tekrar deneyiniz.";
@@ -63,13 +66,13 @@ namespace Otomar.WebApp.Controllers
                     return Redirect("/odeme/3d/basarisiz");
                 }
 
-                //ViewBag.ThreeDVerificationUrl = result.Data?.GetValueOrDefault("ThreeDVerificationUrl");
-                ViewBag.ThreeDVerificationUrl = "https://istest.asseco-see.com.tr/fim/est3Dgate";
+                ViewBag.ThreeDVerificationUrl = ThreeDVerificationUrl;
 
                 return View(result.Data);
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "3D yönlendirme hatası");
                 TempData["ErrorMessage"] = "Bir hata oluştu. Lütfen tekrar deneyiniz.";
                 return Redirect("/odeme/3d/basarisiz");
             }
@@ -126,7 +129,8 @@ namespace Otomar.WebApp.Controllers
         }
 
         [HttpGet("basarisiz/{paymentId:guid?}")]
-        public async Task<IActionResult> PaymentFailed(Guid? paymentId, CancellationToken cancellationToken)
+        [HttpPost("basarisiz")]
+        public async Task<IActionResult> PaymentFailed([FromForm] Dictionary<string, string>? parameters, Guid? paymentId, CancellationToken cancellationToken)
         {
             ViewBag.ErrorMessage = TempData["ErrorMessage"] as string ?? "Bir hata oluştu";
 

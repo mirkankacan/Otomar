@@ -24,13 +24,8 @@ namespace Otomar.Persistance.Services
                 var userId = identityService.GetUserId() ?? null;
 
                 var subTotalAmount = createOrderDto.Items.Sum(item => item.UnitPrice * item.Quantity);
-                var totalAmount = subTotalAmount;
-                decimal shippingCost = 0;
-                if (subTotalAmount < shippingOptions.Threshold)
-                {
-                    shippingCost = shippingOptions.Cost;
-                    totalAmount = shippingCost + subTotalAmount;
-                }
+                decimal shippingCost = subTotalAmount >= shippingOptions.Threshold ? 0 : shippingOptions.Cost;
+                decimal totalAmount = subTotalAmount + shippingCost;
 
                 var orderInsertQuery = @"
             INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,ShippingAmount,SubTotalAmount, BillingName, BillingPhone, BillingCity, BillingDistrict, BillingStreet, ShippingName, ShippingPhone, ShippingCity,ShippingDistrict, ShippingStreet, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, IsEInvoiceUser, Email, IdentityNumber)
@@ -82,14 +77,12 @@ namespace Otomar.Persistance.Services
 
                 await context.Connection.ExecuteAsync(itemInsertQuery, orderItems, transaction);
 
-                transaction.Commit();
                 logger.LogInformation($"{orderId} ID'li sipariş oluşturuldu");
 
                 return ServiceResult<Guid>.SuccessAsCreated(orderId, $"/api/orders/{orderId}");
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 logger.LogError(ex, "CreateOrderAsync işleminde hata");
                 throw;
             }

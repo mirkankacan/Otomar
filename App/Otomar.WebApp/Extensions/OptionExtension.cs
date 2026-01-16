@@ -1,12 +1,14 @@
 ﻿using Microsoft.Extensions.Options;
+using Otomar.WebApp.Options;
 
-namespace Otomar.WebApp.Options
+namespace Otomar.WebApp.Extensions
 {
     public static class OptionsExtension
     {
         public static IServiceCollection AddOptionsExtensions(this IServiceCollection services)
         {
             services.AddValidatedOptions<ShippingOptions>();
+            services.AddValidatedOptions<ApiOptions>();
 
             return services;
         }

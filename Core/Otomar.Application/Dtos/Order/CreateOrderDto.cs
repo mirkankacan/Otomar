@@ -1,8 +1,12 @@
-﻿namespace Otomar.Application.Dtos.Order
+﻿using System.Text.Json.Serialization;
+
+namespace Otomar.Application.Dtos.Order
 {
     public class CreateOrderDto
     {
+        [JsonIgnore]
         public string Code { get; set; }
+
         public string Email { get; set; }
         public string IdentityNumber { get; set; }
         public List<CreateOrderItemDto> Items { get; set; } = new();

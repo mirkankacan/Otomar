@@ -11,8 +11,8 @@ using Otomar.Application.Dtos.Payment;
 using Otomar.Application.Enums;
 using Otomar.Persistance.Data;
 using Otomar.Persistance.Options;
+using System.Globalization;
 using System.Net;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
@@ -20,7 +20,7 @@ using System.Xml.Serialization;
 
 namespace Otomar.Persistance.Services
 {
-    public class PaymentService(IAppDbContext context, HttpClient httpClient, IHttpContextAccessor accessor, IIdentityService identityService, PaymentOptions paymentOptions, ILogger<PaymentService> logger, IDistributedCache cache, IOrderService orderService) : IPaymentService
+    public class PaymentService(IAppDbContext context, HttpClient httpClient, IHttpContextAccessor accessor, IIdentityService identityService, PaymentOptions paymentOptions, ILogger<PaymentService> logger, IDistributedCache cache, IOrderService orderService, ICartService cartService) : IPaymentService
     {
         public async Task<ServiceResult<Guid>> CreatePaymentAsync(Dictionary<string, string> parameters, CancellationToken cancellationToken)
         {
@@ -37,13 +37,13 @@ namespace Otomar.Persistance.Services
                     logger.LogError($"Bankadan cevap alınamadı");
                     return ServiceResult<Guid>.Error("Bankadan cevap alınamadı", HttpStatusCode.BadRequest);
                 }
-
+                var md = parameters.GetValueOrDefault("md");
                 var isPaymentSuccessful = isBankResponse.ProcReturnCode == "00" && isBankResponse.Response.ToLower() == "approved";
 
                 Guid? orderId = null;
 
                 // 1. ÖNCE SİPARİŞ OLUŞTUR (eğer sipariş tipindeyse)
-                var paymentType = parameters.GetValueOrDefault("paymentType");
+                var paymentType = "sanalpos";
 
                 if (paymentType?.ToLower() == "siparis")
                 {
@@ -76,8 +76,8 @@ namespace Otomar.Persistance.Services
                 var totalAmount = Convert.ToDecimal(parameters.GetValueOrDefault("amount"));
 
                 var paymentInsertQuery = @"
-        INSERT INTO IdtPayments (Id, UserId, OrderCode, TotalAmount, Status, CreatedAt, IpAddress, BankResponse, BankAuthCode, BankHostRefNum, BankProcReturnCode, BankTransId, BankErrMsg, BankErrorCode, BankSettleId, BankTrxDate, BankCardBrand, BankCardIssuer, BankAvsApprove, BankHostDate, BankAvsErrorCodeDetail, BankNumCode, CardNumber, Type)
-        VALUES (@Id, @UserId, @OrderCode, @TotalAmount, @Status, @CreatedAt, @IpAddress, @BankResponse, @BankAuthCode, @BankHostRefNum, @BankProcReturnCode, @BankTransId, @BankErrMsg, @BankErrorCode, @BankSettleId, @BankTrxDate, @BankCardBrand, @BankCardIssuer, @BankAvsApprove, @BankHostDate, @BankAvsErrorCodeDetail, @BankNumCode, @CardNumber, @Type);";
+        INSERT INTO IdtPayments (Id, UserId, OrderCode, TotalAmount, Status, CreatedAt, IpAddress, BankResponse, BankAuthCode, BankHostRefNum, BankProcReturnCode, BankTransId, BankErrMsg, BankErrorCode, BankSettleId, BankTrxDate, BankCardBrand, BankCardIssuer, BankAvsApprove, BankHostDate, BankAvsErrorCodeDetail, BankNumCode, Type)
+        VALUES (@Id, @UserId, @OrderCode, @TotalAmount, @Status, @CreatedAt, @IpAddress, @BankResponse, @BankAuthCode, @BankHostRefNum, @BankProcReturnCode, @BankTransId, @BankErrMsg, @BankErrorCode, @BankSettleId, @BankTrxDate, @BankCardBrand, @BankCardIssuer, @BankAvsApprove, @BankHostDate, @BankAvsErrorCodeDetail, @BankNumCode, @Type);";
 
                 var paymentParameters = new DynamicParameters();
                 paymentParameters.Add("Id", paymentId);
@@ -102,7 +102,6 @@ namespace Otomar.Persistance.Services
                 paymentParameters.Add("BankHostDate", isBankResponse.HostDate);
                 paymentParameters.Add("BankAvsErrorCodeDetail", isBankResponse.AvsErrorCodeDetail);
                 paymentParameters.Add("BankNumCode", isBankResponse.NumCode);
-                paymentParameters.Add("CardNumber", parameters.GetValueOrDefault("md"));
                 paymentParameters.Add("Type", paymentType);
 
                 await context.Connection.ExecuteAsync(paymentInsertQuery, paymentParameters, transaction);
@@ -141,6 +140,16 @@ namespace Otomar.Persistance.Services
                 if (paymentType?.ToLower() == "siparis")
                 {
                     await cache.RemoveAsync($"order_session_{orderCode}", cancellationToken);
+                    var cartSessionId = await cache.GetStringAsync($"cart_session_{orderCode}", cancellationToken);
+
+                    // Cart key'i belirle
+                    var cartKey = GetCartKeyForPayment(userId, cartSessionId);
+
+                    // Sepeti temizle
+                    await cartService.ClearCartAsync(cartKey, cancellationToken);
+
+                    // Cache'den cart session ID'yi sil
+                    await cache.RemoveAsync($"cart_session_{orderCode}", cancellationToken);
                 }
 
                 if (!isPaymentSuccessful)
@@ -283,6 +292,7 @@ namespace Otomar.Persistance.Services
                 var refreshTime = paymentOptions.RefreshTime;
                 var rnd = DateTime.Now.Ticks.ToString();
                 var installment = string.Empty; // Taksit yoksa empty gönderilmeli
+                var amountStr = initializePaymentDto.TotalAmount.ToString("0.##", CultureInfo.InvariantCulture);
 
                 var parameters = new Dictionary<string, string>
                 {
@@ -290,7 +300,7 @@ namespace Otomar.Persistance.Services
                     { "storetype",  storeType },
                     { "TranType",  transactionType },
                     { "currency",  currency },
-                    { "amount",  initializePaymentDto.TotalAmount.ToString() },
+                    { "amount",  amountStr },
                     { "oid",  orderCode },
                     { "okUrl",  okUrl },
                     { "failUrl",  failUrl },
@@ -299,12 +309,11 @@ namespace Otomar.Persistance.Services
                     { "rnd",  rnd },
                     { "hashAlgorithm",  hashAlgorithm },
                     { "refreshTime",  refreshTime },
-                    { "pan",  initializePaymentDto.CreditCardNumber },
-                    { "cv2",  initializePaymentDto.CreditCardCvv },
+                    { "pan",  initializePaymentDto.CreditCardNumber},
+                    { "cv2",  initializePaymentDto.CreditCardCvv},
                     { "Ecom_Payment_Card_ExpDate_Year",  initializePaymentDto.CreditCardExpDateYear },
                     { "Ecom_Payment_Card_ExpDate_Month",  initializePaymentDto.CreditCardExpDateMonth },
-                    //{ "paymentType",  initializePaymentDto.Order != null ? "siparis" : "sanalpos" },
-                    //{ "3dVerificationUrl", paymentOptions.ThreeDVerificationUrl }
+                    { "Email",  "mirkankacan@ideaktif.com.tr"},
                 };
 
                 parameters["hash"] = GenerateHash(parameters);
@@ -336,6 +345,16 @@ namespace Otomar.Persistance.Services
                     );
                 }
 
+                var cartSessionId = accessor.HttpContext?.Request.Cookies["CartSessionId"];
+                if (!string.IsNullOrEmpty(cartSessionId))
+                {
+                    await cache.SetStringAsync(
+                        $"cart_session_{orderCode}",
+                        cartSessionId,
+                        cacheOptions,
+                        cancellationToken
+                    );
+                }
                 return ServiceResult<Dictionary<string, string>>.SuccessAsOk(new Dictionary<string, string>
                 {
                     { "oid", orderCode },
@@ -377,50 +396,59 @@ namespace Otomar.Persistance.Services
             }
         }
 
-        private string GenerateHash(Dictionary<string, string> parameters)
+        private string GetCartKeyForPayment(string? userId, string? cartSessionId)
         {
-            // "encoding" ve "hash" parametreleri hash hesaplamasına dahil edilmez
-            var filteredParams = parameters
-                .Where(p => p.Key != "encoding" && p.Key != "hash")
-                .OrderBy(p => p.Key, StringComparer.OrdinalIgnoreCase) // Alfabetik sıralama (A-Z)
-                .ToList();
-
-            // Plain text oluşturma
-            var plainTextBuilder = new StringBuilder();
-
-            foreach (var param in filteredParams)
+            // 1. Öncelik: Giriş yapmış kullanıcı
+            if (!string.IsNullOrEmpty(userId))
             {
-                // Değer içindeki özel karakterleri escape et
-                var escapedValue = EscapeValue(param.Value ?? string.Empty);
-                plainTextBuilder.Append(escapedValue);
-                plainTextBuilder.Append("|");
+                return $"cart:user:{userId}";
             }
 
-            // Sonuna storeKey ekle
-            plainTextBuilder.Append(paymentOptions.StoreKey);
-
-            var plainText = plainTextBuilder.ToString();
-
-            // SHA-512 ile hash'le ve Base64 encode et
-            using (var sha512 = SHA512.Create())
+            // 2. Öncelik: Cache'den gelen session ID
+            if (!string.IsNullOrEmpty(cartSessionId))
             {
-                var hashBytes = sha512.ComputeHash(Encoding.UTF8.GetBytes(plainText));
-                return Convert.ToBase64String(hashBytes);
+                return $"cart:session:{cartSessionId}";
             }
+
+            // 3. Fallback: Mevcut cookie'den oku (nadiren olur)
+            var currentSessionId = accessor.HttpContext?.Request.Cookies["CartSessionId"];
+            if (!string.IsNullOrEmpty(currentSessionId))
+            {
+                return $"cart:session:{currentSessionId}";
+            }
+
+            // 4. Son çare: Yeni session (bu durumda sepet bulunamaz ama hata vermez)
+            logger.LogWarning("Cart key belirlenemedi, fallback kullanılıyor");
+            return $"cart:session:{Guid.NewGuid()}";
         }
 
-        private string EscapeValue(string value)
+        private string GenerateHash(Dictionary<string, string> formData)
         {
-            if (string.IsNullOrEmpty(value))
-                return string.Empty;
+            var sortedParams = formData
+                .Where(p => !string.Equals(p.Key, "encoding", StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(p.Key, "hash", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(p => p.Key.ToLower(new CultureInfo("en-US", false)))
+                .ToList();
 
-            // Önce "\" karakterini "\\" ile değiştir
-            value = value.Replace("\\", "\\\\");
+            var hashVal = new StringBuilder();
+            var paramsKeys = new StringBuilder();
 
-            // Sonra "|" karakterini "\|" ile değiştir
-            value = value.Replace("|", "\\|");
+            foreach (var pair in sortedParams)
+            {
+                var escapedValue = pair.Value?.Replace("\\", "\\\\").Replace("|", "\\|") ?? string.Empty;
+                var lowerKey = pair.Key.ToLower(new CultureInfo("en-US", false));
 
-            return value;
+                hashVal.Append(escapedValue).Append("|");
+                paramsKeys.Append(lowerKey).Append("|");
+            }
+
+            hashVal.Append(paymentOptions.StoreKey);
+
+            using var sha = System.Security.Cryptography.SHA512.Create();
+            var hashBytes = Encoding.UTF8.GetBytes(hashVal.ToString());
+            var computedHash = sha.ComputeHash(hashBytes);
+
+            return Convert.ToBase64String(computedHash);
         }
 
         private bool ValidateHash(Dictionary<string, string> parameters)

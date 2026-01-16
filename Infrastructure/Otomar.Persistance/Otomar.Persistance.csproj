@@ -1,27 +1,37 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.SignalR" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.UI" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
+		<PackageReference Include="Dapper" Version="2.1.66" />
+		<PackageReference Include="Humanizer.Core.tr" Version="3.0.1" />
+		<PackageReference Include="IdentityModel" Version="5.2.0" />
+		<PackageReference Include="KubernetesClient" Version="18.0.13" />
+		<PackageReference Include="MailKit" Version="4.14.1" />
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.2" />
 
-  <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.1.66" />
-    <PackageReference Include="Humanizer.Core.tr" Version="3.0.1" />
-    <PackageReference Include="MailKit" Version="4.14.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.1" />
-    <PackageReference Include="NewId" Version="4.0.1" />
-    <PackageReference Include="StackExchange.Redis" Version="2.10.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\core\Otomar.Application\Otomar.Application.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="MailTemplates\*.html" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.2" />
+		<PackageReference Include="NewId" Version="4.0.1" />
+		<PackageReference Include="StackExchange.Redis" Version="2.10.1" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\core\Otomar.Application\Otomar.Application.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="MailTemplates\*.html" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
 </Project>

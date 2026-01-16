@@ -20,7 +20,6 @@
     </div>
 </section>
 <!-- End breadcrumb section -->
-
 <!-- Start virtual pos section -->
 <section class="checkout__section section--padding">
     <div class="container">
@@ -44,15 +43,15 @@
                                                     Kart Numarası <span class="text-danger">*</span>
                                                 </label>
                                                 <input class="checkout__form--input" type="text" id="creditCardNumber"
-                                                    name="creditCardNumber" placeholder="0000 0000 0000 0000"
-                                                    maxlength="19" value="5218 4879 6245 9752" required>
+                                                       name="creditCardNumber" placeholder="0000 0000 0000 0000"
+                                                       maxlength="19" value="5218 4879 6245 9752" required>
                                             </div>
                                             <div class="col-lg-6 mb-20">
                                                 <label class="checkout__form--label" for="creditCardExpDateMonth">
                                                     Ay <span class="text-danger">*</span>
                                                 </label>
                                                 <select class="checkout__form--input" id="creditCardExpDateMonth"
-                                                    name="creditCardExpDateMonth" required>
+                                                        name="creditCardExpDateMonth" required>
                                                     <option value="">Seçiniz</option>
                                                     @{
                                                         var nextMonth = DateTime.Now.AddMonths(1).Month;
@@ -62,7 +61,8 @@
                                                     {
                                                         if (i == nextMonth)
                                                         {
-                                                            <option value="@i.ToString("00")" selected>@i.ToString("00")
+                                                            <option value="@i.ToString("00")" selected>
+                                                                @i.ToString("00")
                                                             </option>
                                                         }
                                                         else
@@ -77,17 +77,17 @@
                                                     Yıl <span class="text-danger">*</span>
                                                 </label>
                                                 <select class="checkout__form--input" id="creditCardExpDateYear"
-                                                    name="creditCardExpDateYear" required>
+                                                        name="creditCardExpDateYear" required>
                                                     <option value="">Seçiniz</option>
                                                     @for (int i = DateTime.Now.Year; i <= DateTime.Now.Year + 10; i++)
                                                     {
                                                         if (i == nextYear)
                                                         {
-                                                            <option value="@i.ToString().Substring(2)" selected>@i</option>
+                                                            <option value="@i.ToString()" selected>@i</option>
                                                         }
                                                         else
                                                         {
-                                                            <option value="@i.ToString().Substring(2)">@i</option>
+                                                            <option value="@i.ToString()">@i</option>
                                                         }
                                                     }
                                                 </select>
@@ -97,8 +97,8 @@
                                                     CVV <span class="text-danger">*</span>
                                                 </label>
                                                 <input class="checkout__form--input" type="text" id="creditCardCvv"
-                                                    name="creditCardCvv" placeholder="000" maxlength="3" value="000"
-                                                    required>
+                                                       name="creditCardCvv" placeholder="000" maxlength="3" value="000"
+                                                       required>
                                             </div>
                                         </div>
                                     </div>
@@ -112,8 +112,10 @@
                                             <table class="checkout__summary--total__table">
                                                 <tbody>
                                                     <tr class="checkout__summary--total__list">
-                                                        <td class="checkout__summary--total__title text-left">Toplam
-                                                            Tutar</td>
+                                                        <td class="checkout__summary--total__title text-left">
+                                                            Toplam
+                                                            Tutar
+                                                        </td>
                                                         <td class="checkout__summary--amount text-right">
                                                             <span id="totalAmountDisplay">100,00 ₺</span>
                                                         </td>
@@ -121,8 +123,10 @@
                                                 </tbody>
                                                 <tfoot class="checkout__summary--footer">
                                                     <tr class="checkout__summary--footer__items">
-                                                        <td class="checkout__summary--footer__title text-left">Genel
-                                                            Toplam</td>
+                                                        <td class="checkout__summary--footer__title text-left">
+                                                            Genel
+                                                            Toplam
+                                                        </td>
                                                         <td class="checkout__summary--footer__amount text-right">
                                                             <span id="finalTotalAmountDisplay">100,00 ₺</span>
                                                         </td>
@@ -132,8 +136,8 @@
                                         </div>
                                         <div class="checkout__summary--footer__btn">
                                             <button type="submit"
-                                                class="checkout__summary--footer__btn--link primary__btn"
-                                                id="submitPaymentBtn">
+                                                    class="checkout__summary--footer__btn--link primary__btn"
+                                                    id="submitPaymentBtn">
                                                 Ödemeyi Tamamla
                                             </button>
                                         </div>
@@ -148,7 +152,6 @@
     </div>
 </section>
 <!-- End virtual pos section -->
-
 @section Styles {
     <style>
         .alert {
@@ -171,10 +174,10 @@
             font-size: 14px;
         }
 
-        .checkout__form--input:focus {
-            outline: none;
-            border-color: #007bff;
-        }
+            .checkout__form--input:focus {
+                outline: none;
+                border-color: #007bff;
+            }
 
         .checkout__summary {
             background: #f8f9fa;

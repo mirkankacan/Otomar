@@ -2,25 +2,25 @@
 using Microsoft.Extensions.DependencyInjection;
 using Otomar.Application.Contracts.Services;
 using Otomar.Persistance.Data;
+using Otomar.Persistance.Options;
 using Otomar.Persistance.Services;
-using StackExchange.Redis;
 
 namespace Otomar.Persistance.Extensions
 {
     public static class ServiceRegistration
     {
-        public static IServiceCollection AddPersistanceServices(this IServiceCollection services)
+        public static IServiceCollection AddPersistanceServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddHttpClient();
 
             services.AddHttpContextAccessor();
-            services.AddSingleton<IConnectionMultiplexer>(sp =>
+            services.AddStackExchangeRedisCache(options =>
             {
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                var redisConnectionString = configuration.GetValue<string>("RedisOptions:ConnectionString");
-                return ConnectionMultiplexer.Connect(redisConnectionString);
+                var redisOptions = configuration.GetSection(nameof(RedisOptions)).Get<RedisOptions>()!;
+
+                options.Configuration = redisOptions.ConnectionString;
+                options.InstanceName = redisOptions.InstanceName;
             });
-            services.AddDistributedMemoryCache();
 
             services.AddScoped<IAppDbContext, AppDbContext>();
             services.AddScoped<IIdentityService, IdentityService>();
