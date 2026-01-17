@@ -5,7 +5,7 @@ namespace Otomar.Application.Contracts.Services
 {
     public interface IProductService
     {
-        Task<ServiceResult<PagedResult<ProductDto>>> GetProductsAsync(int pageNumber, int pageSize, string? orderBy, string? mainCategory, string? subCategory, string? brand, string? model, string? year, string? manufacturer, decimal? minPrice, decimal? maxPrice, string? searchTerm);
+        Task<ServiceResult<PagedResult<ProductDto>>> GetProductsAsync(ProductFilterRequestDto productFilterRequestDto);
 
         Task<ServiceResult<ProductDto?>> GetProductByIdAsync(int id);
 

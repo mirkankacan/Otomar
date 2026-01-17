@@ -1,6 +1,7 @@
 ﻿using Carter;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.Application.Contracts.Services;
+using Otomar.Application.Dtos.Product;
 using Otomar.WebApi.Extensions;
 
 namespace Otomar.WebApi.Endpoints
@@ -12,31 +13,11 @@ namespace Otomar.WebApi.Endpoints
             var group = app.MapGroup("api/products")
                 .WithTags("Products");
 
-            group.MapGet("/", async ([FromQuery] int pageNumber, [FromQuery] int pageSize, [FromQuery] string? orderBy, [FromQuery] string? mainCategory, [FromQuery] string? subCategory, [FromQuery] string? brand, [FromQuery] string? model, [FromQuery] string? year, [FromQuery] string? manufacturer, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice, [FromQuery] string? searchTerm, [FromServices] IProductService productService) =>
+            // Endpoint
+            group.MapGet("/", async ([AsParameters] ProductFilterRequestDto request,
+                                     [FromServices] IProductService productService) =>
             {
-                switch (pageNumber)
-                {
-                    case <= 0:
-                        pageNumber = 1;
-                        break;
-
-                    default:
-                        break;
-                }
-                switch (pageSize)
-                {
-                    case <= 10:
-                        pageSize = 10;
-                        break;
-
-                    case >= 100:
-                        pageSize = 100;
-                        break;
-
-                    default:
-                        break;
-                }
-                var result = await productService.GetProductsAsync(pageNumber, pageSize, orderBy, mainCategory, subCategory, brand, model, year, manufacturer, minPrice, maxPrice, searchTerm);
+                var result = await productService.GetProductsAsync(request);
                 return result.ToGenericResult();
             })
             .WithName("GetProducts");

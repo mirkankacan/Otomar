@@ -10,6 +10,7 @@ using Otomar.Application.Dtos.Order;
 using Otomar.Application.Dtos.Payment;
 using Otomar.Application.Enums;
 using Otomar.Persistance.Data;
+using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
 using System.Globalization;
 using System.Net;
@@ -282,7 +283,7 @@ namespace Otomar.Persistance.Services
             try
             {
                 var transactionType = paymentOptions.TransactionType;
-                var orderCode = GenerateOrderCode();
+                var orderCode = OrderCodeGeneratorHelper.Generate();
                 var currency = paymentOptions.Currency; // TRY 949
                 var okUrl = paymentOptions.OkUrl;
                 var failUrl = paymentOptions.FailUrl;
@@ -461,13 +462,6 @@ namespace Otomar.Persistance.Services
             var calculatedHash = GenerateHash(parameters);
 
             return calculatedHash.Equals(receivedHash, StringComparison.Ordinal);
-        }
-
-        private string GenerateOrderCode()
-        {
-            var random = new Random();
-            var randomNumber = random.Next(10000, 99999);
-            return "OTOMAR" + "-" + DateTime.Now.ToString("yyyyMMddHHmmss") + "-" + randomNumber;
         }
 
         private string GetIpAddress()

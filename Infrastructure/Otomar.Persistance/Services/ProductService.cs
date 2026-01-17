@@ -52,7 +52,6 @@ namespace Otomar.Persistance.Services
                     Top = results[2],
                     ByRate = results[3]
                 };
-                logger.LogInformation("Öne çıkarılmış ürünler getirildi");
                 return ServiceResult<FeaturedProductDto>.SuccessAsOk(homePageProducts);
             }
             catch (Exception ex)
@@ -104,7 +103,6 @@ namespace Otomar.Persistance.Services
                     logger.LogWarning($"'{code}' stok kodlu ürün bulunamadı");
                     return ServiceResult<ProductDto?>.Error($"'{code}' stok kodlu ürün bulunamadı", HttpStatusCode.NotFound);
                 }
-                logger.LogInformation($"'{code}' stok kodlu ürün getirildi");
 
                 return ServiceResult<ProductDto?>.SuccessAsOk(result);
             }
@@ -153,7 +151,6 @@ namespace Otomar.Persistance.Services
                     logger.LogWarning($"'{id}' ID'li ürün bulunamadı");
                     return ServiceResult<ProductDto?>.Error($"'{id}' ID'li ürün bulunamadı", HttpStatusCode.NotFound);
                 }
-                logger.LogInformation($"'{id}' ID'li ürün getirildi");
 
                 return ServiceResult<ProductDto?>.SuccessAsOk(result);
             }
@@ -164,17 +161,16 @@ namespace Otomar.Persistance.Services
             }
         }
 
-        public async Task<ServiceResult<PagedResult<ProductDto>>> GetProductsAsync(int pageNumber, int pageSize, string? orderBy, string? mainCategory, string? subCategory, string? brand, string? model, string? year, string? manufacturer, decimal? minPrice, decimal? maxPrice, string? searchTerm)
+        public async Task<ServiceResult<PagedResult<ProductDto>>> GetProductsAsync(ProductFilterRequestDto productFilterRequestDto)
         {
             try
             {
                 var parameters = new DynamicParameters();
                 var whereConditions = new List<string>();
 
-                // Search term handling - optimized
-                if (!string.IsNullOrWhiteSpace(searchTerm))
+                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.SearchTerm))
                 {
-                    var decodedSearchTerm = HttpUtility.UrlDecode(searchTerm.Trim());
+                    var decodedSearchTerm = HttpUtility.UrlDecode(productFilterRequestDto.SearchTerm.Trim());
                     var searchParts = decodedSearchTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
                     var searchConditions = new List<string>();
@@ -185,7 +181,6 @@ namespace Otomar.Persistance.Services
 
                         if (searchParts.Length == 1)
                         {
-                            // Single term - exact matches first, then LIKE
                             searchConditions.Add($@"
                      (STOK_KODU = @{paramName}
                      OR URETICI_KODU = @{paramName}
@@ -211,55 +206,51 @@ namespace Otomar.Persistance.Services
                     whereConditions.Add($"({string.Join(" AND ", searchConditions)})");
                 }
 
-                // Category filters
-                if (!string.IsNullOrWhiteSpace(mainCategory))
+                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.MainCategory))
                 {
                     whereConditions.Add("ANA_GRUP_ADI LIKE '%' + @mainCategory + '%'");
-                    parameters.Add("mainCategory", HttpUtility.UrlDecode(mainCategory.Trim()));
+                    parameters.Add("mainCategory", HttpUtility.UrlDecode(productFilterRequestDto.MainCategory.Trim()));
                 }
 
-                if (!string.IsNullOrWhiteSpace(subCategory))
+                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.SubCategory))
                 {
                     whereConditions.Add("ALT_GRUP_ADI LIKE '%' + @subCategory + '%'");
-                    parameters.Add("subCategory", HttpUtility.UrlDecode(subCategory.Trim()));
+                    parameters.Add("subCategory", HttpUtility.UrlDecode(productFilterRequestDto.SubCategory.Trim()));
                 }
 
-                // String split filters - for semicolon separated values
-                if (!string.IsNullOrWhiteSpace(brand))
+                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Brand))
                 {
                     whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MARKA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) = @brand)");
-                    parameters.Add("brand", HttpUtility.UrlDecode(brand.Trim()));
+                    parameters.Add("brand", HttpUtility.UrlDecode(productFilterRequestDto.Brand.Trim()));
                 }
 
-                if (!string.IsNullOrWhiteSpace(model))
+                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Model))
                 {
                     whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MODEL_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) = @model)");
-                    parameters.Add("model", HttpUtility.UrlDecode(model.Trim()));
+                    parameters.Add("model", HttpUtility.UrlDecode(productFilterRequestDto.Model.Trim()));
                 }
 
-                if (!string.IsNullOrWhiteSpace(year))
+                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Year))
                 {
                     whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(KASA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) = @year)");
-                    parameters.Add("year", HttpUtility.UrlDecode(year.Trim()));
+                    parameters.Add("year", HttpUtility.UrlDecode(productFilterRequestDto.Year.Trim()));
                 }
 
-                // Price filters
-                if (minPrice.HasValue && minPrice > 0)
+                if (productFilterRequestDto.MinPrice.HasValue && productFilterRequestDto.MinPrice > 0)
                 {
                     whereConditions.Add("SATIS_FIYATI >= @minPrice");
-                    parameters.Add("minPrice", minPrice.Value);
+                    parameters.Add("minPrice", productFilterRequestDto.MinPrice.Value);
                 }
 
-                if (maxPrice.HasValue && maxPrice > 0)
+                if (productFilterRequestDto.MaxPrice.HasValue && productFilterRequestDto.MaxPrice > 0)
                 {
                     whereConditions.Add("SATIS_FIYATI <= @maxPrice");
-                    parameters.Add("maxPrice", maxPrice.Value);
+                    parameters.Add("maxPrice", productFilterRequestDto.MaxPrice.Value);
                 }
 
-                // Manufacturer filter - comma separated
-                if (!string.IsNullOrWhiteSpace(manufacturer))
+                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Manufacturer))
                 {
-                    var decodedManufacturer = HttpUtility.UrlDecode(manufacturer);
+                    var decodedManufacturer = HttpUtility.UrlDecode(productFilterRequestDto.Manufacturer);
                     var manufacturerList = decodedManufacturer.Split(',', StringSplitOptions.RemoveEmptyEntries)
                         .Select(c => c.Trim())
                         .Where(c => !string.IsNullOrEmpty(c))
@@ -282,7 +273,7 @@ namespace Otomar.Persistance.Services
                 var whereClause = whereConditions.Count > 0 ? $"WHERE {string.Join(" AND ", whereConditions)}" : "";
 
                 // Sorting
-                var decodedSortBy = HttpUtility.UrlDecode(orderBy ?? "");
+                var decodedSortBy = HttpUtility.UrlDecode(productFilterRequestDto.OrderBy ?? "");
                 var orderByClause = decodedSortBy switch
                 {
                     "latest" => " ORDER BY WEB_GOSTER_TARIH DESC",
@@ -293,9 +284,9 @@ namespace Otomar.Persistance.Services
                 };
 
                 // Pagination
-                var offset = (pageNumber - 1) * pageSize;
+                var offset = (productFilterRequestDto.PageNumber - 1) * productFilterRequestDto.PageSize;
                 parameters.Add("offset", offset);
-                parameters.Add("pageSize", pageSize);
+                parameters.Add("pageSize", productFilterRequestDto.PageSize);
 
                 // Get total count first (for all records)
                 var totalCountQuery = "SELECT COUNT(*) FROM IdvStock WITH (NOLOCK)";
@@ -330,8 +321,7 @@ namespace Otomar.Persistance.Services
 
                 var result = await context.Connection.QueryAsync<ProductDto>(query, parameters);
 
-                logger.LogInformation($"Ürünler getirildi. Sayfa: {pageNumber}, Sayfa Boyutu: {pageSize}, Toplam: {totalCount}");
-                return ServiceResult<PagedResult<ProductDto>>.SuccessAsOk(new PagedResult<ProductDto>(result, pageNumber, pageSize, totalCount));
+                return ServiceResult<PagedResult<ProductDto>>.SuccessAsOk(new PagedResult<ProductDto>(result, productFilterRequestDto.PageNumber, productFilterRequestDto.PageSize, totalCount));
             }
             catch (Exception ex)
             {
@@ -406,7 +396,6 @@ namespace Otomar.Persistance.Services
             ORDER BY Priority";
                 var result = await context.Connection.QueryAsync<SimilarProductDto?>(query, parameters);
 
-                logger.LogInformation($"'{code}' stok kodlu ürün için benzer ürünler getirildi");
                 return ServiceResult<IEnumerable<SimilarProductDto?>>.SuccessAsOk(result);
             }
             catch (Exception ex)

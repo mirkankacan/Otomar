@@ -15,5 +15,13 @@ namespace Otomar.Application.Contracts.Services
         Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto, IDbTransaction transaction);
 
         Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto);
+
+        Task<ServiceResult<Guid>> CreateClientOrderAsync(CreateClientOrderDto createClientOrderDto);
+
+        Task<ServiceResult<IEnumerable<ClientOrderDto>>> GetClientOrdersAsync();
+
+        Task<ServiceResult<ClientOrderDto>> GetClientOrderByIdAsync(Guid id);
+
+        Task<ServiceResult<IEnumerable<ClientOrderDto>>> GetClientOrdersByUserAsync();
     }
 }

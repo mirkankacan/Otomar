@@ -40,6 +40,26 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
             .WithName("GetOrdersByUser");
+
+            group.MapGet("/client-orders", async ([FromServices] IOrderService orderService) =>
+            {
+                var result = await orderService.GetClientOrdersAsync();
+                return result.ToGenericResult();
+            })
+             .WithName("GetClientOrders");
+
+            group.MapGet("/client-orders/{id:guid}", async (Guid id, [FromServices] IOrderService orderService) =>
+            {
+                var result = await orderService.GetClientOrderByIdAsync(id);
+                return result.ToGenericResult();
+            })
+          .WithName("GetClientOrderById");
+            group.MapGet("/client-orders/user", async ([FromServices] IOrderService orderService) =>
+            {
+                var result = await orderService.GetClientOrdersByUserAsync();
+                return result.ToGenericResult();
+            })
+             .WithName("GetClientOrdersByUser");
         }
     }
 }

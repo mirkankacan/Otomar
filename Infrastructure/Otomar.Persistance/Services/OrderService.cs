@@ -7,6 +7,7 @@ using Otomar.Application.Dtos.Order;
 using Otomar.Application.Dtos.Payment;
 using Otomar.Application.Enums;
 using Otomar.Persistance.Data;
+using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
 using System.Data;
 using System.Net;
@@ -15,6 +16,61 @@ namespace Otomar.Persistance.Services
 {
     public class OrderService(IAppDbContext context, IIdentityService identityService, ILogger<OrderService> logger, ShippingOptions shippingOptions) : IOrderService
     {
+        public async Task<ServiceResult<Guid>> CreateClientOrderAsync(CreateClientOrderDto createClientOrderDto)
+        {
+            using var transaction = context.Connection.BeginTransaction();
+
+            try
+            {
+                var orderId = NewId.NextGuid();
+                var createdBy = identityService.GetUserId();
+                var subTotalAmount = createClientOrderDto.Items.Sum(item => item.UnitPrice * item.Quantity);
+                decimal totalAmount = subTotalAmount;
+
+                var orderInsertQuery = @"INSERT INTO IdtClientOrders(Id, Code, ClientName, ClientAddress, ClientPhone, InsuranceCompany, DocumentNo, LicensePlate, Note, CreatedBy, CreatedAt)
+                                            VALUES(@Id, @Code, @ClientName, @ClientAddress, @ClientPhone, @ClientPhone, @InsuranceCompany, @DocumentNo, @LicensePlate, @Note, @CreatedBy, @CreatedAt);";
+                var orderParameters = new DynamicParameters();
+                orderParameters.Add("Id", orderId);
+                orderParameters.Add("Code", OrderCodeGeneratorHelper.Generate());
+                orderParameters.Add("ClientName", createClientOrderDto.ClientName);
+                orderParameters.Add("ClientAddress", createClientOrderDto.ClientAddress);
+                orderParameters.Add("ClientPhone", createClientOrderDto.ClientPhone);
+                orderParameters.Add("InsuranceCompany", createClientOrderDto.InsuranceCompany);
+                orderParameters.Add("DocumentNo", createClientOrderDto.DocumentNo);
+                orderParameters.Add("LicensePlate", createClientOrderDto.LicensePlate);
+                orderParameters.Add("Note", createClientOrderDto.Note ?? null);
+                orderParameters.Add("CreatedBy", createdBy);
+                orderParameters.Add("CreatedAt", DateTime.Now);
+                orderParameters.Add("TotalAmount", subTotalAmount);
+                orderParameters.Add("SubTotal", totalAmount);
+                await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
+
+                var itemInsertQuery = @"
+                INSERT INTO IdtClientOrderItems (ProductId, ProductName, UnitPrice, Quantity, OrderId)
+                VALUES (@ProductId, @ProductName, @UnitPrice, @Quantity, @OrderId);";
+
+                var orderItems = createClientOrderDto.Items.Select(item => new
+                {
+                    ProductId = item.ProductId,
+                    ProductName = item.ProductName,
+                    UnitPrice = item.UnitPrice,
+                    Quantity = item.Quantity,
+                    OrderId = orderId
+                });
+
+                await context.Connection.ExecuteAsync(itemInsertQuery, orderItems, transaction);
+                logger.LogInformation($"{orderId} ID'li cari siparişi oluşturuldu");
+                transaction.Commit();
+                return ServiceResult<Guid>.SuccessAsCreated(orderId, $"/api/orders/client-order/{orderId}");
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                logger.LogError(ex, "CreateOrderAsync işleminde hata");
+                throw;
+            }
+        }
+
         public async Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto, IDbTransaction transaction)
         {
             try
@@ -59,7 +115,6 @@ namespace Otomar.Persistance.Services
                 orderParameters.Add("IdentityNumber", createOrderDto.IdentityNumber);
 
                 await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
-
                 // 2. Order Item'ları ekle
 
                 var itemInsertQuery = @"
@@ -102,6 +157,274 @@ namespace Otomar.Persistance.Services
             {
                 transaction.Rollback();
                 logger.LogError(ex, "CreateOrderAsync işleminde hata");
+                throw;
+            }
+        }
+
+        public async Task<ServiceResult<ClientOrderDto>> GetClientOrderByIdAsync(Guid id)
+        {
+            try
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("id", id);
+                string query = @"
+                SELECT TOP 1
+                    ICO.Id,
+                    ICO.Code,
+                    ICO.CreatedBy,
+                    ICO.CreatedByFullName,
+                    ICO.ClientName,
+                    ICO.ClientAddress,
+                    ICO.ClientPhone,
+                    ICO.InsuranceCompany,
+                    ICO.DocumentNo,
+                    ICO.LicensePlate,
+                    ICO.Note,
+                    ICO.CreatedAt,
+                    ICO.TotalAmount,
+                    ICO.SubTotalAmount,
+                    ICOI.Id AS ItemId,
+                    ICOI.ProductId,
+                    ICOI.ProductName,
+                    ICOI.UnitPrice,
+                    ICOI.Quantity,
+                    ICOI.OrderId
+                FROM IdvClientOrders ICO WITH (NOLOCK)
+                INNER JOIN IdtClientOrderItems ICOI ON ICO.Id = ICOI.OrderId
+                WHERE ICO.Id = @id;";
+
+                var rows = await context.Connection.QueryAsync(query, parameters);
+                var rowList = rows.ToList();
+
+                if (!rowList.Any())
+                {
+                    logger.LogWarning($"{id} ID'li cari siparişi bulunamadı");
+                    return ServiceResult<ClientOrderDto>.Error($"{id} ID'li cari siparişi bulunamadı", HttpStatusCode.NotFound);
+                }
+
+                var firstRow = rowList.First();
+                var order = new ClientOrderDto
+                {
+                    Id = firstRow.Id,
+                    Code = firstRow.Code,
+                    CreatedBy = firstRow.CreatedBy,
+                    CreatedByFullName = firstRow.CreatedByFullName,
+                    ClientName = firstRow.ClientName,
+                    ClientAddress = firstRow.ClientAddress,
+                    ClientPhone = firstRow.ClientPhone,
+                    InsuranceCompany = firstRow.InsuranceCompany,
+                    DocumentNo = firstRow.DocumentNo,
+                    LicensePlate = firstRow.LicensePlate,
+                    Note = firstRow.Note,
+                    CreatedAt = firstRow.CreatedAt,
+                    TotalAmount = firstRow.TotalAmount,
+                    SubTotalAmount = firstRow.SubTotalAmount,
+                    Items = rowList
+                        .Where(r => !Convert.IsDBNull(r.ItemId) && r.ItemId != null)
+                        .Select(r => new OrderItemDto
+                        {
+                            Id = r.ItemId,
+                            ProductId = r.ProductId,
+                            ProductName = r.ProductName,
+                            UnitPrice = r.UnitPrice,
+                            Quantity = r.Quantity,
+                            OrderId = r.ItemOrderId
+                        })
+                        .ToList()
+                };
+                logger.LogInformation($"{id} ID'li cari siparişi getirildi");
+                return ServiceResult<ClientOrderDto>.SuccessAsOk(order);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "GetClientOrderByIdAsync işleminde hata");
+                throw;
+            }
+        }
+
+        public async Task<ServiceResult<IEnumerable<ClientOrderDto>>> GetClientOrdersAsync()
+        {
+            try
+            {
+                string query = @"
+                SELECT
+                    ICO.Id,
+                    ICO.Code,
+                    ICO.CreatedBy,
+                    ICO.CreatedByFullName,
+                    ICO.ClientName,
+                    ICO.ClientAddress,
+                    ICO.ClientPhone,
+                    ICO.InsuranceCompany,
+                    ICO.DocumentNo,
+                    ICO.LicensePlate,
+                    ICO.Note,
+                    ICO.CreatedAt,
+                    ICO.TotalAmount,
+                    ICO.SubTotalAmount,
+                    ICOI.Id AS ItemId,
+                    ICOI.ProductId,
+                    ICOI.ProductName,
+                    ICOI.UnitPrice,
+                    ICOI.Quantity,
+                    ICOI.OrderId
+                FROM IdvClientOrders ICO WITH (NOLOCK)
+                INNER JOIN IdtClientOrderItems ICOI ON ICO.Id = ICOI.OrderId
+                ORDER BY CreatedAt DESC;";
+
+                var rows = await context.Connection.QueryAsync(query);
+                var rowList = rows.ToList();
+
+                if (!rowList.Any())
+                {
+                    logger.LogWarning($"Cari siparişleri bulunamadı");
+                    return ServiceResult<IEnumerable<ClientOrderDto>>.Error($"Cari siparişleri bulunamadı", HttpStatusCode.NotFound);
+                }
+
+                var ordersDict = new Dictionary<Guid, ClientOrderDto>();
+                foreach (var row in rowList)
+                {
+                    if (!ordersDict.ContainsKey(row.Id))
+                    {
+                        var order = new ClientOrderDto
+                        {
+                            Id = row.Id,
+                            Code = row.Code,
+                            CreatedBy = row.CreatedBy,
+                            CreatedByFullName = row.CreatedByFullName,
+                            ClientName = row.ClientName,
+                            ClientAddress = row.ClientAddress,
+                            ClientPhone = row.ClientPhone,
+                            InsuranceCompany = row.InsuranceCompany,
+                            DocumentNo = row.DocumentNo,
+                            LicensePlate = row.LicensePlate,
+                            Note = row.Note,
+                            CreatedAt = row.CreatedAt,
+                            TotalAmount = row.TotalAmount,
+                            SubTotalAmount = row.SubTotalAmount,
+                            Items = new List<OrderItemDto>()
+                        };
+
+                        ordersDict[row.Id] = order;
+                    }
+
+                    if (!Convert.IsDBNull(row.ItemId) && row.ItemId != null)
+                    {
+                        ((List<OrderItemDto>)ordersDict[row.Id].Items).Add(new OrderItemDto
+                        {
+                            Id = row.ItemId,
+                            ProductId = row.ProductId,
+                            ProductName = row.ProductName,
+                            UnitPrice = row.UnitPrice,
+                            Quantity = row.Quantity,
+                            OrderId = row.ItemOrderId
+                        });
+                    }
+                }
+
+                var result = ordersDict.Values.ToList();
+                logger.LogInformation($"Cari siparişleri getirildi");
+                return ServiceResult<IEnumerable<ClientOrderDto>>.SuccessAsOk(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "GetClientOrdersAsync işleminde hata");
+                throw;
+            }
+        }
+
+        public async Task<ServiceResult<IEnumerable<ClientOrderDto>>> GetClientOrdersByUserAsync()
+        {
+            try
+            {
+                var userId = identityService.GetUserId();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("createdBy", userId);
+                string query = @"
+                SELECT
+                    ICO.Id,
+                    ICO.Code,
+                    ICO.CreatedBy,
+                    ICO.CreatedByFullName,
+                    ICO.ClientName,
+                    ICO.ClientAddress,
+                    ICO.ClientPhone,
+                    ICO.InsuranceCompany,
+                    ICO.DocumentNo,
+                    ICO.LicensePlate,
+                    ICO.Note,
+                    ICO.CreatedAt,
+                    ICO.TotalAmount,
+                    ICO.SubTotalAmount,
+                    ICOI.Id AS ItemId,
+                    ICOI.ProductId,
+                    ICOI.ProductName,
+                    ICOI.UnitPrice,
+                    ICOI.Quantity,
+                    ICOI.OrderId
+                FROM IdvClientOrders ICO WITH (NOLOCK)
+                INNER JOIN IdtClientOrderItems ICOI ON ICO.Id = ICOI.OrderId
+                WHERE CreatedBy = @createdBy
+                ORDER BY CreatedAt DESC;";
+
+                var rows = await context.Connection.QueryAsync(query);
+                var rowList = rows.ToList();
+
+                if (!rowList.Any())
+                {
+                    logger.LogWarning($"{userId} ID'li carinin siparişleri bulunamadı");
+                    return ServiceResult<IEnumerable<ClientOrderDto>>.Error($"{userId} ID'li carinin siparişleri bulunamadı", HttpStatusCode.NotFound);
+                }
+
+                var ordersDict = new Dictionary<Guid, ClientOrderDto>();
+                foreach (var row in rowList)
+                {
+                    if (!ordersDict.ContainsKey(row.Id))
+                    {
+                        var order = new ClientOrderDto
+                        {
+                            Id = row.Id,
+                            Code = row.Code,
+                            CreatedBy = row.CreatedBy,
+                            CreatedByFullName = row.CreatedByFullName,
+                            ClientName = row.ClientName,
+                            ClientAddress = row.ClientAddress,
+                            ClientPhone = row.ClientPhone,
+                            InsuranceCompany = row.InsuranceCompany,
+                            DocumentNo = row.DocumentNo,
+                            LicensePlate = row.LicensePlate,
+                            Note = row.Note,
+                            CreatedAt = row.CreatedAt,
+                            TotalAmount = row.TotalAmount,
+                            SubTotalAmount = row.SubTotalAmount,
+                            Items = new List<OrderItemDto>()
+                        };
+
+                        ordersDict[row.Id] = order;
+                    }
+
+                    if (!Convert.IsDBNull(row.ItemId) && row.ItemId != null)
+                    {
+                        ((List<OrderItemDto>)ordersDict[row.Id].Items).Add(new OrderItemDto
+                        {
+                            Id = row.ItemId,
+                            ProductId = row.ProductId,
+                            ProductName = row.ProductName,
+                            UnitPrice = row.UnitPrice,
+                            Quantity = row.Quantity,
+                            OrderId = row.ItemOrderId
+                        });
+                    }
+                }
+
+                var result = ordersDict.Values.ToList();
+                logger.LogInformation($"{userId} ID'li carinin siparişleri getirildi");
+                return ServiceResult<IEnumerable<ClientOrderDto>>.SuccessAsOk(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "GetClientOrdersByUserAsync işleminde hata");
                 throw;
             }
         }
