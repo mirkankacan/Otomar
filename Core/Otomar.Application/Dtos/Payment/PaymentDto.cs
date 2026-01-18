@@ -8,9 +8,11 @@ namespace Otomar.Application.Dtos.Payment
         public string? UserId { get; set; }
         public string OrderCode { get; set; }
         public decimal TotalAmount { get; set; }
-        public string CardNumber { get; set; }
-        public string CardBrand { get; set; }
+        public string BankCardBrand { get; set; }
+        public string BankCardIssuer { get; set; }
         public PaymentStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string BankProcReturnCode { get; set; }
+        public bool IsSuccess => BankProcReturnCode == "00" ? true : false;
     }
 }

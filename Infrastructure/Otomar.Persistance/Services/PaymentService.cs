@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
-using Otomar.Application.Dtos.Order;
 using Otomar.Application.Dtos.Payment;
 using Otomar.Application.Enums;
 using Otomar.Persistance.Data;
@@ -15,7 +14,6 @@ using Otomar.Persistance.Options;
 using System.Globalization;
 using System.Net;
 using System.Text;
-using System.Text.Json;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
@@ -23,101 +21,110 @@ namespace Otomar.Persistance.Services
 {
     public class PaymentService(IAppDbContext context, HttpClient httpClient, IHttpContextAccessor accessor, IIdentityService identityService, PaymentOptions paymentOptions, ILogger<PaymentService> logger, IDistributedCache cache, IOrderService orderService, ICartService cartService) : IPaymentService
     {
-        public async Task<ServiceResult<Guid>> CreatePaymentAsync(Dictionary<string, string> parameters, CancellationToken cancellationToken)
+        public async Task<ServiceResult<string>> CompletePaymentAsync(Dictionary<string, string> parameters, CancellationToken cancellationToken)
         {
-            using var transaction = context.Connection.BeginTransaction();
+            if (parameters == null)
+            {
+                return ServiceResult<string>.Error(
+                    "Geçersiz İstek",
+                    "Callback verileri boş olamaz",
+                    HttpStatusCode.BadRequest);
+            }
+
             try
             {
-                string orderCode = parameters.GetValueOrDefault("oid")!;
-                logger.LogInformation($"{orderCode} sipariş kodlu ödeme işlemi başladı");
+                string mdStatus = parameters.GetValueOrDefault("mdStatus")!;
+                var mdMessage = GetThreeDSecureStatusMessage(mdStatus);
+                if (!IsThreeDSecureValid(mdStatus))
+                {
+                    logger.LogWarning("3D Secure MdStatus başarısız. MdStatus: {MdStatus}", mdStatus);
+                    return ServiceResult<string>.Error(
+                      "3D Secure Başarısız",
+                      mdMessage,
+                      HttpStatusCode.BadRequest);
+                }
+                string orderCode = parameters.GetValueOrDefault("oid");
+                if (string.IsNullOrEmpty(orderCode))
+                {
+                    logger.LogError("oid (OrderCode) bulunamadı");
+                    return ServiceResult<string>.Error(
+                    "Geçersiz Sipariş Kodu",
+                    "Oid verisinde sipariş kodu bulunamadı",
+                    HttpStatusCode.BadRequest);
+                }
+                logger.LogInformation("Ödeme tamamlanıyor. Oid: {Oid}", orderCode);
+
+                logger.LogDebug("Sanal POS API isteği gönderiliyor. URL: {Url}, MdStatus: {MdStatus}",
+                   paymentOptions.ApiUrl, mdStatus);
 
                 var isBankResponse = await IsBankPaymentRequest(parameters, cancellationToken);
                 if (isBankResponse == null)
                 {
-                    transaction.Rollback();
                     logger.LogError($"Bankadan cevap alınamadı");
-                    return ServiceResult<Guid>.Error("Bankadan cevap alınamadı", HttpStatusCode.BadRequest);
+                    return ServiceResult<string>.Error("Banka Cevap", "Bankadan cevap alınamadı", HttpStatusCode.BadRequest);
                 }
-                var md = parameters.GetValueOrDefault("md");
-                var isPaymentSuccessful = isBankResponse.ProcReturnCode == "00" && isBankResponse.Response.ToLower() == "approved";
+                using var transaction = context.Connection.BeginTransaction();
 
-                Guid? orderId = null;
-
-                // 1. ÖNCE SİPARİŞ OLUŞTUR (eğer sipariş tipindeyse)
-                var paymentType = "sanalpos";
-
-                if (paymentType?.ToLower() == "siparis")
+                try
                 {
-                    var orderJson = await cache.GetStringAsync($"order_session_{orderCode}", cancellationToken);
-
-                    if (!string.IsNullOrEmpty(orderJson))
-                    {
-                        var createOrderDto = JsonSerializer.Deserialize<CreateOrderDto>(orderJson);
-                        var createOrderResult = await orderService.CreateOrderAsync(createOrderDto!, transaction);
-
-                        if (!createOrderResult.IsSuccess)
-                        {
-                            transaction.Rollback();
-                            return ServiceResult<Guid>.Error("Sipariş oluşturulamadı", HttpStatusCode.BadRequest);
-                        }
-
-                        orderId = createOrderResult.Data;
-                    }
-                    else
+                    var order = await orderService.GetOrderByCodeAsync(orderCode);
+                    if (order == null)
                     {
                         transaction.Rollback();
-                        logger.LogError($"Sipariş bilgisi cache'de bulunamadı: {orderCode}");
-                        return ServiceResult<Guid>.Error("Sipariş bilgisi bulunamadı", HttpStatusCode.BadRequest);
+                        logger.LogError("Güncellenecek sipariş kaydı bulunamadı. OrderCode: {OrderCode}", orderCode);
+                        return ServiceResult<string>.Error(
+                            "Sipariş Bulunamadı",
+                            $"{orderCode} sipariş kodu ile sipariş kaydı bulunamadı",
+                            HttpStatusCode.NotFound);
                     }
-                }
 
-                // 2. SONRA ÖDEME OLUŞTUR
-                var paymentId = NewId.NextGuid();
-                var userId = identityService.GetUserId() ?? null;
-                var totalAmount = Convert.ToDecimal(parameters.GetValueOrDefault("amount"));
+                    // 1. ÖDEME OLUŞTUR
+                    var orderId = order.Data.Id;
+                    var isPaymentSuccessful = IsPaymentSuccess(isBankResponse);
+                    var paymentId = NewId.NextGuid();
+                    var userId = identityService.GetUserId() ?? null;
+                    var totalAmount = Convert.ToDecimal(parameters.GetValueOrDefault("amount"));
 
-                var paymentInsertQuery = @"
-        INSERT INTO IdtPayments (Id, UserId, OrderCode, TotalAmount, Status, CreatedAt, IpAddress, BankResponse, BankAuthCode, BankHostRefNum, BankProcReturnCode, BankTransId, BankErrMsg, BankErrorCode, BankSettleId, BankTrxDate, BankCardBrand, BankCardIssuer, BankAvsApprove, BankHostDate, BankAvsErrorCodeDetail, BankNumCode, Type)
-        VALUES (@Id, @UserId, @OrderCode, @TotalAmount, @Status, @CreatedAt, @IpAddress, @BankResponse, @BankAuthCode, @BankHostRefNum, @BankProcReturnCode, @BankTransId, @BankErrMsg, @BankErrorCode, @BankSettleId, @BankTrxDate, @BankCardBrand, @BankCardIssuer, @BankAvsApprove, @BankHostDate, @BankAvsErrorCodeDetail, @BankNumCode, @Type);";
+                    var paymentInsertQuery = @"
+        INSERT INTO IdtPayments (Id, UserId, OrderCode, TotalAmount, Status, CreatedAt, IpAddress, BankResponse, BankAuthCode, BankHostRefNum, BankProcReturnCode, BankTransId, BankErrMsg, BankErrorCode, BankSettleId, BankTrxDate, BankCardBrand, BankCardIssuer, BankAvsApprove, BankHostDate, BankAvsErrorCodeDetail, BankNumCode)
+        VALUES (@Id, @UserId, @OrderCode, @TotalAmount, @Status, @CreatedAt, @IpAddress, @BankResponse, @BankAuthCode, @BankHostRefNum, @BankProcReturnCode, @BankTransId, @BankErrMsg, @BankErrorCode, @BankSettleId, @BankTrxDate, @BankCardBrand, @BankCardIssuer, @BankAvsApprove, @BankHostDate, @BankAvsErrorCodeDetail, @BankNumCode);";
 
-                var paymentParameters = new DynamicParameters();
-                paymentParameters.Add("Id", paymentId);
-                paymentParameters.Add("UserId", userId);
-                paymentParameters.Add("OrderCode", orderCode);
-                paymentParameters.Add("TotalAmount", totalAmount);
-                paymentParameters.Add("Status", isPaymentSuccessful ? PaymentStatus.Completed : PaymentStatus.Failed);
-                paymentParameters.Add("CreatedAt", DateTime.Now);
-                paymentParameters.Add("IpAddress", GetIpAddress());
-                paymentParameters.Add("BankResponse", isBankResponse.Response);
-                paymentParameters.Add("BankAuthCode", isBankResponse.AuthCode);
-                paymentParameters.Add("BankHostRefNum", isBankResponse.HostRefNum);
-                paymentParameters.Add("BankProcReturnCode", isBankResponse.ProcReturnCode);
-                paymentParameters.Add("BankTransId", isBankResponse.TransId);
-                paymentParameters.Add("BankErrMsg", isBankResponse.ErrMsg);
-                paymentParameters.Add("BankErrorCode", isBankResponse.ErrorCode);
-                paymentParameters.Add("BankSettleId", isBankResponse.SettleId);
-                paymentParameters.Add("BankTrxDate", isBankResponse.TrxDate);
-                paymentParameters.Add("BankCardBrand", isBankResponse.CardBrand);
-                paymentParameters.Add("BankCardIssuer", isBankResponse.CardIssuer);
-                paymentParameters.Add("BankAvsApprove", isBankResponse.AvsApprove);
-                paymentParameters.Add("BankHostDate", isBankResponse.HostDate);
-                paymentParameters.Add("BankAvsErrorCodeDetail", isBankResponse.AvsErrorCodeDetail);
-                paymentParameters.Add("BankNumCode", isBankResponse.NumCode);
-                paymentParameters.Add("Type", paymentType);
+                    var paymentParameters = new DynamicParameters();
+                    paymentParameters.Add("Id", paymentId);
+                    paymentParameters.Add("UserId", userId);
+                    paymentParameters.Add("OrderCode", orderCode);
+                    paymentParameters.Add("TotalAmount", totalAmount);
+                    paymentParameters.Add("Status", isPaymentSuccessful ? PaymentStatus.Completed : PaymentStatus.Failed);
+                    paymentParameters.Add("CreatedAt", DateTime.Now);
+                    paymentParameters.Add("IpAddress", IpHelper.GetClientIp(accessor));
+                    paymentParameters.Add("BankResponse", isBankResponse.Response);
+                    paymentParameters.Add("BankAuthCode", isBankResponse.AuthCode);
+                    paymentParameters.Add("BankHostRefNum", isBankResponse.HostRefNum);
+                    paymentParameters.Add("BankProcReturnCode", isBankResponse.ProcReturnCode);
+                    paymentParameters.Add("BankTransId", isBankResponse.TransId);
+                    paymentParameters.Add("BankErrMsg", isBankResponse.ErrMsg);
+                    paymentParameters.Add("BankErrorCode", isBankResponse.ErrorCode);
+                    paymentParameters.Add("BankSettleId", isBankResponse.SettleId);
+                    paymentParameters.Add("BankTrxDate", isBankResponse.TrxDate);
+                    paymentParameters.Add("BankCardBrand", isBankResponse.CardBrand);
+                    paymentParameters.Add("BankCardIssuer", isBankResponse.CardIssuer);
+                    paymentParameters.Add("BankAvsApprove", isBankResponse.AvsApprove);
+                    paymentParameters.Add("BankHostDate", isBankResponse.HostDate);
+                    paymentParameters.Add("BankAvsErrorCodeDetail", isBankResponse.AvsErrorCodeDetail);
+                    paymentParameters.Add("BankNumCode", isBankResponse.NumCode);
 
-                await context.Connection.ExecuteAsync(paymentInsertQuery, paymentParameters, transaction);
-                logger.LogInformation($"{paymentId} ID'li ödeme kaydı oluşturuldu");
+                    await context.Connection.ExecuteAsync(paymentInsertQuery, paymentParameters, transaction);
+                    logger.LogInformation($"{paymentId} ID'li ödeme kaydı oluşturuldu");
 
-                // 3. SİPARİŞİ ÖDEME İLE İLİŞKİLENDİR (eğer sipariş varsa)
-                if (orderId.HasValue)
-                {
+                    // 2. ÖDEMEYE AİT SİPARİŞİ GÜNCELLE
+
                     var orderUpdateQuery = @"
-                    UPDATE IdtOrders
-                    SET Status = @Status, PaymentId = @PaymentId
-                    WHERE Id = @OrderId";
+                            UPDATE IdtOrders
+                            SET Status = @Status, PaymentId = @PaymentId
+                            WHERE Id = @OrderId";
 
                     var orderUpdateParameters = new DynamicParameters();
-                    orderUpdateParameters.Add("OrderId", orderId.Value);
+                    orderUpdateParameters.Add("OrderId", orderId);
                     orderUpdateParameters.Add("PaymentId", paymentId);
                     orderUpdateParameters.Add("Status", isPaymentSuccessful ? OrderStatus.Paid : OrderStatus.PaymentFailed);
 
@@ -126,46 +133,32 @@ namespace Otomar.Persistance.Services
                     if (affectedRows == 0)
                     {
                         transaction.Rollback();
-                        logger.LogError($"Sipariş güncellenemedi: {orderId}");
-                        return ServiceResult<Guid>.Error("Sipariş durumu güncellenemedi", HttpStatusCode.BadRequest);
+                        logger.LogError("Sipariş güncellenemedi. OrderCode: {OrderCode}", orderCode);
+                        return ServiceResult<string>.Error("Sipariş durumu güncellenemedi", HttpStatusCode.BadRequest);
                     }
 
-                    logger.LogInformation($"{orderId} ID'li sipariş, {paymentId} ID'li ödeme ile ilişkilendirildi");
+                    logger.LogInformation($"{orderId} ID'li sipariş, {paymentId} ID'li ödeme ile ilişkilendirildi ve güncellendi");
+
+                    transaction.Commit();
+
+                    if (!isPaymentSuccessful)
+                    {
+                        logger.LogError($"{orderCode} sipariş kodlu ödeme başarısız. Bankadan dönen Mesaj:{isBankResponse.ErrMsg} Kod: {isBankResponse.ErrorCode}");
+                        return ServiceResult<string>.Error("Ödeme Başarısız", $"{isBankResponse.ErrMsg}", HttpStatusCode.BadRequest);
+                    }
+
+                    logger.LogInformation($"{orderCode} sipariş kodlu ödeme işlemi başarıyla tamamlandı");
+
+                    return ServiceResult<string>.SuccessAsCreated(orderCode, $"/api/payments/{paymentId}");
                 }
-
-                transaction.Commit();
-
-                // Cache'i temizle
-                await cache.RemoveAsync($"payment_params_{orderCode}", cancellationToken);
-
-                if (paymentType?.ToLower() == "siparis")
+                catch (Exception ex)
                 {
-                    await cache.RemoveAsync($"order_session_{orderCode}", cancellationToken);
-                    var cartSessionId = await cache.GetStringAsync($"cart_session_{orderCode}", cancellationToken);
-
-                    // Cart key'i belirle
-                    var cartKey = GetCartKeyForPayment(userId, cartSessionId);
-
-                    // Sepeti temizle
-                    await cartService.ClearCartAsync(cartKey, cancellationToken);
-
-                    // Cache'den cart session ID'yi sil
-                    await cache.RemoveAsync($"cart_session_{orderCode}", cancellationToken);
+                    transaction.Rollback();
+                    return ServiceResult<string>.Error("Ödeme Başarısız", $"{isBankResponse.ErrMsg}", HttpStatusCode.BadRequest);
                 }
-
-                if (!isPaymentSuccessful)
-                {
-                    logger.LogError($"{orderCode} sipariş kodlu ödeme başarısız. Bankadan dönen Mesaj:{isBankResponse.ErrMsg} Kod: {isBankResponse.ErrorCode}");
-                    return ServiceResult<Guid>.Error($"Ödeme başarısız: {isBankResponse.ErrMsg}", HttpStatusCode.BadRequest);
-                }
-
-                logger.LogInformation($"{orderCode} sipariş kodlu ödeme işlemi başarıyla tamamlandı");
-
-                return ServiceResult<Guid>.SuccessAsCreated(paymentId, $"/api/payments/{paymentId}");
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 logger.LogError(ex, "CreatePaymentAsync işleminde hata");
                 throw;
             }
@@ -177,7 +170,7 @@ namespace Otomar.Persistance.Services
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("paymentId", paymentId);
-                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount,CardNumber, CardBrand, Status, CreatedAt FROM IdtPayments WITH (NOLOCK) WHERE Id = @paymentId";
+                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount,BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode FROM IdtPayments WITH (NOLOCK) WHERE Id = @paymentId";
 
                 var result = await context.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, parameters);
                 if (result == null)
@@ -199,9 +192,14 @@ namespace Otomar.Persistance.Services
         {
             try
             {
+                if (string.IsNullOrEmpty(orderCode))
+                {
+                    return ServiceResult<PaymentDto>.Error("Sipariş kodu boş geçilemez", HttpStatusCode.BadRequest);
+                }
+
                 var parameters = new DynamicParameters();
                 parameters.Add("orderCode", orderCode);
-                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount, CardNumber,CardBrand, Status, CreatedAt FROM IdtPayments WITH (NOLOCK) WHERE OrderCode = @orderCode";
+                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount,BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode FROM IdtPayments WITH (NOLOCK) WHERE OrderCode = @orderCode";
 
                 var result = await context.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, parameters);
                 if (result == null)
@@ -224,7 +222,7 @@ namespace Otomar.Persistance.Services
             try
             {
                 var query = $@"
-                 SELECT  Id,UserId, OrderCode, TotalAmount,CardNumber,CardBrand, Status, CreatedAt
+                 SELECT  Id, UserId, OrderCode, TotalAmount,BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode
                  FROM IdtPayments WITH (NOLOCK)";
 
                 var result = await context.Connection.QueryAsync<PaymentDto>(query);
@@ -256,7 +254,7 @@ namespace Otomar.Persistance.Services
                 parameters.Add("userId", userId);
 
                 var query = $@"
-                 SELECT Id,UserId, OrderCode, TotalAmount,CardNumber,CardBrand, Status, CreatedAt
+                 SELECT Id, UserId, OrderCode, TotalAmount,BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode
                  FROM IdtPayments WITH (NOLOCK)
                  WHERE UserId = @userId";
 
@@ -280,6 +278,8 @@ namespace Otomar.Persistance.Services
 
         public async Task<ServiceResult<Dictionary<string, string>>> InitializePaymentAsync(InitializePaymentDto initializePaymentDto, CancellationToken cancellationToken)
         {
+            using var transaction = context.Connection.BeginTransaction();
+
             try
             {
                 var transactionType = paymentOptions.TransactionType;
@@ -294,7 +294,7 @@ namespace Otomar.Persistance.Services
                 var rnd = DateTime.Now.Ticks.ToString();
                 var installment = string.Empty; // Taksit yoksa empty gönderilmeli
                 var amountStr = initializePaymentDto.TotalAmount.ToString("0.##", CultureInfo.InvariantCulture);
-
+                initializePaymentDto.Order.Code = orderCode;
                 var parameters = new Dictionary<string, string>
                 {
                     { "clientid", paymentOptions.ClientId },
@@ -314,85 +314,29 @@ namespace Otomar.Persistance.Services
                     { "cv2",  initializePaymentDto.CreditCardCvv},
                     { "Ecom_Payment_Card_ExpDate_Year",  initializePaymentDto.CreditCardExpDateYear },
                     { "Ecom_Payment_Card_ExpDate_Month",  initializePaymentDto.CreditCardExpDateMonth },
-                    { "Email",  "mirkankacan@ideaktif.com.tr"},
+                    { "Email",  initializePaymentDto.Order.Email},
                 };
 
                 parameters["hash"] = GenerateHash(parameters);
 
                 if (parameters.IsNullOrEmpty())
                 {
-                    return ServiceResult<Dictionary<string, string>>.Error("3D doğrulama için parametreler oluşturulamadı", HttpStatusCode.BadRequest);
-                }
-                // 10 dk içinde ödeme yapmalı
-                var cacheOptions = new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-                };
-                await cache.SetStringAsync(
-                     $"payment_params_{orderCode}",
-                     JsonSerializer.Serialize(parameters),
-                     cacheOptions,
-                     cancellationToken
-                 );
-
-                if (initializePaymentDto.Order != null)
-                {
-                    initializePaymentDto.Order.Code = orderCode;
-                    await cache.SetStringAsync(
-                        $"order_session_{orderCode}",
-                        JsonSerializer.Serialize(initializePaymentDto.Order),
-                        cacheOptions,
-                        cancellationToken
-                    );
+                    return ServiceResult<Dictionary<string, string>>.Error("3D Doğrulama", "3D doğrulama için parametreler oluşturulamadı", HttpStatusCode.BadRequest);
                 }
 
-                var cartSessionId = accessor.HttpContext?.Request.Cookies["CartSessionId"];
-                if (!string.IsNullOrEmpty(cartSessionId))
+                var createOrderResult = await orderService.CreateOrderAsync(initializePaymentDto.Order, transaction);
+                if (!createOrderResult.IsSuccess)
                 {
-                    await cache.SetStringAsync(
-                        $"cart_session_{orderCode}",
-                        cartSessionId,
-                        cacheOptions,
-                        cancellationToken
-                    );
+                    transaction.Rollback();
+                    return ServiceResult<Dictionary<string, string>>.Error("Sipariş Oluşturulamadı", "Sipariş oluşturmada hata meydana geldi", HttpStatusCode.BadRequest);
                 }
-                return ServiceResult<Dictionary<string, string>>.SuccessAsOk(new Dictionary<string, string>
-                {
-                    { "oid", orderCode },
-                    { "ThreeDVerificationUrl", paymentOptions.ThreeDVerificationUrl }
-                });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "InitializePaymentAsync işleminde hata");
-                throw;
-            }
-        }
-
-        public async Task<ServiceResult<Dictionary<string, string>>> GetPaymentParamsAsync(string orderCode, CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(orderCode))
-                {
-                    return ServiceResult<Dictionary<string, string>>.Error("Sipariş kodu boş geçilemez", HttpStatusCode.BadRequest);
-                }
-                var parametersJson = await cache.GetStringAsync($"payment_params_{orderCode}", cancellationToken);
-
-                if (string.IsNullOrEmpty(parametersJson))
-                {
-                    logger.LogWarning($"{orderCode} sipariş kodlu ödeme parametreleri bulunamadı");
-                    return ServiceResult<Dictionary<string, string>>.Error("Ödeme parametreleri bulunamadı", HttpStatusCode.NotFound);
-                }
-
-                var parameters = JsonSerializer.Deserialize<Dictionary<string, string>>(parametersJson);
-                logger.LogInformation($"{orderCode} sipariş kodlu ödeme parametreleri getirildi");
-
+                transaction.Commit();
                 return ServiceResult<Dictionary<string, string>>.SuccessAsOk(parameters);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "GetPaymentParamsAsync işleminde hata");
+                transaction.Rollback();
+                logger.LogError(ex, "InitializePaymentAsync işleminde hata");
                 throw;
             }
         }
@@ -464,31 +408,6 @@ namespace Otomar.Persistance.Services
             return calculatedHash.Equals(receivedHash, StringComparison.Ordinal);
         }
 
-        private string GetIpAddress()
-        {
-            var httpContext = accessor.HttpContext;
-            if (httpContext == null)
-                return string.Empty;
-
-            var forwardedFor = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-            if (!string.IsNullOrEmpty(forwardedFor))
-            {
-                var ips = forwardedFor.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                if (ips.Length > 0)
-                {
-                    return ips[0].Trim();
-                }
-            }
-
-            var realIp = httpContext.Request.Headers["X-Real-IP"].FirstOrDefault();
-            if (!string.IsNullOrEmpty(realIp))
-            {
-                return realIp;
-            }
-
-            return httpContext.Connection.RemoteIpAddress?.ToString();
-        }
-
         private async Task<IsBankResponseDto> IsBankPaymentRequest(Dictionary<string, string> parameters, CancellationToken cancellationToken)
         {
             var requestAsXmlString = ParseIsBankRequest(parameters);
@@ -524,6 +443,33 @@ namespace Otomar.Persistance.Services
             var serializer = new XmlSerializer(typeof(IsBankResponseDto));
             using var reader = new StringReader(responseAsString);
             return (IsBankResponseDto)serializer.Deserialize(reader);
+        }
+
+        private bool IsPaymentSuccess(IsBankResponseDto dto)
+        {
+            return dto.Response.Equals("Approved", StringComparison.OrdinalIgnoreCase) && dto.ProcReturnCode == "00";
+        }
+
+        private bool IsThreeDSecureValid(string mdStatus)
+        {
+            var validStatuses = new[] { "1", "2", "3", "4" };
+            if (!validStatuses.Contains(mdStatus))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private string GetThreeDSecureStatusMessage(string mdStatus)
+        {
+            return mdStatus switch
+            {
+                "1" => "3D Secure doğrulama başarılı (Full Secure)",
+                "2" or "3" or "4" => "3D Secure doğrulama kısmen başarılı (Half Secure)",
+                "5" or "6" or "7" or "8" => "Kart 3D Secure programına kayıtlı değil veya işlem reddedildi",
+                "0" => "3D Secure doğrulama başarsız",
+                _ => $"Bilinmeyen durum: {mdStatus}"
+            };
         }
     }
 }

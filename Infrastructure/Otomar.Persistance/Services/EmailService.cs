@@ -1,12 +1,12 @@
-﻿using System.Globalization;
-using System.Net;
-using Humanizer;
+﻿using Humanizer;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using Otomar.Application.Contracts.Services;
 using Otomar.Persistance.Options;
+using System.Globalization;
+using System.Net;
 
 namespace Otomar.Persistance.Services
 {
@@ -117,8 +117,8 @@ namespace Otomar.Persistance.Services
                          .Replace("{{Name}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Name))
                          .Replace("{{BillingPhone}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Phone ?? string.Empty))
                          .Replace("{{Email}}", WebUtility.HtmlEncode(order.Data.Email ?? string.Empty))
-                         .Replace("{{CreditCardNumber}}", WebUtility.HtmlEncode(payment.Data.CardNumber))
-                         .Replace("{{CardBrand}}", WebUtility.HtmlEncode(payment.Data.CardBrand))
+                         .Replace("{{CardBrand}}", WebUtility.HtmlEncode(payment.Data.BankCardBrand))
+                         .Replace("{{CardIssuer}}", WebUtility.HtmlEncode(payment.Data.BankCardIssuer))
                          .Replace("{{Amount}}", payment.Data.TotalAmount.ToString("C2", new CultureInfo("tr-TR"))
                          .Replace("{{AmountInType}}", ConvertAmountToTurkishWords(payment.Data.TotalAmount))
                          .Replace("{{CreatedAt}}", order.Data.CreatedAt.ToString("dd/MM/yyyy HH:mm"))

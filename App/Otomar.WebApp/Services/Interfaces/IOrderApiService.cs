@@ -11,7 +11,8 @@ namespace Otomar.WebApp.Services.Interfaces
 
         Task<ApiResponse<OrderDto>> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+        Task<ApiResponse<OrderDto>> GetOrderByCodeAsync(string orderCode, CancellationToken cancellationToken = default);
+
         Task<ApiResponse<IEnumerable<OrderDto>>> GetOrdersByUserAsync(string userId, CancellationToken cancellationToken = default);
     }
 }
-

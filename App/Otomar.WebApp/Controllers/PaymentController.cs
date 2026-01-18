@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Models.Payment;
 using Otomar.WebApp.Services.Interfaces;
+using System.Text.Json;
 
 namespace Otomar.WebApp.Controllers
 {
     [Route("odeme")]
-    public class PaymentController(IPaymentApiService paymentApiService, ILogger<PaymentController> logger) : Controller
+    public class PaymentController(IPaymentApiService paymentApiService, IOrderApiService orderApiService, ILogger<PaymentController> logger) : Controller
     {
         [HttpGet("")]
         public IActionResult Index()
@@ -29,128 +31,72 @@ namespace Otomar.WebApp.Controllers
 
                 if (!result.IsSuccess)
                 {
-                    TempData["ErrorMessage"] = "Ödeme başlatılamadı. Lütfen tekrar deneyiniz.";
-                    return BadRequest("/odeme/3d/basarisiz");
+                    return result.ToActionResult();
                 }
 
-                TempData["ThreeDVerificationUrl"] = result.Data.GetValueOrDefault("ThreeDVerificationUrl");
-                TempData["OrderCode"] = result.Data.GetValueOrDefault("oid");
-                return Ok($"/odeme/3d/yonlendirme");
+                HttpContext.Session.SetString("ThreeDSecureParameters", JsonSerializer.Serialize(result.Data));
+
+                return Ok(new { redirectUrl = Url.Action("ThreeDSecure", "Payment") });
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Bir hata oluştu. Lütfen tekrar deneyiniz.";
-                return BadRequest("/odeme/3d/basarisiz");
+                logger.LogError(ex, "Ödeme başlatma hatası");
+                return RedirectToAction(nameof(Failed));
             }
         }
 
-        [HttpGet("3d/yonlendirme")]
-        public async Task<IActionResult> ThreeDRedirect(CancellationToken cancellationToken)
+        [HttpGet("3d-yonlendirme")]
+        public async Task<IActionResult> ThreeDRedirect()
         {
             try
             {
-                var orderCode = TempData["OrderCode"] as string;
-                var ThreeDVerificationUrl = TempData["ThreeDVerificationUrl"] as string;
-                if (string.IsNullOrEmpty(orderCode))
+                var parametersJson = HttpContext.Session.GetString("PaymentParameters");
+                if (string.IsNullOrEmpty(parametersJson))
                 {
-                    TempData["ErrorMessage"] = "Sipariş kodu bulunamadı. Lütfen tekrar deneyiniz.";
-                    return Redirect("/odeme/3d/basarisiz");
+                    logger.LogWarning("3D doğrulama verisi bulunamadı");
+                    return RedirectToAction(nameof(Failed));
                 }
-
-                // API'den cache'teki parametreleri al
-                var result = await paymentApiService.GetPaymentParamsAsync(orderCode, cancellationToken);
-
-                if (!result.IsSuccess)
-                {
-                    TempData["ErrorMessage"] = "3D yönlendirmesi yapılamadı. Lütfen tekrar deneyiniz.";
-                    return Redirect("/odeme/3d/basarisiz");
-                }
-
-                ViewBag.ThreeDVerificationUrl = ThreeDVerificationUrl;
-
-                return View(result.Data);
+                var parameters = JsonSerializer.Deserialize<Dictionary<string, string>>(parametersJson);
+                HttpContext.Session.Remove("PaymentParameters");
+                return View(parameters);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "3D yönlendirme hatası");
-                TempData["ErrorMessage"] = "Bir hata oluştu. Lütfen tekrar deneyiniz.";
-                return Redirect("/odeme/3d/basarisiz");
+                logger.LogError(ex, "3D doğrulama yönlendirme hatası");
+                return RedirectToAction(nameof(Failed));
             }
         }
 
-        [HttpPost("3d/cevap")]
-        public async Task<IActionResult> ThreeDVerification([FromForm] Dictionary<string, string> parameters, CancellationToken cancellationToken)
+        [HttpGet("basarili/{orderCode}")]
+        public async Task<IActionResult> Success(string orderCode, CancellationToken cancellationToken)
         {
-            try
+            var order = await orderApiService.GetOrderByCodeAsync(orderCode, cancellationToken);
+            if (order.IsSuccess)
             {
-                var mdStatus = parameters.GetValueOrDefault("mdStatus");
-                var validStatuses = new[] { "1", "2", "3", "4" };
-
-                if (!validStatuses.Contains(mdStatus))
+                if (order.Data.Payment.BankProcReturnCode != "00")
                 {
-                    TempData["ErrorMessage"] = "3D doğrulama başarısız";
-                    return Redirect("/odeme/3d/basarisiz");
+                    return Redirect($"/odeme/basarisiz/{orderCode}");
                 }
-
-                // API'ye ödeme tamamlama isteği gönder (API cache'ten okur, sipariş/ödeme oluşturur, cache'i temizler)
-                var result = await paymentApiService.CreatePaymentAsync(parameters, cancellationToken);
-
-                if (!result.IsSuccess)
-                {
-                    TempData["ErrorMessage"] = result.ErrorMessage ?? "Ödeme oluşturulamadı";
-                    Guid? paymentId = null;
-                    if (result.Data != Guid.Empty)
-                    {
-                        paymentId = result.Data;
-                    }
-                    return Redirect($"/odeme/basarisiz/{paymentId}");
-                }
-
-                return Redirect($"/odeme/basarili/{result.Data}");
+                return View(order.Data);
             }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "3D doğrulama başarısız";
-                return Redirect("/odeme/3d/basarisiz");
-            }
-        }
-
-        [HttpGet("basarili/{paymentId:guid}")]
-        public async Task<IActionResult> PaymentSuccess(Guid paymentId, CancellationToken cancellationToken)
-        {
-            var payment = await paymentApiService.GetPaymentByIdAsync(paymentId, cancellationToken);
-
-            if (payment.IsSuccess && payment.Data != null)
-            {
-                return View(payment.Data);
-            }
-
-            return Redirect("/ana-sayfa");
-        }
-
-        [HttpGet("basarisiz/{paymentId:guid?}")]
-        [HttpPost("basarisiz")]
-        public async Task<IActionResult> PaymentFailed([FromForm] Dictionary<string, string>? parameters, Guid? paymentId, CancellationToken cancellationToken)
-        {
-            ViewBag.ErrorMessage = TempData["ErrorMessage"] as string ?? "Bir hata oluştu";
-
-            if (paymentId.HasValue)
-            {
-                var payment = await paymentApiService.GetPaymentByIdAsync(paymentId.Value, cancellationToken);
-
-                if (payment.IsSuccess && payment.Data != null)
-                {
-                    return View(payment.Data);
-                }
-            }
-
             return View();
         }
 
-        [HttpGet("3d/basarisiz")]
-        public IActionResult ThreeDFailed()
+        [HttpGet("basarisiz/{orderCode?}")]
+        public async Task<IActionResult> Failed(string? orderCode, CancellationToken cancellationToken)
         {
-            ViewBag.ErrorMessage = TempData["ErrorMessage"] as string ?? "Bir hata oluştu";
+            if (!string.IsNullOrEmpty(orderCode))
+            {
+                var payment = await paymentApiService.GetPaymentByOrderCodeAsync(orderCode, cancellationToken);
+                if (payment.IsSuccess)
+                {
+                    if (payment.Data.BankProcReturnCode == "00")
+                    {
+                        return Redirect($"/odeme/basarili/{orderCode}");
+                    }
+                    return View(payment.Data);
+                }
+            }
             return View();
         }
     }

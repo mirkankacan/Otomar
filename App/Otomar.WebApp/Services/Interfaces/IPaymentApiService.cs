@@ -7,14 +7,12 @@ namespace Otomar.WebApp.Services.Interfaces
     {
         Task<ApiResponse<Dictionary<string, string>>> InitializePaymentAsync(InitializePaymentDto initializePaymentDto, CancellationToken cancellationToken);
 
-        Task<ApiResponse<Guid>> CreatePaymentAsync(Dictionary<string, string> parameters, CancellationToken cancellationToken = default);
-
-        Task<ApiResponse<Dictionary<string, string>>> GetPaymentParamsAsync(string orderCode, CancellationToken cancellationToken = default);
-
         Task<ApiResponse<IEnumerable<PaymentDto>>> GetPaymentsAsync(CancellationToken cancellationToken = default);
 
         Task<ApiResponse<IEnumerable<PaymentDto>>> GetPaymentsByUserAsync(string userId, CancellationToken cancellationToken = default);
 
         Task<ApiResponse<PaymentDto>> GetPaymentByIdAsync(Guid paymentId, CancellationToken cancellationToken = default);
+
+        Task<ApiResponse<PaymentDto>> GetPaymentByOrderCodeAsync(string orderCode, CancellationToken cancellationToken = default);
     }
 }

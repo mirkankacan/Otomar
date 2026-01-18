@@ -84,8 +84,8 @@ namespace Otomar.Persistance.Services
                 decimal totalAmount = subTotalAmount + shippingCost;
 
                 var orderInsertQuery = @"
-            INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,ShippingAmount,SubTotalAmount, BillingName, BillingPhone, BillingCity, BillingDistrict, BillingStreet, ShippingName, ShippingPhone, ShippingCity,ShippingDistrict, ShippingStreet, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, IsEInvoiceUser, Email, IdentityNumber)
-            VALUES (@Id, @Code, @BuyerId, @Status, @CreatedAt, @PaymentId, @TotalAmount, @ShippingAmount, @SubTotalAmount, @BillingName, @BillingPhone, @BillingCity, @BillingDistrict, @BillingStreet, @ShippingName, @ShippingPhone, @ShippingCity, @ShippingDistrict, @ShippingStreet, @CorporateCompanyName, @CorporateTaxNumber, @CorporateTaxOffice, @IsEInvoiceUser, @Email, @IdentityNumber);";
+            INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,ShippingAmount,SubTotalAmount, BillingName, BillingPhone, BillingCity, BillingDistrict, BillingStreet, ShippingName, ShippingPhone, ShippingCity,ShippingDistrict, ShippingStreet, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, IsEInvoiceUser, Email, IdentityNumber, OrderType)
+            VALUES (@Id, @Code, @BuyerId, @Status, @CreatedAt, @PaymentId, @TotalAmount, @ShippingAmount, @SubTotalAmount, @BillingName, @BillingPhone, @BillingCity, @BillingDistrict, @BillingStreet, @ShippingName, @ShippingPhone, @ShippingCity, @ShippingDistrict, @ShippingStreet, @CorporateCompanyName, @CorporateTaxNumber, @CorporateTaxOffice, @IsEInvoiceUser, @Email, @IdentityNumber, @OrderType);";
 
                 var orderParameters = new DynamicParameters();
                 orderParameters.Add("Id", orderId);
@@ -113,6 +113,7 @@ namespace Otomar.Persistance.Services
                 orderParameters.Add("IsEInvoiceUser", createOrderDto.Corporate?.IsEInvoiceUser);
                 orderParameters.Add("Email", createOrderDto.Email);
                 orderParameters.Add("IdentityNumber", createOrderDto.IdentityNumber);
+                orderParameters.Add("OrderType", createOrderDto.OrderType);
 
                 await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
                 // 2. Order Item'ları ekle
@@ -443,6 +444,8 @@ namespace Otomar.Persistance.Services
                         o.BuyerId,
                         o.Status,
                         o.CreatedAt,
+                        o.UpdatedAt,
+                        o.OrderType,
                         o.TotalAmount,
                         o.ShippingAmount,
                         o.SubTotalAmount,
@@ -467,6 +470,7 @@ namespace Otomar.Persistance.Services
                         p.TotalAmount AS PaymentTotalAmount,
                         p.Status AS PaymentStatus,
                         p.CreatedAt AS PaymentCreatedAt,
+                        p.BankProcReturnCode,
                         oi.Id AS ItemId,
                         oi.ProductId,
                         oi.ProductName,
@@ -495,6 +499,8 @@ namespace Otomar.Persistance.Services
                     BuyerId = firstRow.BuyerId,
                     Status = (OrderStatus)firstRow.Status,
                     CreatedAt = firstRow.CreatedAt,
+                    UpdatedAt = firstRow.UpdatedAt,
+                    OrderType = firstRow.OrderType,
                     Email = firstRow.Email,
                     TotalAmount = firstRow.TotalAmount,
                     ShippingAmount = firstRow.ShippingAmount,
@@ -522,7 +528,8 @@ namespace Otomar.Persistance.Services
                         OrderCode = firstRow.PaymentOrderCode,
                         TotalAmount = firstRow.PaymentTotalAmount,
                         Status = (PaymentStatus)firstRow.PaymentStatus,
-                        CreatedAt = firstRow.PaymentCreatedAt
+                        CreatedAt = firstRow.PaymentCreatedAt,
+                        BankProcReturnCode = firstRow.BankProcReturnCode
                     },
                     Items = rowList
                         .Where(r => !Convert.IsDBNull(r.ItemId) && r.ItemId != null)
@@ -559,6 +566,146 @@ namespace Otomar.Persistance.Services
             }
         }
 
+        public async Task<ServiceResult<OrderDto>> GetOrderByCodeAsync(string orderCode)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(orderCode))
+                {
+                    return ServiceResult<OrderDto>.Error("Sipariş kodu boş geçilemez", HttpStatusCode.BadRequest);
+                }
+                var parameters = new DynamicParameters();
+                parameters.Add("orderCode", orderCode);
+
+                var query = @"
+                    SELECT TOP 1
+                        o.Id,
+                        o.Code,
+                        o.BuyerId,
+                        o.Status,
+                        o.CreatedAt,
+                        o.UpdatedAt,
+                        o.OrderType,
+                        o.TotalAmount,
+                        o.ShippingAmount,
+                        o.SubTotalAmount,
+                        o.BillingName,
+                        o.BillingPhone,
+                        o.BillingCity,
+                        o.BillingDistrict,
+                        o.BillingStreet,
+                        o.ShippingName,
+                        o.ShippingPhone,
+                        o.ShippingCity,
+                        o.ShippingDistrict,
+                        o.ShippingStreet,
+                        o.CorporateCompanyName,
+                        o.CorporateTaxNumber,
+                        o.CorporateTaxOffice,
+                        o.IsEInvoiceUser,
+                        o.Email,
+                        p.Id AS PaymentId,
+                        p.UserId AS PaymentUserId,
+                        p.OrderCode AS PaymentOrderCode,
+                        p.TotalAmount AS PaymentTotalAmount,
+                        p.Status AS PaymentStatus,
+                        p.CreatedAt AS PaymentCreatedAt,
+                        p.BankProcReturnCode,
+                        oi.Id AS ItemId,
+                        oi.ProductId,
+                        oi.ProductName,
+                        oi.UnitPrice,
+                        oi.Quantity,
+                        oi.OrderId AS ItemOrderId
+                    FROM IdtOrders o WITH (NOLOCK)
+                    INNER JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
+                    LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId
+                    WHERE o.Code = @orderCode";
+
+                var rows = await context.Connection.QueryAsync(query, parameters);
+                var rowList = rows.ToList();
+
+                if (!rowList.Any())
+                {
+                    logger.LogWarning($"{orderCode} sipariş kodlu sipariş bulunamadı");
+                    return ServiceResult<OrderDto>.Error($"{orderCode} sipariş kodlu sipariş bulunamadı", HttpStatusCode.NotFound);
+                }
+
+                var firstRow = rowList.First();
+                var order = new OrderDto
+                {
+                    Id = firstRow.Id,
+                    Code = firstRow.Code,
+                    BuyerId = firstRow.BuyerId,
+                    Status = (OrderStatus)firstRow.Status,
+                    CreatedAt = firstRow.CreatedAt,
+                    UpdatedAt = firstRow.UpdatedAt,
+                    OrderType = firstRow.OrderType,
+                    Email = firstRow.Email,
+                    TotalAmount = firstRow.TotalAmount,
+                    ShippingAmount = firstRow.ShippingAmount,
+                    SubTotalAmount = firstRow.SubTotalAmount,
+                    BillingAddress = new AddressDto
+                    {
+                        Name = firstRow.BillingName,
+                        Phone = firstRow.BillingPhone,
+                        City = firstRow.BillingCity,
+                        District = firstRow.BillingDistrict,
+                        Street = firstRow.BillingStreet
+                    },
+                    ShippingAddress = new AddressDto
+                    {
+                        Name = firstRow.ShippingName,
+                        Phone = firstRow.ShippingPhone,
+                        City = firstRow.ShippingCity,
+                        District = firstRow.ShippingDistrict,
+                        Street = firstRow.ShippingStreet
+                    },
+                    Payment = new PaymentDto
+                    {
+                        Id = firstRow.PaymentId,
+                        UserId = firstRow.PaymentUserId,
+                        OrderCode = firstRow.PaymentOrderCode,
+                        TotalAmount = firstRow.PaymentTotalAmount,
+                        BankProcReturnCode = firstRow.BankProcReturnCode,
+                        Status = (PaymentStatus)firstRow.PaymentStatus,
+                        CreatedAt = firstRow.PaymentCreatedAt
+                    },
+                    Items = rowList
+                        .Where(r => !Convert.IsDBNull(r.ItemId) && r.ItemId != null)
+                        .Select(r => new OrderItemDto
+                        {
+                            Id = r.ItemId,
+                            ProductId = r.ProductId,
+                            ProductName = r.ProductName,
+                            UnitPrice = r.UnitPrice,
+                            Quantity = r.Quantity,
+                            OrderId = r.ItemOrderId
+                        })
+                        .ToList()
+                };
+
+                if (!string.IsNullOrEmpty(firstRow.CorporateCompanyName) || !string.IsNullOrEmpty(firstRow.CorporateTaxNumber))
+                {
+                    order.Corporate = new CorporateDto
+                    {
+                        CompanyName = firstRow.CorporateCompanyName,
+                        TaxNumber = firstRow.CorporateTaxNumber,
+                        TaxOffice = firstRow.CorporateTaxOffice,
+                        IsEInvoiceUser = firstRow.IsEInvoiceUser
+                    };
+                }
+
+                logger.LogInformation($"{orderCode} sipariş kodlu sipariş getirildi");
+                return ServiceResult<OrderDto>.SuccessAsOk(order);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "GetOrderByCodeAsync işleminde hata");
+                throw;
+            }
+        }
+
         public async Task<ServiceResult<IEnumerable<OrderDto>>> GetOrdersAsync()
         {
             try
@@ -570,6 +717,8 @@ namespace Otomar.Persistance.Services
                         o.BuyerId,
                         o.Status,
                         o.CreatedAt,
+  o.UpdatedAt,
+                        o.OrderType,
                         o.TotalAmount,
                         o.ShippingAmount,
                         o.SubTotalAmount,
@@ -594,6 +743,7 @@ namespace Otomar.Persistance.Services
                         p.TotalAmount AS PaymentTotalAmount,
                         p.Status AS PaymentStatus,
                         p.CreatedAt AS PaymentCreatedAt,
+p.BankProcReturnCode,
                         oi.Id AS ItemId,
                         oi.ProductId,
                         oi.ProductName,
@@ -625,6 +775,8 @@ namespace Otomar.Persistance.Services
                             BuyerId = row.BuyerId,
                             Status = (OrderStatus)row.Status,
                             CreatedAt = row.CreatedAt,
+                            UpdatedAt = row.UpdatedAt,
+                            OrderType = row.OrderType,
                             Email = row.Email,
                             TotalAmount = row.TotalAmount,
                             ShippingAmount = row.ShippingAmount,
@@ -652,7 +804,8 @@ namespace Otomar.Persistance.Services
                                 OrderCode = row.PaymentOrderCode,
                                 TotalAmount = row.PaymentTotalAmount,
                                 Status = (PaymentStatus)row.PaymentStatus,
-                                CreatedAt = row.PaymentCreatedAt
+                                CreatedAt = row.PaymentCreatedAt,
+                                BankProcReturnCode = row.BankProcReturnCode,
                             },
                             Items = new List<OrderItemDto>()
                         };
@@ -715,6 +868,8 @@ namespace Otomar.Persistance.Services
                         o.BuyerId,
                         o.Status,
                         o.CreatedAt,
+  o.UpdatedAt,
+                        o.OrderType,
                         o.TotalAmount,
                         o.ShippingAmount,
                         o.SubTotalAmount,
@@ -739,6 +894,7 @@ namespace Otomar.Persistance.Services
                         p.TotalAmount AS PaymentTotalAmount,
                         p.Status AS PaymentStatus,
                         p.CreatedAt AS PaymentCreatedAt,
+                        p.BankProcReturnCode,
                         oi.Id AS ItemId,
                         oi.ProductId,
                         oi.ProductName,
@@ -771,6 +927,8 @@ namespace Otomar.Persistance.Services
                             BuyerId = row.BuyerId,
                             Status = (OrderStatus)row.Status,
                             CreatedAt = row.CreatedAt,
+                            UpdatedAt = row.UpdatedAt,
+                            OrderType = row.OrderType,
                             Email = row.Email,
                             TotalAmount = row.TotalAmount,
                             ShippingAmount = row.ShippingAmount,
@@ -798,7 +956,8 @@ namespace Otomar.Persistance.Services
                                 OrderCode = row.PaymentOrderCode,
                                 TotalAmount = row.PaymentTotalAmount,
                                 Status = (PaymentStatus)row.PaymentStatus,
-                                CreatedAt = row.PaymentCreatedAt
+                                CreatedAt = row.PaymentCreatedAt,
+                                BankProcReturnCode = row.BankProcReturnCode,
                             },
                             Items = new List<OrderItemDto>()
                         };

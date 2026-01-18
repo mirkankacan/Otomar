@@ -12,6 +12,8 @@ namespace Otomar.Application.Contracts.Services
 
         Task<ServiceResult<OrderDto>> GetOrderByIdAsync(Guid id);
 
+        Task<ServiceResult<OrderDto>> GetOrderByCodeAsync(string orderCode);
+
         Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto, IDbTransaction transaction);
 
         Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto);

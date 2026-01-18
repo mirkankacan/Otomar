@@ -23,10 +23,14 @@ namespace Otomar.WebApp.Services
             return await apiService.GetAsync<OrderDto>($"{BaseEndpoint}/{id}", cancellationToken);
         }
 
+        public async Task<ApiResponse<OrderDto>> GetOrderByCodeAsync(string orderCode, CancellationToken cancellationToken = default)
+        {
+            return await apiService.GetAsync<OrderDto>($"{BaseEndpoint}/{orderCode}", cancellationToken);
+        }
+
         public async Task<ApiResponse<IEnumerable<OrderDto>>> GetOrdersByUserAsync(string userId, CancellationToken cancellationToken = default)
         {
             return await apiService.GetAsync<IEnumerable<OrderDto>>($"{BaseEndpoint}/user/{userId}", cancellationToken);
         }
     }
 }
-

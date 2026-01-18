@@ -1,0 +1,32 @@
+[
+  {
+    "Name": "Api & App Test",
+    "Projects": [
+      {
+        "Path": "app\\Otomar.WebApp\\Otomar.WebApp.csproj",
+        "Action": "Start",
+        "DebugTarget": "Development"
+      },
+      {
+        "Path": "api\\Otomar.WebApi\\Otomar.WebApi.csproj",
+        "Action": "Start",
+        "DebugTarget": "Development"
+      }
+    ]
+  },
+  {
+    "Name": "Api & App Prod",
+    "Projects": [
+      {
+        "Path": "app\\Otomar.WebApp\\Otomar.WebApp.csproj",
+        "Action": "Start",
+        "DebugTarget": "Production"
+      },
+      {
+        "Path": "api\\Otomar.WebApi\\Otomar.WebApi.csproj",
+        "Action": "Start",
+        "DebugTarget": "Production"
+      }
+    ]
+  }
+]

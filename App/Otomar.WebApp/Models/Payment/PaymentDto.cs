@@ -13,6 +13,6 @@ namespace Otomar.WebApp.Models.Payment
         public string CardBrand { get; set; }
         public PaymentStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string BankProcReturnCode { get; set; }
     }
 }
-
