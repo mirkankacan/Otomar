@@ -13,9 +13,6 @@ using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
 using System.Globalization;
 using System.Net;
-using System.Text;
-using System.Xml.Linq;
-using System.Xml.Serialization;
 
 namespace Otomar.Persistance.Services
 {
@@ -34,8 +31,8 @@ namespace Otomar.Persistance.Services
             try
             {
                 string mdStatus = parameters.GetValueOrDefault("mdStatus")!;
-                var mdMessage = GetThreeDSecureStatusMessage(mdStatus);
-                if (!IsThreeDSecureValid(mdStatus))
+                var mdMessage = IsBankHelper.GetThreeDSecureStatusMessage(mdStatus);
+                if (!IsBankHelper.IsThreeDSecureValid(mdStatus))
                 {
                     logger.LogWarning("3D Secure MdStatus başarısız. MdStatus: {MdStatus}", mdStatus);
                     return ServiceResult<string>.Error(
@@ -57,7 +54,7 @@ namespace Otomar.Persistance.Services
                 logger.LogDebug("Sanal POS API isteği gönderiliyor. URL: {Url}, MdStatus: {MdStatus}",
                    paymentOptions.ApiUrl, mdStatus);
 
-                var isBankResponse = await IsBankPaymentRequest(parameters, cancellationToken);
+                var isBankResponse = await IsBankHelper.IsBankPaymentRequest(httpClient, parameters, paymentOptions, cancellationToken);
                 if (isBankResponse == null)
                 {
                     logger.LogError($"Bankadan cevap alınamadı");
@@ -80,7 +77,7 @@ namespace Otomar.Persistance.Services
 
                     // 1. ÖDEME OLUŞTUR
                     var orderId = order.Data.Id;
-                    var isPaymentSuccessful = IsPaymentSuccess(isBankResponse);
+                    var isPaymentSuccessful = IsBankHelper.IsPaymentSuccess(isBankResponse);
                     var paymentId = NewId.NextGuid();
                     var userId = identityService.GetUserId() ?? null;
                     var totalAmount = Convert.ToDecimal(parameters.GetValueOrDefault("amount"));
@@ -317,7 +314,7 @@ namespace Otomar.Persistance.Services
                     { "Email",  initializePaymentDto.Order.Email},
                 };
 
-                parameters["hash"] = GenerateHash(parameters);
+                parameters["hash"] = IsBankHelper.GenerateHash(parameters, paymentOptions);
 
                 if (parameters.IsNullOrEmpty())
                 {
@@ -365,111 +362,6 @@ namespace Otomar.Persistance.Services
             // 4. Son çare: Yeni session (bu durumda sepet bulunamaz ama hata vermez)
             logger.LogWarning("Cart key belirlenemedi, fallback kullanılıyor");
             return $"cart:session:{Guid.NewGuid()}";
-        }
-
-        private string GenerateHash(Dictionary<string, string> formData)
-        {
-            var sortedParams = formData
-                .Where(p => !string.Equals(p.Key, "encoding", StringComparison.OrdinalIgnoreCase) &&
-                            !string.Equals(p.Key, "hash", StringComparison.OrdinalIgnoreCase))
-                .OrderBy(p => p.Key.ToLower(new CultureInfo("en-US", false)))
-                .ToList();
-
-            var hashVal = new StringBuilder();
-            var paramsKeys = new StringBuilder();
-
-            foreach (var pair in sortedParams)
-            {
-                var escapedValue = pair.Value?.Replace("\\", "\\\\").Replace("|", "\\|") ?? string.Empty;
-                var lowerKey = pair.Key.ToLower(new CultureInfo("en-US", false));
-
-                hashVal.Append(escapedValue).Append("|");
-                paramsKeys.Append(lowerKey).Append("|");
-            }
-
-            hashVal.Append(paymentOptions.StoreKey);
-
-            using var sha = System.Security.Cryptography.SHA512.Create();
-            var hashBytes = Encoding.UTF8.GetBytes(hashVal.ToString());
-            var computedHash = sha.ComputeHash(hashBytes);
-
-            return Convert.ToBase64String(computedHash);
-        }
-
-        private bool ValidateHash(Dictionary<string, string> parameters)
-        {
-            var receivedHash = parameters.GetValueOrDefault("hash");
-
-            if (string.IsNullOrEmpty(receivedHash))
-                return false;
-
-            var calculatedHash = GenerateHash(parameters);
-
-            return calculatedHash.Equals(receivedHash, StringComparison.Ordinal);
-        }
-
-        private async Task<IsBankResponseDto> IsBankPaymentRequest(Dictionary<string, string> parameters, CancellationToken cancellationToken)
-        {
-            var requestAsXmlString = ParseIsBankRequest(parameters);
-            using var responseFromBank = await httpClient.PostAsync(paymentOptions.ApiUrl, new StringContent(requestAsXmlString, Encoding.UTF8, "text/xml"), cancellationToken);
-            string responseAsString = await responseFromBank.Content.ReadAsStringAsync(cancellationToken);
-            var responseAsDto = ParseIsBankResponse(responseAsString);
-            return responseAsDto;
-        }
-
-        private string ParseIsBankRequest(Dictionary<string, string> parameters)
-        {
-            var xml = new XElement("CC5Request",
-                new XElement("Name", paymentOptions.Username),
-                new XElement("Password", paymentOptions.Password),
-                new XElement("ClientId", paymentOptions.ClientId),
-                new XElement("Type", parameters["TranType"]),
-                new XElement("Email", parameters["Email"]),
-                new XElement("OrderId", parameters["oid"]),
-                new XElement("Total", parameters["amount"]),
-                new XElement("Currency", parameters["currency"]),
-                new XElement("Instalment", parameters["Instalment"]),
-                new XElement("Number", parameters["md"]),
-                new XElement("PayerAuthenticationCode", parameters["cavv"]),
-                new XElement("PayerSecurityLevel", parameters["eci"]),
-                new XElement("PayerTxnId", parameters["xid"])
-            );
-
-            return xml.ToString();
-        }
-
-        private IsBankResponseDto ParseIsBankResponse(string responseAsString)
-        {
-            var serializer = new XmlSerializer(typeof(IsBankResponseDto));
-            using var reader = new StringReader(responseAsString);
-            return (IsBankResponseDto)serializer.Deserialize(reader);
-        }
-
-        private bool IsPaymentSuccess(IsBankResponseDto dto)
-        {
-            return dto.Response.Equals("Approved", StringComparison.OrdinalIgnoreCase) && dto.ProcReturnCode == "00";
-        }
-
-        private bool IsThreeDSecureValid(string mdStatus)
-        {
-            var validStatuses = new[] { "1", "2", "3", "4" };
-            if (!validStatuses.Contains(mdStatus))
-            {
-                return true;
-            }
-            return false;
-        }
-
-        private string GetThreeDSecureStatusMessage(string mdStatus)
-        {
-            return mdStatus switch
-            {
-                "1" => "3D Secure doğrulama başarılı (Full Secure)",
-                "2" or "3" or "4" => "3D Secure doğrulama kısmen başarılı (Half Secure)",
-                "5" or "6" or "7" or "8" => "Kart 3D Secure programına kayıtlı değil veya işlem reddedildi",
-                "0" => "3D Secure doğrulama başarsız",
-                _ => $"Bilinmeyen durum: {mdStatus}"
-            };
         }
     }
 }

@@ -1,9 +1,11 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
 using Otomar.Application.Dtos.Cart;
+using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
 using System.Net;
 using System.Text.Json;
@@ -15,7 +17,9 @@ namespace Otomar.Persistance.Services
         private readonly IDistributedCache _cache;
         private readonly IProductService _productService;
         private readonly ShippingOptions _shippingOptions;
+        private readonly RedisOptions _redisOptions;
         private readonly ILogger<CartService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly TimeSpan _cartExpiration;
 
         public CartService(
@@ -23,22 +27,32 @@ namespace Otomar.Persistance.Services
             IProductService productService,
             IOptions<ShippingOptions> shippingOptions,
             IOptions<RedisOptions> redisOptions,
-            ILogger<CartService> logger)
+            ILogger<CartService> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
             _cache = cache;
             _productService = productService;
             _shippingOptions = shippingOptions.Value;
+            _redisOptions = redisOptions.Value;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
             _cartExpiration = TimeSpan.FromDays(redisOptions.Value.CartExpirationDays);
         }
 
+        // CartKey'i otomatik al
+        private string GetCartKey()
+        {
+            return CartHelper.GetCartKey(_httpContextAccessor.HttpContext!, _redisOptions);
+        }
+
         public async Task<ServiceResult<CartDto>> AddToCartAsync(
-            string cartKey,
             AddToCartDto dto,
             CancellationToken cancellationToken = default)
         {
             try
             {
+                var cartKey = GetCartKey();
+
                 if (dto.Quantity <= 0)
                 {
                     return ServiceResult<CartDto>.Error(
@@ -117,18 +131,19 @@ namespace Otomar.Persistance.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "AddToCartAsync işleminde hata. CartKey: {CartKey}", cartKey);
+                _logger.LogError(ex, "AddToCartAsync işleminde hata");
                 throw;
             }
         }
 
         public async Task<ServiceResult<CartDto>> UpdateCartItemAsync(
-            string cartKey,
             UpdateCartItemDto dto,
             CancellationToken cancellationToken = default)
         {
             try
             {
+                var cartKey = GetCartKey();
+
                 if (dto.Quantity < 0)
                 {
                     return ServiceResult<CartDto>.Error(
@@ -177,18 +192,18 @@ namespace Otomar.Persistance.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "UpdateCartItemAsync işleminde hata. CartKey: {CartKey}", cartKey);
+                _logger.LogError(ex, "UpdateCartItemAsync işleminde hata");
                 throw;
             }
         }
 
         public async Task<ServiceResult<CartDto>> RemoveFromCartAsync(
-            string cartKey,
             int productId,
             CancellationToken cancellationToken = default)
         {
             try
             {
+                var cartKey = GetCartKey();
                 var cart = await GetCartInternalAsync(cartKey, cancellationToken);
 
                 var item = cart.Items.FirstOrDefault(x => x.ProductId == productId);
@@ -214,17 +229,17 @@ namespace Otomar.Persistance.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "RemoveFromCartAsync işleminde hata. CartKey: {CartKey}", cartKey);
+                _logger.LogError(ex, "RemoveFromCartAsync işleminde hata");
                 throw;
             }
         }
 
         public async Task<ServiceResult<CartDto>> GetCartAsync(
-            string cartKey,
             CancellationToken cancellationToken = default)
         {
             try
             {
+                var cartKey = GetCartKey();
                 var cart = await GetCartInternalAsync(cartKey, cancellationToken);
 
                 // Kargo ücreti hesapla
@@ -234,17 +249,17 @@ namespace Otomar.Persistance.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetCartAsync işleminde hata. CartKey: {CartKey}", cartKey);
+                _logger.LogError(ex, "GetCartAsync işleminde hata");
                 throw;
             }
         }
 
         public async Task<ServiceResult> ClearCartAsync(
-            string cartKey,
             CancellationToken cancellationToken = default)
         {
             try
             {
+                var cartKey = GetCartKey();
                 await _cache.RemoveAsync(cartKey, cancellationToken);
 
                 _logger.LogInformation("Sepet temizlendi. CartKey: {CartKey}", cartKey);
@@ -253,17 +268,18 @@ namespace Otomar.Persistance.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "ClearCartAsync işleminde hata. CartKey: {CartKey}", cartKey);
+                _logger.LogError(ex, "ClearCartAsync işleminde hata");
                 throw;
             }
         }
 
         public async Task<ServiceResult> RefreshCartAsync(
-            string cartKey,
             CancellationToken cancellationToken = default)
         {
             try
             {
+                var cartKey = GetCartKey();
+
                 // Cache'den sepeti al
                 var cartJson = await _cache.GetStringAsync(cartKey, cancellationToken);
 
@@ -287,7 +303,7 @@ namespace Otomar.Persistance.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "RefreshCartAsync işleminde hata. CartKey: {CartKey}", cartKey);
+                _logger.LogError(ex, "RefreshCartAsync işleminde hata");
                 throw;
             }
         }

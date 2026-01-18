@@ -10,8 +10,10 @@ namespace Otomar.Application.Dtos.Order
         public string Email { get; set; }
         public string IdentityNumber { get; set; }
         public string OrderType { get; set; }
-        public List<CreateOrderItemDto> Items { get; set; } = new();
+
+        //public List<CreateOrderItemDto> Items { get; set; } = new();
         public AddressDto? BillingAddress { get; set; }
+
         public AddressDto? ShippingAddress { get; set; }
         public CorporateDto? Corporate { get; set; }
     }

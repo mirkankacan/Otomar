@@ -1,9 +1,7 @@
-﻿// Api/Otomar.WebApi/Endpoints/CartEndpoints.cs
-using Carter;
+﻿using Carter;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.Application.Contracts.Services;
 using Otomar.Application.Dtos.Cart;
-using Otomar.Persistance.Options;
 using Otomar.WebApi.Extensions;
 
 namespace Otomar.WebApi.Endpoints
@@ -16,86 +14,52 @@ namespace Otomar.WebApi.Endpoints
                 .WithTags("Cart");
 
             // Sepeti getir
-            group.MapGet("/", async (HttpContext context, [FromServices] ICartService cartService, [FromServices] RedisOptions redisOptions, CancellationToken cancellationToken) =>
+            group.MapGet("/", async ([FromServices] ICartService cartService, CancellationToken cancellationToken) =>
             {
-                var cartKey = GetCartKey(context, redisOptions);
-                var result = await cartService.GetCartAsync(cartKey, cancellationToken);
+                var result = await cartService.GetCartAsync(cancellationToken);
                 return result.ToGenericResult();
             })
             .WithName("GetCart");
 
             // Sepete ürün ekle
-            group.MapPost("/items", async (HttpContext context, [FromBody] AddToCartDto dto, [FromServices] ICartService cartService, [FromServices] RedisOptions redisOptions, CancellationToken cancellationToken) =>
+            group.MapPost("/items", async ([FromBody] AddToCartDto dto, [FromServices] ICartService cartService, CancellationToken cancellationToken) =>
             {
-                var cartKey = GetCartKey(context, redisOptions);
-                var result = await cartService.AddToCartAsync(cartKey, dto, cancellationToken);
+                var result = await cartService.AddToCartAsync(dto, cancellationToken);
                 return result.ToGenericResult();
             })
             .WithName("AddToCart");
 
             // Sepetteki ürün miktarını güncelle
-            group.MapPut("/items", async (HttpContext context, [FromBody] UpdateCartItemDto dto, [FromServices] ICartService cartService, [FromServices] RedisOptions redisOptions, CancellationToken cancellationToken) =>
+            group.MapPut("/items", async ([FromBody] UpdateCartItemDto dto, [FromServices] ICartService cartService, CancellationToken cancellationToken) =>
             {
-                var cartKey = GetCartKey(context, redisOptions);
-                var result = await cartService.UpdateCartItemAsync(cartKey, dto, cancellationToken);
+                var result = await cartService.UpdateCartItemAsync(dto, cancellationToken);
                 return result.ToGenericResult();
             })
             .WithName("UpdateCartItem");
 
             // Sepetten ürün sil
-            group.MapDelete("/items/{productId:int}", async (HttpContext context, int productId, [FromServices] ICartService cartService, [FromServices] RedisOptions redisOptions, CancellationToken cancellationToken) =>
+            group.MapDelete("/items/{productId:int}", async (HttpContext context, int productId, [FromServices] ICartService cartService, CancellationToken cancellationToken) =>
             {
-                var cartKey = GetCartKey(context, redisOptions);
-                var result = await cartService.RemoveFromCartAsync(cartKey, productId, cancellationToken);
+                var result = await cartService.RemoveFromCartAsync(productId, cancellationToken);
                 return result.ToGenericResult();
             })
             .WithName("RemoveFromCart");
 
             // Sepeti temizle
-            group.MapDelete("/", async (HttpContext context, [FromServices] ICartService cartService, [FromServices] RedisOptions redisOptions, CancellationToken cancellationToken) =>
+            group.MapDelete("/", async ([FromServices] ICartService cartService, CancellationToken cancellationToken) =>
             {
-                var cartKey = GetCartKey(context, redisOptions);
-                var result = await cartService.ClearCartAsync(cartKey, cancellationToken);
+                var result = await cartService.ClearCartAsync(cancellationToken);
                 return result.ToResult();
             })
             .WithName("ClearCart");
 
             // Sepet TTL'ini yenile
-            group.MapPost("/refresh", async (HttpContext context, [FromServices] ICartService cartService, [FromServices] RedisOptions redisOptions, CancellationToken cancellationToken) =>
+            group.MapPost("/refresh", async ([FromServices] ICartService cartService, CancellationToken cancellationToken) =>
             {
-                var cartKey = GetCartKey(context, redisOptions);
-                var result = await cartService.RefreshCartAsync(cartKey, cancellationToken);
+                var result = await cartService.RefreshCartAsync(cancellationToken);
                 return result.ToResult();
             })
             .WithName("RefreshCart");
-        }
-
-        private static string GetCartKey(HttpContext context, RedisOptions redisOptions)
-        {
-            // Kullanıcı giriş yapmışsa UserId kullan
-            var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!string.IsNullOrEmpty(userId))
-            {
-                return $"cart:user:{userId}";
-            }
-
-            // Giriş yapmamışsa SessionId kullan (cookie'den)
-            var sessionId = context.Request.Cookies["CartSessionId"];
-            if (string.IsNullOrEmpty(sessionId))
-            {
-                // Yeni session oluştur
-                sessionId = Guid.NewGuid().ToString();
-                context.Response.Cookies.Append("CartSessionId", sessionId, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = context.Request.IsHttps,
-                    SameSite = SameSiteMode.Lax,
-                    IsEssential = true,
-                    Expires = DateTimeOffset.UtcNow.AddDays(redisOptions.CartExpirationDays)
-                });
-            }
-
-            return $"cart:session:{sessionId}";
         }
     }
 }

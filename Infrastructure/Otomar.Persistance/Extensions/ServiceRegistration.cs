@@ -33,6 +33,7 @@ namespace Otomar.Persistance.Extensions
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IListSearchService, ListSearchService>();
             services.AddScoped<ICartService, CartService>();
+            services.AddScoped<IAuthService, AuthService>();
 
             return services;
         }
