@@ -331,7 +331,7 @@ namespace Otomar.Persistance.Services
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("paymentId", paymentId);
-                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount,BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode FROM IdtPayments WITH (NOLOCK) WHERE Id = @paymentId";
+                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount,SubTotalAmount, ShippingAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode,MaskedCreditCard FROM IdtPayments WITH (NOLOCK) WHERE Id = @paymentId";
 
                 var result = await context.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, parameters);
                 if (result == null)
@@ -360,7 +360,7 @@ namespace Otomar.Persistance.Services
 
                 var parameters = new DynamicParameters();
                 parameters.Add("orderCode", orderCode);
-                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount,BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode FROM IdtPayments WITH (NOLOCK) WHERE OrderCode = @orderCode";
+                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount,SubTotalAmount, ShippingAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode,MaskedCreditCard FROM IdtPayments WITH (NOLOCK) WHERE OrderCode = @orderCode";
 
                 var result = await context.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, parameters);
                 if (result == null)
@@ -383,7 +383,7 @@ namespace Otomar.Persistance.Services
             try
             {
                 var query = $@"
-                 SELECT  Id, UserId, OrderCode, TotalAmount,BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode
+                 SELECT  Id, UserId, OrderCode, TotalAmount,SubTotalAmount, ShippingAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode,MaskedCreditCard
                  FROM IdtPayments WITH (NOLOCK)";
 
                 var result = await context.Connection.QueryAsync<PaymentDto>(query);
@@ -415,7 +415,7 @@ namespace Otomar.Persistance.Services
                 parameters.Add("userId", userId);
 
                 var query = $@"
-                 SELECT Id, UserId, OrderCode, TotalAmount,BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode
+                 SELECT Id, UserId, OrderCode, TotalAmount,SubTotalAmount, ShippingAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode,MaskedCreditCard
                  FROM IdtPayments WITH (NOLOCK)
                  WHERE UserId = @userId";
 

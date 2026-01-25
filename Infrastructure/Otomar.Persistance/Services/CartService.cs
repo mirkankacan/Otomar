@@ -240,7 +240,6 @@ namespace Otomar.Persistance.Services
                 var cartKey = GetCartKey();
                 await cache.RemoveAsync(cartKey, cancellationToken);
 
-                s
                 return ServiceResult.SuccessAsNoContent();
             }
             catch (Exception ex)

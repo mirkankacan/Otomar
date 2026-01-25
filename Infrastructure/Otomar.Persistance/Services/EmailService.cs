@@ -128,6 +128,7 @@ namespace Otomar.Persistance.Services
                          .Replace("{{Amount}}", payment.Data.TotalAmount.ToString("C2", new CultureInfo("tr-TR"))
                          .Replace("{{AmountInType}}", ConvertAmountToTurkishWords(payment.Data.TotalAmount))
                          .Replace("{{CreatedAt}}", order.Data.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                         .Replace("{{MaskedCreditCard}}", WebUtility.HtmlEncode(payment.Data.MaskedCreditCard))
                          .Replace("{{OrderCode}}", WebUtility.HtmlEncode(order.Data.Code)));
             const string subject = "Ödeme Onayı ✅";
             await SendInternalAsync(subject, body, order.Data.Email, null, null, isHtml: true, cancellationToken);

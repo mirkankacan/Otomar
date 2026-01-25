@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.HealthChecks;
-using Otomar.WebApp.Services;
-using Otomar.WebApp.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,14 +31,9 @@ builder.Services.AddSession(options =>
     options.Cookie.MaxAge = TimeSpan.FromMinutes(10);
 });
 builder.Services.AddOptionsExtensions();
-builder.Services.AddHttpClient<IApiService, ApiService>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["ApiOptions:BaseUrl"]);
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddScoped<IPaymentApiService, PaymentApiService>();
-builder.Services.AddScoped<IOrderApiService, OrderApiService>();
+
+// Refit API Clients
+builder.Services.AddRefitClients(builder.Configuration);
 
 builder.Services.AddHealthChecks()
     .AddCheck<BackendApiHealthCheck>(

@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
+using Otomar.WebApp.Dtos.Payment;
+using Otomar.WebApp.Dtos.Order;
 using Otomar.WebApp.Extensions;
-using Otomar.WebApp.Models.Payment;
-using Otomar.WebApp.Responses;
-using Otomar.WebApp.Services.Interfaces;
+using Otomar.WebApp.Services.Refit;
+using Refit;
 using System.Text.Json;
 
 namespace Otomar.WebApp.Controllers
 {
     [Route("odeme")]
-    public class PaymentController(IPaymentApiService paymentApiService, IOrderApiService orderApiService, ILogger<PaymentController> logger) : Controller
+    public class PaymentController(IPaymentApi paymentApi, IOrderApi orderApi, ILogger<PaymentController> logger) : Controller
     {
         [HttpGet("")]
         public IActionResult Index()
@@ -24,13 +25,11 @@ namespace Otomar.WebApp.Controllers
 
         [HttpPost("sanal-pos-baslat")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> InitializePurchasePayment([FromBody] InitializeVirtualPosPaymentDto dto, CancellationToken cancellationToken)
+        public async Task<IActionResult> InitializeVirtualPosPayment([FromBody] InitializeVirtualPosPaymentDto dto, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await paymentApiService.InitializeVirtualPosPaymentAsync(dto, cancellationToken);
-
-                return PrepareToPayment(result);
+                return await PrepareToPayment(paymentApi.InitializeVirtualPosPaymentAsync(dto, cancellationToken));
             }
             catch (Exception ex)
             {
@@ -45,9 +44,7 @@ namespace Otomar.WebApp.Controllers
         {
             try
             {
-                var result = await paymentApiService.InitializePurchasePaymentAsync(dto, cancellationToken);
-
-                return PrepareToPayment(result);
+                return await PrepareToPayment(paymentApi.InitializePurchasePaymentAsync(dto, cancellationToken));
             }
             catch (Exception ex)
             {
@@ -83,14 +80,21 @@ namespace Otomar.WebApp.Controllers
         [HttpGet("basarili/{orderCode}")]
         public async Task<IActionResult> Success(string orderCode, CancellationToken cancellationToken)
         {
-            var order = await orderApiService.GetOrderByCodeAsync(orderCode, cancellationToken);
-            if (order.IsSuccess && order.Data != null)
+            try
             {
-                if (order.Data.Payment != null && order.Data.Payment.BankProcReturnCode != "00")
+                var order = await orderApi.GetOrderByCodeAsync(orderCode, cancellationToken);
+                if (order != null)
                 {
-                    return Redirect($"/odeme/basarisiz/{orderCode}");
+                    if (order.Payment != null && order.Payment.BankProcReturnCode != "00")
+                    {
+                        return Redirect($"/odeme/basarisiz/{orderCode}");
+                    }
+                    return View(order);
                 }
-                return View(order.Data);
+            }
+            catch (ApiException)
+            {
+                // Hata durumunda ana sayfaya yönlendir
             }
             return RedirectToAction("Index", "Home");
         }
@@ -100,14 +104,21 @@ namespace Otomar.WebApp.Controllers
         {
             if (!string.IsNullOrEmpty(orderCode))
             {
-                var payment = await paymentApiService.GetPaymentByOrderCodeAsync(orderCode, cancellationToken);
-                if (payment.IsSuccess)
+                try
                 {
-                    if (payment.Data.BankProcReturnCode == "00")
+                    var payment = await paymentApi.GetPaymentByOrderCodeAsync(orderCode, cancellationToken);
+                    if (payment != null)
                     {
-                        return Redirect($"/odeme/basarili/{orderCode}");
+                        if (payment.BankProcReturnCode == "00")
+                        {
+                            return Redirect($"/odeme/basarili/{orderCode}");
+                        }
+                        return View(payment);
                     }
-                    return View(payment.Data);
+                }
+                catch (ApiException)
+                {
+                    // Hata durumunda boş view döndür
                 }
             }
             return View();
@@ -119,16 +130,34 @@ namespace Otomar.WebApp.Controllers
             HttpContext.Session.Remove("ThreeDVerificationUrl");
         }
 
-        private IActionResult PrepareToPayment(ApiResponse<InitializePaymentResponseDto> result)
+        private async Task<IActionResult> PrepareToPayment(Task<InitializePaymentResponseDto> task)
         {
-            if (!result.IsSuccess || result.Data == null)
+            try
             {
-                return result.ToActionResult();
-            }
-            HttpContext.Session.SetString("ThreeDSecureParameters", JsonSerializer.Serialize(result.Data.Parameters));
-            HttpContext.Session.SetString("ThreeDVerificationUrl", result.Data.ThreeDVerificationUrl);
+                var response = await task;
+                if (response == null)
+                {
+                    return BadRequest(new { title = "Bir hata oluştu", detail = "Yanıt alınamadı" });
+                }
+                HttpContext.Session.SetString("ThreeDSecureParameters", JsonSerializer.Serialize(response.Parameters));
+                HttpContext.Session.SetString("ThreeDVerificationUrl", response.ThreeDVerificationUrl);
 
-            return Ok(new { redirectUrl = Url.Action(nameof(ThreeDRedirect), "Payment") });
+                return Ok(new { redirectUrl = Url.Action(nameof(ThreeDRedirect), "Payment") });
+            }
+            catch (ApiException ex)
+            {
+                var statusCode = (System.Net.HttpStatusCode)ex.StatusCode;
+                return new ObjectResult(new
+                {
+                    type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    title = ex.ReasonPhrase ?? "Bir hata oluştu",
+                    status = (int)statusCode,
+                    detail = ex.Content ?? ex.Message
+                })
+                {
+                    StatusCode = (int)statusCode
+                };
+            }
         }
     }
 }
