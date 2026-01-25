@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Controllers;
+using Otomar.Application.Contracts.Services;
+using Otomar.Persistance.Helpers;
 using Serilog.Context;
 using System.Net;
-using System.Security.Claims;
 using System.Text.Json;
 
 namespace Otomar.WebApi.Middlewares
@@ -11,14 +11,20 @@ namespace Otomar.WebApi.Middlewares
     public class GlobalExceptionMiddleware : IMiddleware
     {
         private readonly ILogger<GlobalExceptionMiddleware> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IIdentityService _identityService;
 
-        public GlobalExceptionMiddleware(ILogger<GlobalExceptionMiddleware> logger)
+        public GlobalExceptionMiddleware(ILogger<GlobalExceptionMiddleware> logger, IHttpContextAccessor httpContextAccessor, IIdentityService identityService)
         {
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
+            _identityService = identityService;
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
+            SetLogContext(context);
+
             try
             {
                 await next(context);
@@ -29,33 +35,61 @@ namespace Otomar.WebApi.Middlewares
             }
         }
 
+        private void SetLogContext(HttpContext context)
+        {
+            var request = context.Request;
+
+            var clientCode = _identityService.GetClientCode() ?? null;
+            var userId = _identityService.GetUserId() ?? null;
+            var clientIp = IpHelper.GetClientIp(_httpContextAccessor);
+            var userAgent = IpHelper.GetUserAgent(_httpContextAccessor);
+            var requestId = context.TraceIdentifier;
+            var action = $"{request.Method} {request.Path}";
+
+            var endpoint = context.GetEndpoint();
+            var endpointName = endpoint?.DisplayName ?? "Unknown";
+
+            var module = ExtractModuleName(endpointName, request.Path);
+
+            LogContext.PushProperty("UserId", userId);
+            LogContext.PushProperty("ClientCode", clientCode);
+            LogContext.PushProperty("Action", action);
+            LogContext.PushProperty("Module", module);
+            LogContext.PushProperty("ClientIP", clientIp);
+            LogContext.PushProperty("UserAgent", userAgent);
+            LogContext.PushProperty("RequestId", requestId);
+        }
+
+        private string ExtractModuleName(string endpointName, PathString path)
+        {
+            if (endpointName.Contains("=>"))
+            {
+                var parts = endpointName.Split("=>");
+                if (parts.Length > 1)
+                {
+                    return parts[1].Trim();
+                }
+            }
+
+            var pathSegments = path.Value?.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (pathSegments?.Length >= 2)
+            {
+                return char.ToUpper(pathSegments[1][0]) + pathSegments[1].Substring(1);
+            }
+
+            return "UnknownModule";
+        }
+
         private async Task LogAndHandleExceptionAsync(HttpContext context, Exception exception)
         {
             var request = context.Request;
 
-            var userId = context.User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Anonymous";
-            var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-            var userAgent = request.Headers["User-Agent"].ToString();
-            var requestId = context.TraceIdentifier;
-            var action = $"{request.Method} {request.Path}";
-            var endpoint = context.GetEndpoint();
-            var controllerName = endpoint?.Metadata.GetMetadata<ControllerActionDescriptor>()?.ControllerName ?? "Unknown";
-            var actionName = endpoint?.Metadata.GetMetadata<ControllerActionDescriptor>()?.ActionName ?? "Unknown";
-            var module = $"{controllerName}Controller";
-
-            using (LogContext.PushProperty("UserId", userId))
-            using (LogContext.PushProperty("Action", action))
-            using (LogContext.PushProperty("Module", module))
-            using (LogContext.PushProperty("ClientIP", clientIp))
-            using (LogContext.PushProperty("UserAgent", userAgent))
-            using (LogContext.PushProperty("RequestId", requestId))
-            {
-                _logger.LogError(exception,
-                    "HTTP {Method} {Path} başarısız oldu. QueryString: {QueryString}",
-                    request.Method,
-                    request.Path,
-                    request.QueryString.ToString());
-            }
+            // LogContext zaten SetLogContext() tarafından set edildi
+            _logger.LogError(exception,
+                "HTTP {Method} {Path} başarısız oldu. QueryString: {QueryString}",
+                request.Method,
+                request.Path,
+                request.QueryString.ToString());
 
             await HandleExceptionAsync(context, exception);
         }

@@ -2,11 +2,15 @@
 {
     public interface IIdentityService
     {
-        string? GetUserId();
+        string GetUserId();
 
-        string? GetUserEmail();
+        string GetUserEmail();
 
-        string? GetUserNameSurname();
+        string GetUserFullName();
+
+        bool IsUserPaymentExempt();
+
+        string GetUserPhoneNumber();
 
         string? GetClientCode();
     }

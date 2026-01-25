@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Microsoft.Extensions.Logging;
 using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
@@ -67,7 +67,7 @@ namespace Otomar.Persistance.Services
             {
                 if (string.IsNullOrEmpty(code))
                 {
-                    return ServiceResult<ProductDto?>.Error("Stok kodu boş geçilemez", HttpStatusCode.BadRequest);
+                    return ServiceResult<ProductDto?>.Error("Geçersiz Stok Kodu", "Stok kodu boş geçilemez", HttpStatusCode.BadRequest);
                 }
                 var parameters = new DynamicParameters();
                 parameters.Add("code", code.Trim());
@@ -101,7 +101,7 @@ namespace Otomar.Persistance.Services
                 if (result == null)
                 {
                     logger.LogWarning($"'{code}' stok kodlu ürün bulunamadı");
-                    return ServiceResult<ProductDto?>.Error($"'{code}' stok kodlu ürün bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<ProductDto?>.Error("Ürün Bulunamadı", $"'{code}' stok kodlu ürün bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 return ServiceResult<ProductDto?>.SuccessAsOk(result);
@@ -149,7 +149,7 @@ namespace Otomar.Persistance.Services
                 if (result == null)
                 {
                     logger.LogWarning($"'{id}' ID'li ürün bulunamadı");
-                    return ServiceResult<ProductDto?>.Error($"'{id}' ID'li ürün bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<ProductDto?>.Error("Ürün Bulunamadı", $"'{id}' ID'li ürün bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 return ServiceResult<ProductDto?>.SuccessAsOk(result);

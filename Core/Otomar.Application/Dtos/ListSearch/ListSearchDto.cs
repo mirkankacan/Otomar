@@ -1,4 +1,4 @@
-﻿using Otomar.Application.Dtos.Order;
+﻿using Otomar.Domain.Enums;
 
 namespace Otomar.Application.Dtos.ListSearch
 {
@@ -6,17 +6,22 @@ namespace Otomar.Application.Dtos.ListSearch
     {
         public int Id { get; set; }
         public string RequestNo { get; set; }
-
+        public string NameSurname { get; set; }
+        public string? CompanyName { get; set; }
+        public string PhoneNumber { get; set; }
         public string ChassisNumber { get; set; }
         public string? Email { get; set; }
         public string Brand { get; set; }
-        public string? Model { get; set; }
-        public string? Year { get; set; }
+        public string Model { get; set; }
+        public string Year { get; set; }
         public string? Engine { get; set; }
-        public string? License { get; set; }
+        public string? LicensePlate { get; set; }
         public string? Annotation { get; set; }
         public DateTime CreatedAt { get; set; }
-        public string? UserId { get; set; }
-        public IEnumerable<OrderItemDto> Items { get; set; } = Enumerable.Empty<OrderItemDto>();
+        public string CreatedByFullName { get; set; }
+        public ListSearchStatus Status { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public string? UpdatedByFullName { get; set; }
+        public IEnumerable<ListSearchPartDto> Parts { get; set; } = Enumerable.Empty<ListSearchPartDto>();
     }
 }

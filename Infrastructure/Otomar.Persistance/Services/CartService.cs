@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
 using Otomar.Application.Dtos.Cart;
@@ -12,37 +11,20 @@ using System.Text.Json;
 
 namespace Otomar.Persistance.Services
 {
-    public class CartService : ICartService
+    public class CartService(
+        IDistributedCache cache,
+        IProductService productService,
+        ShippingOptions shippingOptions,
+        RedisOptions redisOptions,
+        ILogger<CartService> logger,
+        IHttpContextAccessor httpContextAccessor) : ICartService
     {
-        private readonly IDistributedCache _cache;
-        private readonly IProductService _productService;
-        private readonly ShippingOptions _shippingOptions;
-        private readonly RedisOptions _redisOptions;
-        private readonly ILogger<CartService> _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly TimeSpan _cartExpiration;
-
-        public CartService(
-            IDistributedCache cache,
-            IProductService productService,
-            IOptions<ShippingOptions> shippingOptions,
-            IOptions<RedisOptions> redisOptions,
-            ILogger<CartService> logger,
-            IHttpContextAccessor httpContextAccessor)
-        {
-            _cache = cache;
-            _productService = productService;
-            _shippingOptions = shippingOptions.Value;
-            _redisOptions = redisOptions.Value;
-            _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
-            _cartExpiration = TimeSpan.FromDays(redisOptions.Value.CartExpirationDays);
-        }
+        private readonly TimeSpan _cartExpiration = TimeSpan.FromDays(redisOptions.CartExpirationDays);
 
         // CartKey'i otomatik al
         private string GetCartKey()
         {
-            return CartHelper.GetCartKey(_httpContextAccessor.HttpContext!, _redisOptions);
+            return CartHelper.GetCartKey(httpContextAccessor.HttpContext!, redisOptions);
         }
 
         public async Task<ServiceResult<CartDto>> AddToCartAsync(
@@ -56,17 +38,19 @@ namespace Otomar.Persistance.Services
                 if (dto.Quantity <= 0)
                 {
                     return ServiceResult<CartDto>.Error(
+                        "Geçersiz Miktar",
                         "Miktar 0'dan büyük olmalıdır",
                         HttpStatusCode.BadRequest);
                 }
 
                 // Ürün bilgilerini getir
-                var productResult = await _productService.GetProductByIdAsync(dto.ProductId);
+                var productResult = await productService.GetProductByIdAsync(dto.ProductId);
                 if (!productResult.IsSuccess || productResult.Data == null)
                 {
-                    _logger.LogWarning("Ürün bulunamadı: {ProductId}", dto.ProductId);
+                    logger.LogWarning("Ürün bulunamadı: {ProductId}", dto.ProductId);
                     return ServiceResult<CartDto>.Error(
-                        "Ürün bulunamadı",
+                        "Ürün Bulunamadı",
+                        $"ID'si {dto.ProductId} olan ürün bulunamadı",
                         HttpStatusCode.NotFound);
                 }
 
@@ -76,7 +60,8 @@ namespace Otomar.Persistance.Services
                 if (product.STOK_BAKIYE.HasValue && product.STOK_BAKIYE < dto.Quantity)
                 {
                     return ServiceResult<CartDto>.Error(
-                        $"Yeterli stok yok. Mevcut: {product.STOK_BAKIYE}",
+                        "Yetersiz Stok",
+                        $"Yeterli stok yok. Mevcut stok: {product.STOK_BAKIYE}, İstenen: {dto.Quantity}",
                         HttpStatusCode.BadRequest);
                 }
 
@@ -95,7 +80,8 @@ namespace Otomar.Persistance.Services
                     if (product.STOK_BAKIYE.HasValue && product.STOK_BAKIYE < newQuantity)
                     {
                         return ServiceResult<CartDto>.Error(
-                            $"Yeterli stok yok. Mevcut: {product.STOK_BAKIYE}",
+                            "Yetersiz Stok",
+                            $"Yeterli stok yok. Mevcut stok: {product.STOK_BAKIYE}, İstenen: {newQuantity}",
                             HttpStatusCode.BadRequest);
                     }
 
@@ -123,15 +109,11 @@ namespace Otomar.Persistance.Services
                 // Redis'e kaydet
                 await SaveCartAsync(cartKey, cart, cancellationToken);
 
-                _logger.LogInformation(
-                    "Sepete ürün eklendi. CartKey: {CartKey}, ProductId: {ProductId}, Quantity: {Quantity}",
-                    cartKey, dto.ProductId, dto.Quantity);
-
                 return ServiceResult<CartDto>.SuccessAsOk(cart);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "AddToCartAsync işleminde hata");
+                logger.LogError(ex, "AddToCartAsync işleminde hata");
                 throw;
             }
         }
@@ -147,6 +129,7 @@ namespace Otomar.Persistance.Services
                 if (dto.Quantity < 0)
                 {
                     return ServiceResult<CartDto>.Error(
+                        "Geçersiz Miktar",
                         "Miktar 0'dan küçük olamaz",
                         HttpStatusCode.BadRequest);
                 }
@@ -157,7 +140,8 @@ namespace Otomar.Persistance.Services
                 if (item == null)
                 {
                     return ServiceResult<CartDto>.Error(
-                        "Ürün sepette bulunamadı",
+                        "Ürün Sepette Bulunamadı",
+                        $"ID'si {dto.ProductId} olan ürün sepette bulunamadı",
                         HttpStatusCode.NotFound);
                 }
 
@@ -172,7 +156,8 @@ namespace Otomar.Persistance.Services
                     if (item.StockQuantity.HasValue && item.StockQuantity < dto.Quantity)
                     {
                         return ServiceResult<CartDto>.Error(
-                            $"Yeterli stok yok. Mevcut: {item.StockQuantity}",
+                            "Yetersiz Stok",
+                            $"Yeterli stok yok. Mevcut stok: {item.StockQuantity}, İstenen: {dto.Quantity}",
                             HttpStatusCode.BadRequest);
                     }
 
@@ -184,15 +169,11 @@ namespace Otomar.Persistance.Services
 
                 await SaveCartAsync(cartKey, cart, cancellationToken);
 
-                _logger.LogInformation(
-                    "Sepet güncellendi. CartKey: {CartKey}, ProductId: {ProductId}, Quantity: {Quantity}",
-                    cartKey, dto.ProductId, dto.Quantity);
-
                 return ServiceResult<CartDto>.SuccessAsOk(cart);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "UpdateCartItemAsync işleminde hata");
+                logger.LogError(ex, "UpdateCartItemAsync işleminde hata");
                 throw;
             }
         }
@@ -210,7 +191,8 @@ namespace Otomar.Persistance.Services
                 if (item == null)
                 {
                     return ServiceResult<CartDto>.Error(
-                        "Ürün sepette bulunamadı",
+                        "Ürün Sepette Bulunamadı",
+                        $"ID'si {productId} olan ürün sepette bulunamadı",
                         HttpStatusCode.NotFound);
                 }
 
@@ -221,15 +203,11 @@ namespace Otomar.Persistance.Services
 
                 await SaveCartAsync(cartKey, cart, cancellationToken);
 
-                _logger.LogInformation(
-                    "Ürün sepetten silindi. CartKey: {CartKey}, ProductId: {ProductId}",
-                    cartKey, productId);
-
                 return ServiceResult<CartDto>.SuccessAsOk(cart);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "RemoveFromCartAsync işleminde hata");
+                logger.LogError(ex, "RemoveFromCartAsync işleminde hata");
                 throw;
             }
         }
@@ -249,7 +227,7 @@ namespace Otomar.Persistance.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetCartAsync işleminde hata");
+                logger.LogError(ex, "GetCartAsync işleminde hata");
                 throw;
             }
         }
@@ -260,15 +238,14 @@ namespace Otomar.Persistance.Services
             try
             {
                 var cartKey = GetCartKey();
-                await _cache.RemoveAsync(cartKey, cancellationToken);
+                await cache.RemoveAsync(cartKey, cancellationToken);
 
-                _logger.LogInformation("Sepet temizlendi. CartKey: {CartKey}", cartKey);
-
+                s
                 return ServiceResult.SuccessAsNoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "ClearCartAsync işleminde hata");
+                logger.LogError(ex, "ClearCartAsync işleminde hata");
                 throw;
             }
         }
@@ -281,11 +258,11 @@ namespace Otomar.Persistance.Services
                 var cartKey = GetCartKey();
 
                 // Cache'den sepeti al
-                var cartJson = await _cache.GetStringAsync(cartKey, cancellationToken);
+                var cartJson = await cache.GetStringAsync(cartKey, cancellationToken);
 
                 if (string.IsNullOrEmpty(cartJson))
                 {
-                    _logger.LogWarning("Yenilenecek sepet bulunamadı. CartKey: {CartKey}", cartKey);
+                    logger.LogWarning("Yenilenecek sepet bulunamadı. CartKey: {CartKey}", cartKey);
                     return ServiceResult.SuccessAsNoContent();
                 }
 
@@ -295,15 +272,15 @@ namespace Otomar.Persistance.Services
                     AbsoluteExpirationRelativeToNow = _cartExpiration
                 };
 
-                await _cache.SetStringAsync(cartKey, cartJson, cacheOptions, cancellationToken);
+                await cache.SetStringAsync(cartKey, cartJson, cacheOptions, cancellationToken);
 
-                _logger.LogInformation("Sepet TTL'i yenilendi. CartKey: {CartKey}", cartKey);
+                logger.LogInformation("Sepet TTL'i yenilendi. CartKey: {CartKey}", cartKey);
 
                 return ServiceResult.SuccessAsNoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "RefreshCartAsync işleminde hata");
+                logger.LogError(ex, "RefreshCartAsync işleminde hata");
                 throw;
             }
         }
@@ -313,7 +290,7 @@ namespace Otomar.Persistance.Services
             string cartKey,
             CancellationToken cancellationToken = default)
         {
-            var cartJson = await _cache.GetStringAsync(cartKey, cancellationToken);
+            var cartJson = await cache.GetStringAsync(cartKey, cancellationToken);
 
             if (string.IsNullOrEmpty(cartJson))
             {
@@ -335,12 +312,12 @@ namespace Otomar.Persistance.Services
             };
 
             var cartJson = JsonSerializer.Serialize(cart);
-            await _cache.SetStringAsync(cartKey, cartJson, cacheOptions, cancellationToken);
+            await cache.SetStringAsync(cartKey, cartJson, cacheOptions, cancellationToken);
         }
 
         private decimal CalculateShippingCost(decimal subTotal)
         {
-            return subTotal >= _shippingOptions.Threshold ? 0 : _shippingOptions.Cost;
+            return subTotal >= shippingOptions.Threshold ? 0 : shippingOptions.Cost;
         }
     }
 }

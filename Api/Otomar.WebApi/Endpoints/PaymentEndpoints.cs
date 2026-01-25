@@ -14,13 +14,19 @@ namespace Otomar.WebApi.Endpoints
             var group = app.MapGroup("api/payments")
                 .WithTags("Payments");
 
-            group.MapPost("/initialize", async ([FromBody] InitializePaymentDto initializePaymentDto, [FromServices] IPaymentService paymentService, [FromServices] IOrderService orderService, CancellationToken cancellationToken) =>
+            group.MapPost("/initialize/purchase", async ([FromBody] InitializePurchasePaymentDto dto, [FromServices] IPaymentService paymentService, CancellationToken cancellationToken) =>
             {
-                var result = await paymentService.InitializePaymentAsync(initializePaymentDto, cancellationToken);
+                var result = await paymentService.InitializePurchasePaymentAsync(dto, cancellationToken);
                 return result.ToGenericResult();
             })
-             .WithName("InitializePayment");
+             .WithName("InitializePurchasePayment");
 
+            group.MapPost("/initialize/virtual-pos", async ([FromBody] InitializeVirtualPosPaymentDto dto, [FromServices] IPaymentService paymentService, CancellationToken cancellationToken) =>
+            {
+                var result = await paymentService.InitializeVirtualPosPaymentAsync(dto, cancellationToken);
+                return result.ToGenericResult();
+            })
+            .WithName("InitializeVirtualPosPayment");
             group.MapGet("/", async ([FromServices] IPaymentService paymentService) =>
             {
                 var result = await paymentService.GetPaymentsAsync();
@@ -47,16 +53,28 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
         .WithName("GetPaymentByOrderCode");
-            // 3D Secure callback
-            group.MapPost("/3d-callback", async ([FromForm] Dictionary<string, string> parameters,
-                [FromServices] IPaymentService paymentService, [FromServices] HttpContext context, [FromServices] UiOptions options,
+
+            group.MapPost("/3d-callback", async (
+                [FromServices] IPaymentService paymentService,
+                [FromServices] UiOptions options,
+                HttpContext context,
                 CancellationToken cancellationToken) =>
             {
                 try
                 {
+                    var form = await context.Request.ReadFormAsync(cancellationToken);
+                    var parameters = form.Keys.ToDictionary(
+                        key => key,
+                        key => form[key].ToString()
+                    );
+
                     var result = await paymentService.CompletePaymentAsync(parameters, cancellationToken);
                     var orderCode = result.Data ?? parameters.GetValueOrDefault("oid")!;
-                    var redirectUrl = result.IsSuccess ? $"{options.PaymentSuccessUrl}/{orderCode}" : !string.IsNullOrEmpty(orderCode) ? $"{options.PaymentFailureUrl}/{orderCode}" : options.PaymentFailureUrl;
+                    var redirectUrl = result.IsSuccess
+                        ? $"{options.PaymentSuccessUrl}/{orderCode}"
+                        : !string.IsNullOrEmpty(orderCode)
+                            ? $"{options.PaymentFailureUrl}/{orderCode}"
+                            : options.PaymentFailureUrl;
 
                     var logoUrl = $"{options.BaseUrl}/assets/img/logo/otomar.png";
                     var isSuccess = result.IsSuccess;
@@ -67,7 +85,7 @@ namespace Otomar.WebApi.Endpoints
 <head>
     <meta charset=""utf-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-        <meta name=""robots"" content=""noindex, nofollow, noarchive, nosnippet"">
+    <meta name=""robots"" content=""noindex, nofollow, noarchive, nosnippet"">
     <meta http-equiv=""refresh"" content=""0;url={redirectUrl}"">
     <title>Yönlendiriliyor...</title>
     <link href=""https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"" rel=""stylesheet"">
@@ -137,7 +155,7 @@ namespace Otomar.WebApi.Endpoints
                 catch (Exception)
                 {
                     var errorUrl = $"{options.PaymentFailureUrl}";
-                    var logoUrl = $"{options.BaseUrl}/theme/assets/images/egesehir.png";
+                    var logoUrl = $"{options.BaseUrl}/assets/img/logo/otomar.png"; // Fixed logo path
 
                     var errorHtml = $@"
 <!DOCTYPE html>
@@ -145,7 +163,7 @@ namespace Otomar.WebApi.Endpoints
 <head>
     <meta charset=""utf-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-        <meta name=""robots"" content=""noindex, nofollow, noarchive, nosnippet"">
+    <meta name=""robots"" content=""noindex, nofollow, noarchive, nosnippet"">
     <meta http-equiv=""refresh"" content=""3;url={errorUrl}"">
     <title>Hata Oluştu</title>
     <link href=""https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"" rel=""stylesheet"">
@@ -169,7 +187,6 @@ namespace Otomar.WebApi.Endpoints
         .card-body {{
             padding: 2rem;
         }}
-
     </style>
 </head>
 <body>
@@ -212,7 +229,6 @@ namespace Otomar.WebApi.Endpoints
                 }
             })
             .WithName("ThreeDCallback")
-            .WithSummary("3D Secure doğrulama sonrası callback")
             .DisableAntiforgery()
             .AllowAnonymous();
         }

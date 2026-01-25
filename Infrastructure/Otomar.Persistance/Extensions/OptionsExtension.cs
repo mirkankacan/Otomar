@@ -8,10 +8,12 @@ namespace Otomar.Persistance.Extensions
     {
         public static IServiceCollection AddOptionsExtensions(this IServiceCollection services)
         {
-            services.AddValidatedOptions<PaymentOptions>();
             services.AddValidatedOptions<EmailOptions>();
-            services.AddValidatedOptions<ShippingOptions>();
+            services.AddValidatedOptions<JwtOptions>();
+            services.AddValidatedOptions<PaymentOptions>();
             services.AddValidatedOptions<RedisOptions>();
+            services.AddValidatedOptions<ShippingOptions>();
+            services.AddValidatedOptions<UiOptions>();
 
             return services;
         }

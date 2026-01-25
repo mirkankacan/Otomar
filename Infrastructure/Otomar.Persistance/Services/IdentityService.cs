@@ -8,22 +8,32 @@ namespace Otomar.Persistance.Services
     {
         public string? GetClientCode()
         {
-            return accessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == "client_code")?.Value ?? null;
+            return accessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == "ClientCode")?.Value ?? null;
         }
 
-        public string? GetUserEmail()
+        public string GetUserEmail()
         {
-            return accessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? null;
+            return accessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
         }
 
-        public string? GetUserId()
+        public string GetUserId()
         {
-            return accessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? null;
+            return accessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value!;
         }
 
-        public string? GetUserNameSurname()
+        public string GetUserFullName()
         {
-            return accessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? null;
+            return accessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value!;
+        }
+
+        public bool IsUserPaymentExempt()
+        {
+            return bool.Parse(accessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == "IsPaymentExempt")?.Value!);
+        }
+
+        public string GetUserPhoneNumber()
+        {
+            return accessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.MobilePhone)?.Value!;
         }
     }
 }

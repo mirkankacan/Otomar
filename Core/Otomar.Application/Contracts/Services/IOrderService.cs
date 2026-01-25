@@ -12,13 +12,13 @@ namespace Otomar.Application.Contracts.Services
 
         Task<ServiceResult<OrderDto>> GetOrderByIdAsync(Guid id);
 
-        Task<ServiceResult<OrderDto>> GetOrderByCodeAsync(string orderCode);
+        Task<ServiceResult<OrderDto>> GetOrderByCodeAsync(string orderCode, IDbTransaction transaction = null);
 
-        Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto, IDbTransaction transaction);
+        Task<ServiceResult<Guid>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto dto, IDbTransaction transaction, CancellationToken cancellationToken);
 
-        Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto);
+        Task<ServiceResult<Guid>> CreateVirtualPosOrderAsync(CreateVirtualPosOrderDto dto, IDbTransaction transaction, CancellationToken cancellationToken);
 
-        Task<ServiceResult<Guid>> CreateClientOrderAsync(CreateClientOrderDto createClientOrderDto);
+        Task<ServiceResult<Guid>> CreateClientOrderAsync(CreateClientOrderDto createClientOrderDto, CancellationToken cancellationToken);
 
         Task<ServiceResult<IEnumerable<ClientOrderDto>>> GetClientOrdersAsync();
 

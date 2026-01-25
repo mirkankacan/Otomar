@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Microsoft.Extensions.Logging;
 using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
@@ -20,9 +20,8 @@ namespace Otomar.Persistance.Services
                 if (result.Count() == 0)
                 {
                     logger.LogWarning("Markalar bulunamadı");
-                    return ServiceResult<IEnumerable<BrandDto>>.Error($"Markalar bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<BrandDto>>.Error("Markalar Bulunamadı", "Sistemde aktif marka bulunamadı", HttpStatusCode.NotFound);
                 }
-                logger.LogInformation("Markalar getirildi");
 
                 return ServiceResult<IEnumerable<BrandDto>>.SuccessAsOk(result);
             }
@@ -72,7 +71,7 @@ namespace Otomar.Persistance.Services
                 {
                     logger.LogWarning("Markalar bulunamadı");
 
-                    return ServiceResult<IEnumerable<BrandModelYearDto>>.Error($"Markalar bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<BrandModelYearDto>>.Error("Markalar Bulunamadı", "Sistemde aktif marka bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 var models = await context.Connection.QueryAsync<ModelDto>(modelQuery);
@@ -80,7 +79,7 @@ namespace Otomar.Persistance.Services
                 {
                     logger.LogWarning("Modeller bulunamadı");
 
-                    return ServiceResult<IEnumerable<BrandModelYearDto>>.Error($"Modeller bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<BrandModelYearDto>>.Error("Modeller Bulunamadı", "Sistemde aktif model bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 var years = await context.Connection.QueryAsync<YearDto>(yearQuery);
@@ -105,7 +104,6 @@ namespace Otomar.Persistance.Services
                     AKTIF = brand.AKTIF,
                     ModelsYears = modelLookup[brand.MARKA_KODU].AsEnumerable()
                 });
-                logger.LogInformation("Marka model kasalar getirildi");
 
                 return ServiceResult<IEnumerable<BrandModelYearDto>>.SuccessAsOk(result);
             }
@@ -144,7 +142,7 @@ ORDER BY SIRA;";
                 {
                     logger.LogWarning("Kategoriler bulunamadı");
 
-                    return ServiceResult<IEnumerable<CategoryDto>>.Error($"Kategoriler bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<CategoryDto>>.Error("Kategoriler Bulunamadı", "Sistemde kategori bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 var subCategories = await context.Connection.QueryAsync<SubCategoryDto>(subQuery);
@@ -158,7 +156,6 @@ ORDER BY SIRA;";
                     GRUP_IKON = category.GRUP_IKON,
                     SubCategories = subCategoryLookup[category.GRUP_ID]
                 }).AsEnumerable();
-                logger.LogInformation("Kategoriler getirildi");
 
                 return ServiceResult<IEnumerable<CategoryDto>>.SuccessAsOk(result);
             }
@@ -180,9 +177,8 @@ ORDER BY SIRA;";
                 {
                     logger.LogWarning("Öne çıkarılmış kategoriler bulunamadı");
 
-                    return ServiceResult<IEnumerable<FeaturedCategoryDto>>.Error($"Öne çıkarılmış kategoriler bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<FeaturedCategoryDto>>.Error("Öne Çıkarılmış Kategoriler Bulunamadı", "Sistemde öne çıkarılmış kategori bulunamadı", HttpStatusCode.NotFound);
                 }
-                logger.LogInformation("Öne çıkarılmış kategoriler getirildi");
 
                 return ServiceResult<IEnumerable<FeaturedCategoryDto>>.SuccessAsOk(result);
             }
@@ -203,9 +199,8 @@ ORDER BY SIRA;";
                 if (result.Count() == 0)
                 {
                     logger.LogWarning("Üretici markalar bulunamadı");
-                    return ServiceResult<IEnumerable<ManufacturerDto>>.Error($"Üretici markalar bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<ManufacturerDto>>.Error("Üretici Markalar Bulunamadı", "Sistemde aktif üretici marka bulunamadı", HttpStatusCode.NotFound);
                 }
-                logger.LogInformation("Üretici markalar getirildi");
 
                 return ServiceResult<IEnumerable<ManufacturerDto>>.SuccessAsOk(result);
             }
@@ -230,9 +225,8 @@ ORDER BY SIRA;";
                 if (result.Count() == 0)
                 {
                     logger.LogWarning($"{brandId} kodlu markaya ait modeller bulunamadı");
-                    return ServiceResult<IEnumerable<ModelDto>>.Error($"Modeller bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<ModelDto>>.Error("Modeller Bulunamadı", $"{brandId} kodlu markaya ait aktif model bulunamadı", HttpStatusCode.NotFound);
                 }
-                logger.LogInformation($"{brandId} kodlu markaya ait modeller getirildi");
 
                 return ServiceResult<IEnumerable<ModelDto>>.SuccessAsOk(result);
             }
@@ -257,9 +251,8 @@ ORDER BY SIRA;";
                 if (result.Count() == 0)
                 {
                     logger.LogWarning($"{modelId} kodlu modele ait kasalar bulunamadı");
-                    return ServiceResult<IEnumerable<YearDto>>.Error($"Kasalar bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<YearDto>>.Error("Kasalar Bulunamadı", $"{modelId} kodlu modele ait aktif kasa bulunamadı", HttpStatusCode.NotFound);
                 }
-                logger.LogInformation($"{modelId} kodlu modele ait kasalar getirildi");
 
                 return ServiceResult<IEnumerable<YearDto>>.SuccessAsOk(result);
             }

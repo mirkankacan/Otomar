@@ -59,6 +59,21 @@ namespace Otomar.WebApi.Extensions
                     },
                     restrictedToMinimumLevel: LogEventLevel.Information,
                     columnOptions: GetColumnOptions())
+                //.WriteTo.Email(
+                //    from: emailOptions.Credentials.Username,
+                //    to: emailOptions.ErrorTo,
+                //    host: emailOptions.Host,
+                //    port: emailOptions.Port,
+                //    connectionSecurity: emailOptions.EnableSsl
+                //        ? MailKit.Security.SecureSocketOptions.SslOnConnect
+                //        : MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable,
+                //    credentials: new NetworkCredential(
+                //        emailOptions.Credentials.Username,
+                //        emailOptions.Credentials.Password
+                //    ),
+                //    subject: "🚨 Otomar.WebApi - {Level} - {Timestamp:dd-MM-yyyy HH:mm}",
+                //    restrictedToMinimumLevel: LogEventLevel.Error
+                //)
                 .CreateLogger();
 
             host.UseSerilog();
@@ -117,6 +132,7 @@ namespace Otomar.WebApi.Extensions
             columnOptions.AdditionalColumns = new Collection<SqlColumn>
             {
                 new SqlColumn { ColumnName = "UserId", DataType = SqlDbType.NVarChar, DataLength = 50, AllowNull = true },
+                new SqlColumn { ColumnName = "ClientCode", DataType = SqlDbType.NVarChar, DataLength = 50, AllowNull = true },
                 new SqlColumn { ColumnName = "Action", DataType = SqlDbType.NVarChar, DataLength = 100, AllowNull = true },
                 new SqlColumn { ColumnName = "Module", DataType = SqlDbType.NVarChar, DataLength = 100, AllowNull = true },
                 new SqlColumn { ColumnName = "ClientIP", DataType = SqlDbType.NVarChar, DataLength = 45, AllowNull = true },

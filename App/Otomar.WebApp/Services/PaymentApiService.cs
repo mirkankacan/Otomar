@@ -23,9 +23,14 @@ namespace Otomar.WebApp.Services
             return await apiService.GetAsync<PaymentDto>($"{BaseEndpoint}/{paymentId}", cancellationToken);
         }
 
-        public async Task<ApiResponse<Dictionary<string, string>>> InitializePaymentAsync(InitializePaymentDto initializePaymentDto, CancellationToken cancellationToken)
+        public async Task<ApiResponse<InitializePaymentResponseDto>> InitializePurchasePaymentAsync(InitializePurchasePaymentDto dto, CancellationToken cancellationToken)
         {
-            return await apiService.PostAsync<Dictionary<string, string>>($"{BaseEndpoint}/initialize", initializePaymentDto, cancellationToken);
+            return await apiService.PostAsync<InitializePaymentResponseDto>($"{BaseEndpoint}/initialize/purchase", dto, cancellationToken);
+        }
+
+        public async Task<ApiResponse<InitializePaymentResponseDto>> InitializeVirtualPosPaymentAsync(InitializeVirtualPosPaymentDto dto, CancellationToken cancellationToken)
+        {
+            return await apiService.PostAsync<InitializePaymentResponseDto>($"{BaseEndpoint}/initialize/virtual-pos", dto, cancellationToken);
         }
 
         public async Task<ApiResponse<PaymentDto>> GetPaymentByOrderCodeAsync(string orderCode, CancellationToken cancellationToken = default)

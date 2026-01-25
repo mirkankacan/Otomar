@@ -2,9 +2,9 @@
 
 namespace Otomar.WebApp.Models.Payment
 {
-    public class InitializePaymentDto
+    public class InitializePurchasePaymentDto
     {
-        public decimal TotalAmount { get; set; }
+        //public decimal TotalAmount { get; set; }
 
         public string CreditCardNumber { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Microsoft.Extensions.Logging;
 using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
@@ -16,7 +16,7 @@ namespace Otomar.Persistance.Services
             {
                 if (string.IsNullOrEmpty(clientCode))
                 {
-                    return ServiceResult<ClientDto>.Error($"Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
+                    return ServiceResult<ClientDto>.Error("Geçersiz Cari Kodu", "Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
                 }
                 var parameters = new DynamicParameters();
                 parameters.Add("clientCode", clientCode.Trim());
@@ -26,9 +26,8 @@ namespace Otomar.Persistance.Services
                 if (result == null)
                 {
                     logger.LogWarning($"{clientCode} kodlu cari bulunamadı");
-                    return ServiceResult<ClientDto>.Error($"{clientCode} kodlu cari bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<ClientDto>.Error("Cari Bulunamadı", $"{clientCode} kodlu cari bulunamadı", HttpStatusCode.NotFound);
                 }
-                logger.LogInformation($"{clientCode} kodlu cari getirildi");
                 return ServiceResult<ClientDto>.SuccessAsOk(result);
             }
             catch (Exception ex)
@@ -44,7 +43,7 @@ namespace Otomar.Persistance.Services
             {
                 if (string.IsNullOrEmpty(taxNumber))
                 {
-                    return ServiceResult<ClientDto>.Error($"Vergi numarası/TC kimlik numarası boş geçilemez", HttpStatusCode.BadRequest);
+                    return ServiceResult<ClientDto>.Error("Geçersiz Vergi/TC Numarası", "Vergi numarası/TC kimlik numarası boş geçilemez", HttpStatusCode.BadRequest);
                 }
                 var parameters = new DynamicParameters();
                 parameters.Add("taxNumber", taxNumber.Trim());
@@ -62,9 +61,8 @@ namespace Otomar.Persistance.Services
                 if (result == null)
                 {
                     logger.LogWarning($"{taxNumber} vergi numaralı/TC kimlik numaralı cari bulunamadı");
-                    return ServiceResult<ClientDto>.Error($"{taxNumber} vergi numaralı/TC kimlik numaralı cari bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<ClientDto>.Error("Cari Bulunamadı", $"{taxNumber} vergi numaralı/TC kimlik numaralı cari bulunamadı", HttpStatusCode.NotFound);
                 }
-                logger.LogInformation($"{taxNumber} vergi numaralı/TC kimlik numaralı cari getirildi");
                 return ServiceResult<ClientDto>.SuccessAsOk(result);
             }
             catch (Exception ex)
@@ -80,7 +78,7 @@ namespace Otomar.Persistance.Services
             {
                 if (string.IsNullOrEmpty(clientCode))
                 {
-                    return ServiceResult<IEnumerable<TransactionDto>>.Error($"Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
+                    return ServiceResult<IEnumerable<TransactionDto>>.Error("Geçersiz Cari Kodu", "Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
                 }
                 var parameters = new DynamicParameters();
                 parameters.Add("clientCode", clientCode.Trim());
@@ -104,15 +102,14 @@ namespace Otomar.Persistance.Services
                     BORC,
                     ALACAK,
                     FORMAT(BAKIYE, 'c2', 'tr-TR') AS BAKIYE
-                FROM OTOMAR2025.DBO.IDF_SATIS_CARI_HAREKET(@clientCode)
+                FROM OTOMAR2026.DBO.IDF_SATIS_CARI_HAREKET(@clientCode)
                 ORDER BY TARIH_RAW DESC, INC_KEY_NUMBER DESC;";
                 var result = await context.Connection.QueryAsync<TransactionDto>(query, parameters);
                 if (result.Count() == 0)
                 {
                     logger.LogWarning($"{clientCode} kodlu carinin hareketleri bulunamadı");
-                    return ServiceResult<IEnumerable<TransactionDto>>.Error($"{clientCode} kodlu carinin hareketleri bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<TransactionDto>>.Error("Cari Hareket Bulunamadı", $"{clientCode} kodlu carinin hareketleri bulunamadı", HttpStatusCode.NotFound);
                 }
-                logger.LogInformation(message: $"{clientCode} kodlu carinin hareketleri getirildi");
                 return ServiceResult<IEnumerable<TransactionDto>>.SuccessAsOk(result);
             }
             catch (Exception ex)

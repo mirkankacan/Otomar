@@ -5,7 +5,7 @@ using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
 using Otomar.Application.Dtos.Order;
 using Otomar.Application.Dtos.Payment;
-using Otomar.Application.Enums;
+using Otomar.Domain.Enums;
 using Otomar.Persistance.Data;
 using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
@@ -14,21 +14,28 @@ using System.Net;
 
 namespace Otomar.Persistance.Services
 {
-    public class OrderService(IAppDbContext context, IIdentityService identityService, ILogger<OrderService> logger, ShippingOptions shippingOptions) : IOrderService
+    public class OrderService(IAppDbContext context, IIdentityService identityService, ILogger<OrderService> logger, ShippingOptions shippingOptions, IEmailService emailService, ICartService cartService) : IOrderService
     {
-        public async Task<ServiceResult<Guid>> CreateClientOrderAsync(CreateClientOrderDto createClientOrderDto)
+        public async Task<ServiceResult<Guid>> CreateClientOrderAsync(CreateClientOrderDto createClientOrderDto, CancellationToken cancellationToken)
         {
             using var transaction = context.Connection.BeginTransaction();
 
             try
             {
                 var orderId = NewId.NextGuid();
-                var createdBy = identityService.GetUserId();
-                var subTotalAmount = createClientOrderDto.Items.Sum(item => item.UnitPrice * item.Quantity);
-                decimal totalAmount = subTotalAmount;
+                //var createdBy = identityService.GetUserId();
+                var createdBy = "test";
 
-                var orderInsertQuery = @"INSERT INTO IdtClientOrders(Id, Code, ClientName, ClientAddress, ClientPhone, InsuranceCompany, DocumentNo, LicensePlate, Note, CreatedBy, CreatedAt)
-                                            VALUES(@Id, @Code, @ClientName, @ClientAddress, @ClientPhone, @ClientPhone, @InsuranceCompany, @DocumentNo, @LicensePlate, @Note, @CreatedBy, @CreatedAt);";
+                var cart = await cartService.GetCartAsync(cancellationToken);
+                if (!cart.IsSuccess || cart.Data == null)
+                {
+                    return ServiceResult<Guid>.Error("Sepet Bulunamadı", "Cari sipariş oluşturma işlemi tamamlanamadı sepet bulunamadı.", HttpStatusCode.BadRequest);
+                }
+                var subTotalAmount = cart.Data.Items.Sum(item => item.UnitPrice * item.Quantity);
+                var totalAmount = subTotalAmount;
+
+                var orderInsertQuery = @"INSERT INTO IdtClientOrders(Id, Code, ClientName, ClientAddress, ClientPhone, InsuranceCompany, DocumentNo, LicensePlate, Note, CreatedBy, CreatedAt,TotalAmount, SubTotalAmount)
+                                            VALUES(@Id, @Code, @ClientName, @ClientAddress, @ClientPhone, @InsuranceCompany, @DocumentNo, @LicensePlate, @Note, @CreatedBy, @CreatedAt,@TotalAmount,@SubTotalAmount);";
                 var orderParameters = new DynamicParameters();
                 orderParameters.Add("Id", orderId);
                 orderParameters.Add("Code", OrderCodeGeneratorHelper.Generate());
@@ -41,15 +48,15 @@ namespace Otomar.Persistance.Services
                 orderParameters.Add("Note", createClientOrderDto.Note ?? null);
                 orderParameters.Add("CreatedBy", createdBy);
                 orderParameters.Add("CreatedAt", DateTime.Now);
-                orderParameters.Add("TotalAmount", subTotalAmount);
-                orderParameters.Add("SubTotal", totalAmount);
+                orderParameters.Add("TotalAmount", totalAmount);
+                orderParameters.Add("SubTotalAmount", subTotalAmount);
                 await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
 
                 var itemInsertQuery = @"
                 INSERT INTO IdtClientOrderItems (ProductId, ProductName, UnitPrice, Quantity, OrderId)
                 VALUES (@ProductId, @ProductName, @UnitPrice, @Quantity, @OrderId);";
 
-                var orderItems = createClientOrderDto.Items.Select(item => new
+                var orderItems = cart.Data.Items.Select(item => new
                 {
                     ProductId = item.ProductId,
                     ProductName = item.ProductName,
@@ -61,6 +68,8 @@ namespace Otomar.Persistance.Services
                 await context.Connection.ExecuteAsync(itemInsertQuery, orderItems, transaction);
                 logger.LogInformation($"{orderId} ID'li cari siparişi oluşturuldu");
                 transaction.Commit();
+                await emailService.SendClientOrderMailAsync(orderId, cancellationToken);
+
                 return ServiceResult<Guid>.SuccessAsCreated(orderId, $"/api/orders/client-order/{orderId}");
             }
             catch (Exception ex)
@@ -71,17 +80,21 @@ namespace Otomar.Persistance.Services
             }
         }
 
-        public async Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto, IDbTransaction transaction)
+        public async Task<ServiceResult<Guid>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto dto, IDbTransaction transaction, CancellationToken cancellationToken)
         {
             try
             {
                 // 1. Order'ı oluştur
                 var orderId = NewId.NextGuid();
                 var userId = identityService.GetUserId() ?? null;
-
-                var subTotalAmount = createOrderDto.Items.Sum(item => item.UnitPrice * item.Quantity);
-                decimal shippingCost = subTotalAmount >= shippingOptions.Threshold ? 0 : shippingOptions.Cost;
-                decimal totalAmount = subTotalAmount + shippingCost;
+                var cart = await cartService.GetCartAsync(cancellationToken);
+                if (!cart.IsSuccess || cart.Data.ItemCount == 0)
+                {
+                    return ServiceResult<Guid>.Error("Sepet Bulunamadı", "Satın alma işlemi tamamlanamadı sepet bulunamadı.", HttpStatusCode.BadRequest);
+                }
+                var subTotalAmount = cart.Data.Items.Sum(item => item.UnitPrice * item.Quantity);
+                decimal shippingCost = cart.Data.ShippingCost;
+                decimal totalAmount = cart.Data.Total;
 
                 var orderInsertQuery = @"
             INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,ShippingAmount,SubTotalAmount, BillingName, BillingPhone, BillingCity, BillingDistrict, BillingStreet, ShippingName, ShippingPhone, ShippingCity,ShippingDistrict, ShippingStreet, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, IsEInvoiceUser, Email, IdentityNumber, OrderType)
@@ -89,7 +102,7 @@ namespace Otomar.Persistance.Services
 
                 var orderParameters = new DynamicParameters();
                 orderParameters.Add("Id", orderId);
-                orderParameters.Add("Code", createOrderDto.Code);
+                orderParameters.Add("Code", dto.Code);
                 orderParameters.Add("BuyerId", userId);
                 orderParameters.Add("Status", OrderStatus.WaitingForPayment);
                 orderParameters.Add("CreatedAt", DateTime.Now);
@@ -97,32 +110,33 @@ namespace Otomar.Persistance.Services
                 orderParameters.Add("TotalAmount", totalAmount);
                 orderParameters.Add("ShippingAmount", shippingOptions.Cost);
                 orderParameters.Add("SubTotalAmount", subTotalAmount);
-                orderParameters.Add("BillingName", createOrderDto.BillingAddress?.Name);
-                orderParameters.Add("BillingPhone", createOrderDto.BillingAddress?.Phone);
-                orderParameters.Add("BillingCity", createOrderDto.BillingAddress?.City);
-                orderParameters.Add("BillingDistrict", createOrderDto.BillingAddress?.District);
-                orderParameters.Add("BillingStreet", createOrderDto.BillingAddress?.Street);
-                orderParameters.Add("ShippingName", createOrderDto.ShippingAddress?.Name);
-                orderParameters.Add("ShippingPhone", createOrderDto.ShippingAddress?.Phone);
-                orderParameters.Add("ShippingCity", createOrderDto.ShippingAddress?.City);
-                orderParameters.Add("ShippingDistrict", createOrderDto.ShippingAddress?.District);
-                orderParameters.Add("ShippingStreet", createOrderDto.ShippingAddress?.Street);
-                orderParameters.Add("CorporateCompanyName", createOrderDto.Corporate?.CompanyName);
-                orderParameters.Add("CorporateTaxNumber", createOrderDto.Corporate?.TaxNumber);
-                orderParameters.Add("CorporateTaxOffice", createOrderDto.Corporate?.TaxOffice);
-                orderParameters.Add("IsEInvoiceUser", createOrderDto.Corporate?.IsEInvoiceUser);
-                orderParameters.Add("Email", createOrderDto.Email);
-                orderParameters.Add("IdentityNumber", createOrderDto.IdentityNumber);
-                orderParameters.Add("OrderType", createOrderDto.OrderType);
+                orderParameters.Add("BillingName", dto.BillingAddress?.Name);
+                orderParameters.Add("BillingPhone", dto.BillingAddress?.Phone);
+                orderParameters.Add("BillingCity", dto.BillingAddress?.City);
+                orderParameters.Add("BillingDistrict", dto.BillingAddress?.District);
+                orderParameters.Add("BillingStreet", dto.BillingAddress?.Street);
+                orderParameters.Add("ShippingName", dto.ShippingAddress?.Name);
+                orderParameters.Add("ShippingPhone", dto.ShippingAddress?.Phone);
+                orderParameters.Add("ShippingCity", dto.ShippingAddress?.City);
+                orderParameters.Add("ShippingDistrict", dto.ShippingAddress?.District);
+                orderParameters.Add("ShippingStreet", dto.ShippingAddress?.Street);
+                orderParameters.Add("CorporateCompanyName", dto.Corporate?.CompanyName);
+                orderParameters.Add("CorporateTaxNumber", dto.Corporate?.TaxNumber);
+                orderParameters.Add("CorporateTaxOffice", dto.Corporate?.TaxOffice);
+                orderParameters.Add("IsEInvoiceUser", dto.Corporate?.IsEInvoiceUser);
+                orderParameters.Add("Email", dto.Email);
+                orderParameters.Add("IdentityNumber", dto.IdentityNumber);
+                orderParameters.Add("OrderType", dto.OrderType);
 
                 await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
+
                 // 2. Order Item'ları ekle
 
                 var itemInsertQuery = @"
                 INSERT INTO IdtOrderItems (ProductId, ProductName, UnitPrice, Quantity, OrderId)
                 VALUES (@ProductId, @ProductName, @UnitPrice, @Quantity, @OrderId);";
 
-                var orderItems = createOrderDto.Items.Select(item => new
+                var orderItems = cart.Data!.Items!.Select(item => new
                 {
                     ProductId = item.ProductId,
                     ProductName = item.ProductName,
@@ -130,7 +144,6 @@ namespace Otomar.Persistance.Services
                     Quantity = item.Quantity,
                     OrderId = orderId
                 });
-
                 await context.Connection.ExecuteAsync(itemInsertQuery, orderItems, transaction);
 
                 logger.LogInformation($"{orderId} ID'li sipariş oluşturuldu");
@@ -144,19 +157,46 @@ namespace Otomar.Persistance.Services
             }
         }
 
-        public async Task<ServiceResult<Guid>> CreateOrderAsync(CreateOrderDto createOrderDto)
+        public async Task<ServiceResult<Guid>> CreateVirtualPosOrderAsync(CreateVirtualPosOrderDto dto, IDbTransaction transaction, CancellationToken cancellationToken)
         {
-            using var transaction = context.Connection.BeginTransaction();
-
             try
             {
-                var result = await CreateOrderAsync(createOrderDto, transaction);
-                transaction.Commit();
-                return result;
+                // 1. Order'ı oluştur
+                var orderId = NewId.NextGuid();
+                var userId = identityService.GetUserId() ?? null;
+
+                var subTotalAmount = dto.Amount;
+                decimal totalAmount = subTotalAmount;
+
+                var orderInsertQuery = @"
+            INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,SubTotalAmount, BillingName, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, Email, IdentityNumber, OrderType)
+            VALUES (@Id, @Code, @BuyerId, @Status, @CreatedAt, @PaymentId, @TotalAmount, @SubTotalAmount, @BillingName, @CorporateCompanyName, @CorporateTaxNumber, @CorporateTaxOffice, @Email, @IdentityNumber, @OrderType);";
+
+                var orderParameters = new DynamicParameters();
+                orderParameters.Add("Id", orderId);
+                orderParameters.Add("Code", dto.Code);
+                orderParameters.Add("BuyerId", userId);
+                orderParameters.Add("Status", OrderStatus.WaitingForPayment);
+                orderParameters.Add("CreatedAt", DateTime.Now);
+                orderParameters.Add("PaymentId", null);
+                orderParameters.Add("TotalAmount", totalAmount);
+                orderParameters.Add("SubTotalAmount", subTotalAmount);
+                orderParameters.Add("BillingName", dto.BillingAddress?.Name);
+                orderParameters.Add("CorporateCompanyName", dto.Corporate?.CompanyName);
+                orderParameters.Add("CorporateTaxNumber", dto.Corporate?.TaxNumber);
+                orderParameters.Add("CorporateTaxOffice", dto.Corporate?.TaxOffice);
+                orderParameters.Add("Email", dto.Email);
+                orderParameters.Add("IdentityNumber", dto.IdentityNumber);
+                orderParameters.Add("OrderType", dto.OrderType);
+
+                await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
+
+                logger.LogInformation($"{orderId} ID'li sipariş oluşturuldu");
+
+                return ServiceResult<Guid>.SuccessAsCreated(orderId, $"/api/orders/{orderId}");
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 logger.LogError(ex, "CreateOrderAsync işleminde hata");
                 throw;
             }
@@ -200,7 +240,7 @@ namespace Otomar.Persistance.Services
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"{id} ID'li cari siparişi bulunamadı");
-                    return ServiceResult<ClientOrderDto>.Error($"{id} ID'li cari siparişi bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<ClientOrderDto>.Error("Cari Sipariş Bulunamadı", $"{id} ID'li cari siparişi bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 var firstRow = rowList.First();
@@ -233,7 +273,6 @@ namespace Otomar.Persistance.Services
                         })
                         .ToList()
                 };
-                logger.LogInformation($"{id} ID'li cari siparişi getirildi");
                 return ServiceResult<ClientOrderDto>.SuccessAsOk(order);
             }
             catch (Exception ex)
@@ -279,7 +318,7 @@ namespace Otomar.Persistance.Services
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"Cari siparişleri bulunamadı");
-                    return ServiceResult<IEnumerable<ClientOrderDto>>.Error($"Cari siparişleri bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<ClientOrderDto>>.Error("Cari Siparişler Bulunamadı", "Sistemde cari sipariş bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 var ordersDict = new Dictionary<Guid, ClientOrderDto>();
@@ -324,7 +363,6 @@ namespace Otomar.Persistance.Services
                 }
 
                 var result = ordersDict.Values.ToList();
-                logger.LogInformation($"Cari siparişleri getirildi");
                 return ServiceResult<IEnumerable<ClientOrderDto>>.SuccessAsOk(result);
             }
             catch (Exception ex)
@@ -375,7 +413,7 @@ namespace Otomar.Persistance.Services
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"{userId} ID'li carinin siparişleri bulunamadı");
-                    return ServiceResult<IEnumerable<ClientOrderDto>>.Error($"{userId} ID'li carinin siparişleri bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<ClientOrderDto>>.Error("Cari Siparişler Bulunamadı", $"{userId} ID'li carinin siparişleri bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 var ordersDict = new Dictionary<Guid, ClientOrderDto>();
@@ -420,7 +458,6 @@ namespace Otomar.Persistance.Services
                 }
 
                 var result = ordersDict.Values.ToList();
-                logger.LogInformation($"{userId} ID'li carinin siparişleri getirildi");
                 return ServiceResult<IEnumerable<ClientOrderDto>>.SuccessAsOk(result);
             }
             catch (Exception ex)
@@ -478,7 +515,7 @@ namespace Otomar.Persistance.Services
                         oi.Quantity,
                         oi.OrderId AS ItemOrderId
                     FROM IdtOrders o WITH (NOLOCK)
-                    INNER JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
+                    LEFT JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
                     LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId
                     WHERE o.Id = @id";
 
@@ -488,7 +525,7 @@ namespace Otomar.Persistance.Services
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"{id} ID'li sipariş bulunamadı");
-                    return ServiceResult<OrderDto>.Error($"{id} ID'li sipariş bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<OrderDto>.Error("Sipariş Bulunamadı", $"{id} ID'li sipariş bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 var firstRow = rowList.First();
@@ -500,7 +537,7 @@ namespace Otomar.Persistance.Services
                     Status = (OrderStatus)firstRow.Status,
                     CreatedAt = firstRow.CreatedAt,
                     UpdatedAt = firstRow.UpdatedAt,
-                    OrderType = firstRow.OrderType,
+                    OrderType = (OrderType)firstRow.OrderType,
                     Email = firstRow.Email,
                     TotalAmount = firstRow.TotalAmount,
                     ShippingAmount = firstRow.ShippingAmount,
@@ -521,7 +558,7 @@ namespace Otomar.Persistance.Services
                         District = firstRow.ShippingDistrict,
                         Street = firstRow.ShippingStreet
                     },
-                    Payment = new PaymentDto
+                    Payment = firstRow.PaymentId != null ? new PaymentDto
                     {
                         Id = firstRow.PaymentId,
                         UserId = firstRow.PaymentUserId,
@@ -530,7 +567,7 @@ namespace Otomar.Persistance.Services
                         Status = (PaymentStatus)firstRow.PaymentStatus,
                         CreatedAt = firstRow.PaymentCreatedAt,
                         BankProcReturnCode = firstRow.BankProcReturnCode
-                    },
+                    } : null,
                     Items = rowList
                         .Where(r => !Convert.IsDBNull(r.ItemId) && r.ItemId != null)
                         .Select(r => new OrderItemDto
@@ -556,7 +593,6 @@ namespace Otomar.Persistance.Services
                     };
                 }
 
-                logger.LogInformation($"{id} ID'li sipariş getirildi");
                 return ServiceResult<OrderDto>.SuccessAsOk(order);
             }
             catch (Exception ex)
@@ -566,44 +602,20 @@ namespace Otomar.Persistance.Services
             }
         }
 
-        public async Task<ServiceResult<OrderDto>> GetOrderByCodeAsync(string orderCode)
+        public async Task<ServiceResult<OrderDto>> GetOrderByCodeAsync(string orderCode, IDbTransaction transaction = null)
         {
             try
             {
                 if (string.IsNullOrEmpty(orderCode))
                 {
-                    return ServiceResult<OrderDto>.Error("Sipariş kodu boş geçilemez", HttpStatusCode.BadRequest);
+                    return ServiceResult<OrderDto>.Error("Geçersiz Sipariş Kodu", "Sipariş kodu boş geçilemez", HttpStatusCode.BadRequest);
                 }
                 var parameters = new DynamicParameters();
                 parameters.Add("orderCode", orderCode);
 
                 var query = @"
                     SELECT TOP 1
-                        o.Id,
-                        o.Code,
-                        o.BuyerId,
-                        o.Status,
-                        o.CreatedAt,
-                        o.UpdatedAt,
-                        o.OrderType,
-                        o.TotalAmount,
-                        o.ShippingAmount,
-                        o.SubTotalAmount,
-                        o.BillingName,
-                        o.BillingPhone,
-                        o.BillingCity,
-                        o.BillingDistrict,
-                        o.BillingStreet,
-                        o.ShippingName,
-                        o.ShippingPhone,
-                        o.ShippingCity,
-                        o.ShippingDistrict,
-                        o.ShippingStreet,
-                        o.CorporateCompanyName,
-                        o.CorporateTaxNumber,
-                        o.CorporateTaxOffice,
-                        o.IsEInvoiceUser,
-                        o.Email,
+                        o.*,
                         p.Id AS PaymentId,
                         p.UserId AS PaymentUserId,
                         p.OrderCode AS PaymentOrderCode,
@@ -618,17 +630,17 @@ namespace Otomar.Persistance.Services
                         oi.Quantity,
                         oi.OrderId AS ItemOrderId
                     FROM IdtOrders o WITH (NOLOCK)
-                    INNER JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
+                    LEFT JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
                     LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId
                     WHERE o.Code = @orderCode";
 
-                var rows = await context.Connection.QueryAsync(query, parameters);
+                var rows = await context.Connection.QueryAsync(query, parameters, transaction);
                 var rowList = rows.ToList();
 
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"{orderCode} sipariş kodlu sipariş bulunamadı");
-                    return ServiceResult<OrderDto>.Error($"{orderCode} sipariş kodlu sipariş bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<OrderDto>.Error("Sipariş Bulunamadı", $"{orderCode} sipariş kodlu sipariş bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 var firstRow = rowList.First();
@@ -640,7 +652,7 @@ namespace Otomar.Persistance.Services
                     Status = (OrderStatus)firstRow.Status,
                     CreatedAt = firstRow.CreatedAt,
                     UpdatedAt = firstRow.UpdatedAt,
-                    OrderType = firstRow.OrderType,
+                    OrderType = (OrderType)firstRow.OrderType,
                     Email = firstRow.Email,
                     TotalAmount = firstRow.TotalAmount,
                     ShippingAmount = firstRow.ShippingAmount,
@@ -661,7 +673,7 @@ namespace Otomar.Persistance.Services
                         District = firstRow.ShippingDistrict,
                         Street = firstRow.ShippingStreet
                     },
-                    Payment = new PaymentDto
+                    Payment = firstRow.PaymentId != null ? new PaymentDto
                     {
                         Id = firstRow.PaymentId,
                         UserId = firstRow.PaymentUserId,
@@ -670,7 +682,14 @@ namespace Otomar.Persistance.Services
                         BankProcReturnCode = firstRow.BankProcReturnCode,
                         Status = (PaymentStatus)firstRow.PaymentStatus,
                         CreatedAt = firstRow.PaymentCreatedAt
-                    },
+                    } : null,
+                    Corporate = firstRow.CorporateCompanyName != null ? new CorporateDto
+                    {
+                        CompanyName = firstRow.CorporateCompanyName,
+                        TaxNumber = firstRow.CorporateTaxNumber,
+                        TaxOffice = firstRow.CorporateTaxOffice,
+                        IsEInvoiceUser = firstRow.IsEInvoiceUser
+                    } : null,
                     Items = rowList
                         .Where(r => !Convert.IsDBNull(r.ItemId) && r.ItemId != null)
                         .Select(r => new OrderItemDto
@@ -685,18 +704,8 @@ namespace Otomar.Persistance.Services
                         .ToList()
                 };
 
-                if (!string.IsNullOrEmpty(firstRow.CorporateCompanyName) || !string.IsNullOrEmpty(firstRow.CorporateTaxNumber))
-                {
-                    order.Corporate = new CorporateDto
-                    {
-                        CompanyName = firstRow.CorporateCompanyName,
-                        TaxNumber = firstRow.CorporateTaxNumber,
-                        TaxOffice = firstRow.CorporateTaxOffice,
-                        IsEInvoiceUser = firstRow.IsEInvoiceUser
-                    };
-                }
 
-                logger.LogInformation($"{orderCode} sipariş kodlu sipariş getirildi");
+
                 return ServiceResult<OrderDto>.SuccessAsOk(order);
             }
             catch (Exception ex)
@@ -751,7 +760,7 @@ p.BankProcReturnCode,
                         oi.Quantity,
                         oi.OrderId AS ItemOrderId
                         FROM IdtOrders o WITH (NOLOCK)
-                    INNER JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
+                    LEFT JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
                     LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId";
 
                 var rows = await context.Connection.QueryAsync(query);
@@ -760,7 +769,7 @@ p.BankProcReturnCode,
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"Siparişler bulunamadı");
-                    return ServiceResult<IEnumerable<OrderDto>>.Error($"Siparişler bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<OrderDto>>.Error("Siparişler Bulunamadı", "Sistemde sipariş bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 var ordersDict = new Dictionary<Guid, OrderDto>();
@@ -776,7 +785,7 @@ p.BankProcReturnCode,
                             Status = (OrderStatus)row.Status,
                             CreatedAt = row.CreatedAt,
                             UpdatedAt = row.UpdatedAt,
-                            OrderType = row.OrderType,
+                            OrderType = (OrderType)row.OrderType,
                             Email = row.Email,
                             TotalAmount = row.TotalAmount,
                             ShippingAmount = row.ShippingAmount,
@@ -797,7 +806,7 @@ p.BankProcReturnCode,
                                 District = row.ShippingDistrict,
                                 Street = row.ShippingStreet
                             },
-                            Payment = new PaymentDto
+                            Payment = row.PaymentId != null ? new PaymentDto
                             {
                                 Id = row.PaymentId,
                                 UserId = row.PaymentUserId,
@@ -806,7 +815,7 @@ p.BankProcReturnCode,
                                 Status = (PaymentStatus)row.PaymentStatus,
                                 CreatedAt = row.PaymentCreatedAt,
                                 BankProcReturnCode = row.BankProcReturnCode,
-                            },
+                            } : null,
                             Items = new List<OrderItemDto>()
                         };
 
@@ -839,7 +848,6 @@ p.BankProcReturnCode,
                 }
 
                 var result = ordersDict.Values.ToList();
-                logger.LogInformation($"Siparişler getirildi");
                 return ServiceResult<IEnumerable<OrderDto>>.SuccessAsOk(result);
             }
             catch (Exception ex)
@@ -855,7 +863,7 @@ p.BankProcReturnCode,
             {
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return ServiceResult<IEnumerable<OrderDto>>.Error("Kullanıcı ID'si boş geçilemez", HttpStatusCode.BadRequest);
+                    return ServiceResult<IEnumerable<OrderDto>>.Error("Geçersiz Kullanıcı ID'si", "Kullanıcı ID'si boş geçilemez", HttpStatusCode.BadRequest);
                 }
 
                 var parameters = new DynamicParameters();
@@ -902,7 +910,7 @@ p.BankProcReturnCode,
                         oi.Quantity,
                         oi.OrderId AS ItemOrderId
                     FROM IdtOrders o WITH (NOLOCK)
-                    INNER JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
+                    LEFT JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
                     LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId
                     WHERE o.BuyerId = @userId";
 
@@ -912,7 +920,7 @@ p.BankProcReturnCode,
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"{userId} ID'li kullanıcının siparişleri bulunamadı");
-                    return ServiceResult<IEnumerable<OrderDto>>.Error($"{userId} ID'li kullanıcının siparişleri bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<OrderDto>>.Error("Siparişler Bulunamadı", $"{userId} ID'li kullanıcının siparişleri bulunamadı", HttpStatusCode.NotFound);
                 }
 
                 var ordersDict = new Dictionary<Guid, OrderDto>();
@@ -928,7 +936,7 @@ p.BankProcReturnCode,
                             Status = (OrderStatus)row.Status,
                             CreatedAt = row.CreatedAt,
                             UpdatedAt = row.UpdatedAt,
-                            OrderType = row.OrderType,
+                            OrderType = (OrderType)row.OrderType,
                             Email = row.Email,
                             TotalAmount = row.TotalAmount,
                             ShippingAmount = row.ShippingAmount,
@@ -949,7 +957,7 @@ p.BankProcReturnCode,
                                 District = row.ShippingDistrict,
                                 Street = row.ShippingStreet
                             },
-                            Payment = new PaymentDto
+                            Payment = row.PaymentId != null ? new PaymentDto
                             {
                                 Id = row.PaymentId,
                                 UserId = row.PaymentUserId,
@@ -958,7 +966,7 @@ p.BankProcReturnCode,
                                 Status = (PaymentStatus)row.PaymentStatus,
                                 CreatedAt = row.PaymentCreatedAt,
                                 BankProcReturnCode = row.BankProcReturnCode,
-                            },
+                            } : null,
                             Items = new List<OrderItemDto>()
                         };
 
@@ -991,7 +999,6 @@ p.BankProcReturnCode,
                 }
 
                 var result = ordersDict.Values.ToList();
-                logger.LogInformation($"{userId} ID'li kullanıcının siparişleri getirildi");
                 return ServiceResult<IEnumerable<OrderDto>>.SuccessAsOk(result);
             }
             catch (Exception ex)

@@ -1,20 +1,23 @@
-﻿using System.Text.Json.Serialization;
+﻿using Otomar.Domain.Enums;
+using System.Text.Json.Serialization;
 
 namespace Otomar.Application.Dtos.Order
 {
-    public class CreateOrderDto
+    public class CreateVirtualPosOrderDto
     {
+        // PaymentService/Initialize generates
         [JsonIgnore]
         public string Code { get; set; }
 
         public string Email { get; set; }
         public string IdentityNumber { get; set; }
-        public string OrderType { get; set; }
+        public decimal Amount { get; set; }
 
-        //public List<CreateOrderItemDto> Items { get; set; } = new();
+        [JsonIgnore]
+        public OrderType OrderType { get; set; }
+
         public AddressDto? BillingAddress { get; set; }
 
-        public AddressDto? ShippingAddress { get; set; }
         public CorporateDto? Corporate { get; set; }
     }
 }

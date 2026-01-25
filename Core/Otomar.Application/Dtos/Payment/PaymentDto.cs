@@ -1,4 +1,4 @@
-﻿using Otomar.Application.Enums;
+﻿using Otomar.Domain.Enums;
 
 namespace Otomar.Application.Dtos.Payment
 {

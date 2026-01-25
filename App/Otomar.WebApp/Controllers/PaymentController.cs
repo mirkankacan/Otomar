@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Models.Payment;
+using Otomar.WebApp.Responses;
 using Otomar.WebApp.Services.Interfaces;
 using System.Text.Json;
 
@@ -21,22 +22,32 @@ namespace Otomar.WebApp.Controllers
             return View();
         }
 
-        [HttpPost("baslat")]
+        [HttpPost("sanal-pos-baslat")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> InitializePayment([FromBody] InitializePaymentDto dto, CancellationToken cancellationToken)
+        public async Task<IActionResult> InitializePurchasePayment([FromBody] InitializeVirtualPosPaymentDto dto, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await paymentApiService.InitializePaymentAsync(dto, cancellationToken);
+                var result = await paymentApiService.InitializeVirtualPosPaymentAsync(dto, cancellationToken);
 
-                if (!result.IsSuccess)
-                {
-                    return result.ToActionResult();
-                }
+                return PrepareToPayment(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Ödeme başlatma hatası");
+                return RedirectToAction(nameof(Failed));
+            }
+        }
 
-                HttpContext.Session.SetString("ThreeDSecureParameters", JsonSerializer.Serialize(result.Data));
+        [HttpPost("satin-alim-baslat")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> InitializePurchasePayment([FromBody] InitializePurchasePaymentDto dto, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await paymentApiService.InitializePurchasePaymentAsync(dto, cancellationToken);
 
-                return Ok(new { redirectUrl = Url.Action("ThreeDSecure", "Payment") });
+                return PrepareToPayment(result);
             }
             catch (Exception ex)
             {
@@ -50,14 +61,16 @@ namespace Otomar.WebApp.Controllers
         {
             try
             {
-                var parametersJson = HttpContext.Session.GetString("PaymentParameters");
-                if (string.IsNullOrEmpty(parametersJson))
+                var parametersJson = HttpContext.Session.GetString("ThreeDSecureParameters");
+                var threeDVerificationUrl = HttpContext.Session.GetString("ThreeDVerificationUrl");
+                if (string.IsNullOrEmpty(parametersJson) || string.IsNullOrEmpty(threeDVerificationUrl))
                 {
                     logger.LogWarning("3D doğrulama verisi bulunamadı");
                     return RedirectToAction(nameof(Failed));
                 }
                 var parameters = JsonSerializer.Deserialize<Dictionary<string, string>>(parametersJson);
-                HttpContext.Session.Remove("PaymentParameters");
+                ViewBag.ThreeDVerificationUrl = threeDVerificationUrl;
+                ClearPaymentSession();
                 return View(parameters);
             }
             catch (Exception ex)
@@ -71,15 +84,15 @@ namespace Otomar.WebApp.Controllers
         public async Task<IActionResult> Success(string orderCode, CancellationToken cancellationToken)
         {
             var order = await orderApiService.GetOrderByCodeAsync(orderCode, cancellationToken);
-            if (order.IsSuccess)
+            if (order.IsSuccess && order.Data != null)
             {
-                if (order.Data.Payment.BankProcReturnCode != "00")
+                if (order.Data.Payment != null && order.Data.Payment.BankProcReturnCode != "00")
                 {
                     return Redirect($"/odeme/basarisiz/{orderCode}");
                 }
                 return View(order.Data);
             }
-            return View();
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet("basarisiz/{orderCode?}")]
@@ -98,6 +111,24 @@ namespace Otomar.WebApp.Controllers
                 }
             }
             return View();
+        }
+
+        private void ClearPaymentSession()
+        {
+            HttpContext.Session.Remove("ThreeDSecureParameters");
+            HttpContext.Session.Remove("ThreeDVerificationUrl");
+        }
+
+        private IActionResult PrepareToPayment(ApiResponse<InitializePaymentResponseDto> result)
+        {
+            if (!result.IsSuccess || result.Data == null)
+            {
+                return result.ToActionResult();
+            }
+            HttpContext.Session.SetString("ThreeDSecureParameters", JsonSerializer.Serialize(result.Data.Parameters));
+            HttpContext.Session.SetString("ThreeDVerificationUrl", result.Data.ThreeDVerificationUrl);
+
+            return Ok(new { redirectUrl = Url.Action(nameof(ThreeDRedirect), "Payment") });
         }
     }
 }

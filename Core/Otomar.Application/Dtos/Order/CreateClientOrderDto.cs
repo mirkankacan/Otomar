@@ -9,6 +9,6 @@
         public string DocumentNo { get; set; }
         public string LicensePlate { get; set; }
         public string? Note { get; set; }
-        public List<OrderItemDto> Items { get; set; } = new();
+        //public List<OrderItemDto> Items { get; set; } = new();
     }
 }

@@ -2,9 +2,9 @@
 
 namespace Otomar.Application.Dtos.Payment
 {
-    public class InitializePaymentDto
+    public class InitializePurchasePaymentDto
     {
-        public decimal TotalAmount { get; set; }
+        //public decimal TotalAmount { get; set; }
 
         public string CreditCardNumber { get; set; }
 
@@ -13,6 +13,6 @@ namespace Otomar.Application.Dtos.Payment
         public string CreditCardExpDateMonth { get; set; }
 
         public string CreditCardCvv { get; set; }
-        public CreateOrderDto? Order { get; set; }
+        public CreatePurchaseOrderDto? Order { get; set; }
     }
 }

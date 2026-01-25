@@ -20,7 +20,6 @@
     </div>
 </section>
 <!-- End breadcrumb section -->
-
 <!-- Start checkout section -->
 <section class="checkout__section section--padding">
     <div class="container">
@@ -29,91 +28,46 @@
                 <div class="checkout__form--inner">
                     <form id="paymentForm" class="checkout__form">
                         @Html.AntiForgeryToken()
-                        <div class="row">
-                            <div class="col-lg-8 col-md-8">
-                                <div class="checkout__form--step">
-                                    <h2 class="checkout__form--step__title mb-30">Kredi Kartı Bilgileri</h2>
-                                    <div class="checkout__form--step__inner">
-                                        <div class="row">
-                                            <div class="col-lg-12 mb-20">
-                                                <label class="checkout__form--label" for="creditCardNumber">
-                                                    Kart Numarası <span class="text-danger">*</span>
-                                                </label>
-                                                <input class="checkout__form--input" 
-                                                       type="text" 
-                                                       id="creditCardNumber" 
-                                                       name="creditCardNumber" 
-                                                       placeholder="0000 0000 0000 0000" 
-                                                       maxlength="19" 
-                                                       required>
-                                            </div>
-                                            <div class="col-lg-6 mb-20">
-                                                <label class="checkout__form--label" for="creditCardExpDateMonth">
-                                                    Ay <span class="text-danger">*</span>
-                                                </label>
-                                                <select class="checkout__form--input" id="creditCardExpDateMonth" name="creditCardExpDateMonth" required>
-                                                    <option value="">Seçiniz</option>
-                                                    @for (int i = 1; i <= 12; i++)
-                                                    {
-                                                        <option value="@i.ToString("00")">@i.ToString("00")</option>
-                                                    }
-                                                </select>
-                                            </div>
-                                            <div class="col-lg-6 mb-20">
-                                                <label class="checkout__form--label" for="creditCardExpDateYear">
-                                                    Yıl <span class="text-danger">*</span>
-                                                </label>
-                                                <select class="checkout__form--input" id="creditCardExpDateYear" name="creditCardExpDateYear" required>
-                                                    <option value="">Seçiniz</option>
-                                                    @for (int i = DateTime.Now.Year; i <= DateTime.Now.Year + 10; i++)
-                                                    {
-                                                        <option value="@i.ToString().Substring(2)">@i</option>
-                                                    }
-                                                </select>
-                                            </div>
-                                            <div class="col-lg-12 mb-20">
-                                                <label class="checkout__form--label" for="creditCardCvv">
-                                                    CVV <span class="text-danger">*</span>
-                                                </label>
-                                                <input class="checkout__form--input" 
-                                                       type="text" 
-                                                       id="creditCardCvv" 
-                                                       name="creditCardCvv" 
-                                                       placeholder="000" 
-                                                       maxlength="3" 
-                                                       required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-4">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-6 col-md-8">
                                 <div class="checkout__summary">
                                     <div class="checkout__summary--inner">
-                                        <h2 class="checkout__summary--title mb-20">Özet</h2>
+                                        <h2 class="checkout__summary--title mb-20 text-center">Test Ödeme</h2>
                                         <div class="checkout__summary--total">
                                             <table class="checkout__summary--total__table">
                                                 <tbody>
                                                     <tr class="checkout__summary--total__list">
-                                                        <td class="checkout__summary--total__title text-left">Toplam Tutar</td>
+                                                        <td class="checkout__summary--total__title text-left">
+                                                            Toplam
+                                                            Tutar
+                                                        </td>
                                                         <td class="checkout__summary--amount text-right">
-                                                            <span id="totalAmountDisplay">@((ViewBag.TotalAmount ?? 0).ToString("N2")) ₺</span>
+                                                            <span id="totalAmountDisplay">
+                                                                @((ViewBag.TotalAmount ??
+                                                                                                                                0).ToString("N2")) ₺</ span >
                                                         </td>
                                                     </tr>
                                                 </tbody>
                                                 <tfoot class="checkout__summary--footer">
                                                     <tr class="checkout__summary--footer__items">
-                                                        <td class="checkout__summary--footer__title text-left">Genel Toplam</td>
+                                                        <td class="checkout__summary--footer__title text-left">
+                                                            Genel
+                                                            Toplam
+                                                        </td>
                                                         <td class="checkout__summary--footer__amount text-right">
-                                                            <span id="finalTotalAmountDisplay">@((ViewBag.TotalAmount ?? 0).ToString("N2")) ₺</span>
+                                                            <span id="finalTotalAmountDisplay">
+                                                                @((ViewBag.TotalAmount ??
+                                                                                                                                0).ToString("N2")) ₺</ span >
                                                         </td>
                                                     </tr>
                                                 </tfoot>
                                             </table>
                                         </div>
-                                        <div class="checkout__summary--footer__btn">
-                                            <button type="submit" class="checkout__summary--footer__btn--link primary__btn" id="submitPaymentBtn">
-                                                Ödemeyi Tamamla
+                                        <div class="checkout__summary--footer__btn text-center">
+                                            <button type="submit"
+                                                    class="checkout__summary--footer__btn--link primary__btn"
+                                                    id="submitPaymentBtn">
+                                                Ödemeyi Başlat
                                             </button>
                                         </div>
                                     </div>
@@ -127,7 +81,6 @@
     </div>
 </section>
 <!-- End checkout section -->
-
 @section Styles {
     <style>
         .checkout__form--input {
@@ -137,15 +90,18 @@
             border-radius: 5px;
             font-size: 14px;
         }
-        .checkout__form--input:focus {
-            outline: none;
-            border-color: #007bff;
-        }
+
+            .checkout__form--input:focus {
+                outline: none;
+                border-color: #007bff;
+            }
+
         .checkout__summary {
             background: #f8f9fa;
             padding: 30px;
             border-radius: 5px;
         }
+
         #submitPaymentBtn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -155,67 +111,102 @@
 
 @section Scripts {
     <script>
-        // Kart numarası formatı
-        document.getElementById('creditCardNumber').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\s/g, '');
-            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-            e.target.value = formattedValue;
-        });
+     
 
-        // CVV sadece rakam
-        document.getElementById('creditCardCvv').addEventListener('input', function(e) {
-            e.target.value = e.target.value.replace(/\D/g, '');
-        });
-
-        // Total amount from ViewBag or query string
-        const totalAmount = @(ViewBag.TotalAmount ?? 0);
-        if (totalAmount > 0) {
-            document.getElementById('totalAmountDisplay').textContent = totalAmount.toFixed(2).replace('.', ',') + ' ₺';
-            document.getElementById('finalTotalAmountDisplay').textContent = totalAmount.toFixed(2).replace('.', ',') + ' ₺';
+        // Rastgele test verileri oluştur
+        function generateRandomTestData() {
+            const cities = ['Istanbul', 'Ankara', 'Izmir', 'Bursa', 'Antalya', 'Adana'];
+            const districts = ['Kadıköy', 'Şişli', 'Beşiktaş', 'Üsküdar', 'Beyoğlu', 'Bakırköy'];
+            const streets = ['Test Caddesi', 'Örnek Sokak', 'Demo Yolu', 'Sample Street'];
+            
+            const randomCity = cities[Math.floor(Math.random() * cities.length)];
+            const randomDistrict = districts[Math.floor(Math.random() * districts.length)];
+            const randomStreet = streets[Math.floor(Math.random() * streets.length)];
+            const randomNumber = Math.floor(Math.random() * 100) + 1;
+            
+            // Rastgele TC Kimlik No (11 haneli)
+            const randomTc = Math.floor(10000000000 + Math.random() * 90000000000).toString();
+            
+            // Rastgele telefon
+            const randomPhone = '+90555' + Math.floor(1000000 + Math.random() * 9000000).toString();
+            
+            // Rastgele email
+            const randomEmail = 'test' + Math.floor(Math.random() * 10000) + '@@otomar.com';
+            
+            return {
+                creditCardNumber: '5218487962459752',
+                creditCardExpDateMonth: '12',
+                creditCardExpDateYear: '28',
+                creditCardCvv: '000',
+                order: {
+                    email: randomEmail,
+                    identityNumber: randomTc,
+                    billingAddress: {
+                        name: 'Test Kullanıcı',
+                        phone: randomPhone,
+                        city: randomCity,
+                        district: randomDistrict,
+                        street: `${randomStreet} No:${randomNumber}`
+                    },
+                    shippingAddress: {
+                        name: 'Test Kullanıcı',
+                        phone: randomPhone,
+                        city: randomCity,
+                        district: randomDistrict,
+                        street: `${randomStreet} No:${randomNumber}`
+                    },
+                    corporate: null // Bireysel sipariş için null
+                }
+            };
         }
 
         // Form submit
-        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+        document.getElementById('paymentForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const submitBtn = document.getElementById('submitPaymentBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'İşleniyor...';
 
-            const formData = {
-                totalAmount: totalAmount || parseFloat(document.getElementById('totalAmountDisplay').textContent.replace(/[^\d,]/g, '').replace(',', '.')) || 0,
-                creditCardNumber: document.getElementById('creditCardNumber').value.replace(/\s/g, ''),
-                creditCardExpDateMonth: document.getElementById('creditCardExpDateMonth').value,
-                creditCardExpDateYear: document.getElementById('creditCardExpDateYear').value,
-                creditCardCvv: document.getElementById('creditCardCvv').value,
-                order: null // Bu sayfadan sipariş bilgisi gönderilmiyorsa null
-            };
+            // Rastgele test verileri oluştur
+            const paymentData = generateRandomTestData();
+
+            console.log('Gönderilen test verileri:', paymentData);
 
             try {
-                const response = await fetch('/odeme/baslatma', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    },
-                    body: JSON.stringify(formData)
-                });
+                const response = await makeRequest('/odeme/satin-alim-baslat', 'POST', paymentData);
 
-                if (response.ok) {
-                    const redirectUrl = await response.text();
-                    window.location.href = redirectUrl;
+                if (response && response.redirectUrl) {
+                    window.location.href = response.redirectUrl;
                 } else {
-                    alert('Ödeme başlatılamadı. Lütfen tekrar deneyiniz.');
+                    if (typeof showToast !== 'undefined') {
+                        showToast('Ödeme başlatılamadı. Lütfen tekrar deneyiniz.', 'error', 'Hata');
+                    } else if (typeof toastr !== 'undefined') {
+                        toastr.error('Ödeme başlatılamadı. Lütfen tekrar deneyiniz.', 'Hata');
+                    } else {
+                        alert('Ödeme başlatılamadı. Lütfen tekrar deneyiniz.');
+                    }
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Ödemeyi Tamamla';
+                    submitBtn.textContent = 'Ödemeyi Başlat';
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Bir hata oluştu. Lütfen tekrar deneyiniz.');
+                const errorMessage = error.detail || error.message || 'Bir hata oluştu. Lütfen tekrar deneyiniz.';
+                const errorTitle = error.title || 'Hata';
+
+                if (typeof handleError !== 'undefined') {
+                    handleError(error);
+                } else if (typeof showToast !== 'undefined') {
+                    showToast(errorMessage, 'error', errorTitle);
+                } else if (typeof toastr !== 'undefined') {
+                    toastr.error(errorMessage, errorTitle);
+                } else {
+                    alert(errorMessage);
+                }
+
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Ödemeyi Tamamla';
+                submitBtn.textContent = 'Ödemeyi Başlat';
             }
         });
     </script>
 }
-

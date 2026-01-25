@@ -44,7 +44,7 @@ namespace Otomar.Persistance.Helpers
                     Secure = context.Request.IsHttps,
                     SameSite = SameSiteMode.Strict,
                     IsEssential = true,
-                    Expires = DateTimeOffset.UtcNow.AddDays(redisOptions.CartExpirationDays),
+                    Expires = DateTime.Now.AddDays(redisOptions.CartExpirationDays),
                     Path = "/"
                 };
 

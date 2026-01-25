@@ -13,13 +13,12 @@ namespace Otomar.WebApi.Endpoints
             var group = app.MapGroup("api/orders")
                 .WithTags("Orders");
 
-            group.MapPost("/", async ([FromBody] CreateOrderDto dto, [FromServices] IOrderService orderService, CancellationToken cancellationToken) =>
+            group.MapPost("/client-order", async ([FromBody] CreateClientOrderDto dto, [FromServices] IOrderService orderService, CancellationToken cancellationToken) =>
             {
-                var result = await orderService.CreateOrderAsync(dto);
+                var result = await orderService.CreateClientOrderAsync(dto, cancellationToken);
                 return result.ToGenericResult();
             })
-            .WithName("CreateOrder");
-
+         .WithName("CreateClientOrder");
             group.MapGet("/", async ([FromServices] IOrderService orderService) =>
             {
                 var result = await orderService.GetOrdersAsync();

@@ -97,9 +97,9 @@ namespace Otomar.Persistance.Helpers
             var validStatuses = new[] { "1", "2", "3", "4" };
             if (!validStatuses.Contains(mdStatus))
             {
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
 
         public static string GetThreeDSecureStatusMessage(string mdStatus)

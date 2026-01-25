@@ -1,4 +1,4 @@
-namespace Otomar.WebApp.Enums
+﻿namespace Otomar.WebApp.Enums
 {
     public enum PaymentStatus
     {
@@ -7,4 +7,3 @@ namespace Otomar.WebApp.Enums
         Failed
     }
 }
-

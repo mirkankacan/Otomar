@@ -1,6 +1,79 @@
-@Otomar.WebApi_HostAddress = http://localhost:5026
+@Otomar.WebApi_HostAddress = https://localhost:8585
 
-GET {{Otomar.WebApi_HostAddress}}/weatherforecast/
-Accept: application/json
+### Login - Get Token First
+POST {{Otomar.WebApi_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@otomar.com",
+  "password": "Test123!"
+}
+
+### Initialize Payment
+POST {{Otomar.WebApi_HostAddress}}/api/payments/initialize
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "creditCardNumber": "5218487962459752",
+  "creditCardExpDateYear": "26",
+  "creditCardExpDateMonth": "12",
+  "creditCardCvv": "000",
+  "order": {
+    "email": "test@otomar.com",
+    "identityNumber": "12345678901",
+    "orderType": "Individual",
+    "billingAddress": {
+      "name": "Test User",
+      "phone": "+905551234567",
+      "city": "Istanbul",
+      "district": "Kadıköy",
+      "street": "Test Street No:1"
+    },
+    "shippingAddress": {
+      "name": "Test User",
+      "phone": "+905551234567",
+      "city": "Istanbul",
+      "district": "Kadıköy",
+      "street": "Test Street No:1"
+    }
+  }
+}
+
+### Initialize Payment (Corporate Order)
+POST {{Otomar.WebApi_HostAddress}}/api/payments/initialize
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "creditCardNumber": "5218487962459752",
+  "creditCardExpDateYear": "26",
+  "creditCardExpDateMonth": "12",
+  "creditCardCvv": "000",
+  "order": {
+    "email": "corporate@otomar.com",
+    "identityNumber": "1234567890",
+    "orderType": "Corporate",
+    "billingAddress": {
+      "name": "Test Company",
+      "phone": "+905551234567",
+      "city": "Istanbul",
+      "district": "Şişli",
+      "street": "Corporate Street No:10"
+    },
+    "shippingAddress": {
+      "name": "Test Company",
+      "phone": "+905551234567",
+      "city": "Istanbul",
+      "district": "Şişli",
+      "street": "Corporate Street No:10"
+    },
+    "corporate": {
+      "taxNumber": "1234567890",
+      "taxOffice": "Test Tax Office",
+      "companyName": "Test Company Ltd."
+    }
+  }
+}
 
 ###

@@ -12,5 +12,8 @@ namespace Otomar.Persistance.Options
 
         [Required]
         public string PaymentFailureUrl { get; set; } = default!;
+
+        [Required]
+        public string WebRootPath { get; set; } = default!;
     }
 }

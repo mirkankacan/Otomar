@@ -6,11 +6,9 @@
         public DateTime TokenExpires { get; set; }
         public string RefreshToken { get; set; }
         public DateTime? RefreshTokenExpires { get; set; }
-        public string UserId { get; set; }
-        public string Email { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string FullName => $"{Name} {Surname}";
+        public string FullName { get; set; }
         public string RoleName { get; set; }
+        public string? ClientCode { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }

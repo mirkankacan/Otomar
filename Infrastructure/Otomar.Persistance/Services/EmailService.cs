@@ -1,6 +1,7 @@
 ﻿using Humanizer;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using Otomar.Application.Contracts.Services;
@@ -11,7 +12,7 @@ using System.Net;
 namespace Otomar.Persistance.Services
 {
     public class EmailService(
-        ILogger<EmailService> logger, EmailOptions emailOptions, IIdentityService identityService, IOrderService orderService, IPaymentService paymentService) : IEmailService
+        ILogger<EmailService> logger, EmailOptions emailOptions, IIdentityService identityService, IServiceProvider serviceProvider) : IEmailService
     {
         public async Task SendPaymentFailedMailAsync(CancellationToken cancellationToken)
         {
@@ -35,6 +36,8 @@ namespace Otomar.Persistance.Services
 
         public async Task SendPaymentSuccessMailAsync(Guid orderId, CancellationToken cancellationToken)
         {
+            await using var scope = serviceProvider.CreateAsyncScope();
+            var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
             var order = await orderService.GetOrderByIdAsync(orderId);
             if (order.Data == null)
             {
@@ -94,12 +97,15 @@ namespace Otomar.Persistance.Services
 
         public async Task SendVirtualPosPaymentSuccessMailAsync(Guid orderId, CancellationToken cancellationToken)
         {
+            await using var scope = serviceProvider.CreateAsyncScope();
+            var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
             var order = await orderService.GetOrderByIdAsync(orderId);
             if (order.Data == null)
             {
                 logger.LogWarning($"{orderId} ID'li sipariş bulunamadı");
                 return;
             }
+            var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentService>();
             var payment = await paymentService.GetPaymentByOrderCodeAsync(order.Data.Code);
 
             if (payment.Data == null)
@@ -125,6 +131,84 @@ namespace Otomar.Persistance.Services
                          .Replace("{{OrderCode}}", WebUtility.HtmlEncode(order.Data.Code)));
             const string subject = "Ödeme Onayı ✅";
             await SendInternalAsync(subject, body, order.Data.Email, null, null, isHtml: true, cancellationToken);
+        }
+
+        public async Task SendListSearchMailAsync(Guid listSearchId, CancellationToken cancellationToken)
+        {
+            await using var scope = serviceProvider.CreateAsyncScope();
+            var listSearchService = scope.ServiceProvider.GetRequiredService<IListSearchService>();
+            var listSearch = await listSearchService.GetListSearchByIdAsync(listSearchId);
+            if (listSearch.Data == null)
+            {
+                logger.LogWarning($"{listSearchId} ID'li liste sorgusu bulunamadı");
+                return;
+            }
+
+            var body = LoadTemplate("ListSearchMailTemplate.html");
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                logger.LogWarning("ListSearchMailTemplate.html yüklenemedi, e-posta gönderilmedi.");
+                return;
+            }
+            //body = body
+            //             .Replace("{{Name}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Name))
+            //             .Replace("{{BillingPhone}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Phone ?? string.Empty))
+            //             .Replace("{{Email}}", WebUtility.HtmlEncode(order.Data.Email ?? string.Empty))
+            //             .Replace("{{CardBrand}}", WebUtility.HtmlEncode(payment.Data.BankCardBrand))
+            //             .Replace("{{CardIssuer}}", WebUtility.HtmlEncode(payment.Data.BankCardIssuer))
+            //             .Replace("{{Amount}}", payment.Data.TotalAmount.ToString("C2", new CultureInfo("tr-TR"))
+            //             .Replace("{{AmountInType}}", ConvertAmountToTurkishWords(payment.Data.TotalAmount))
+            //             .Replace("{{CreatedAt}}", order.Data.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+            //             .Replace("{{OrderCode}}", WebUtility.HtmlEncode(order.Data.Code)));
+            //const string subject = "Liste Sorgu ❓";
+            //await SendInternalAsync(subject, body, order.Data.Email, null, null, isHtml: true, cancellationToken);
+        }
+
+        public async Task SendClientOrderMailAsync(Guid orderId, CancellationToken cancellationToken)
+        {
+            await using var scope = serviceProvider.CreateAsyncScope();
+            var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
+            var order = await orderService.GetClientOrderByIdAsync(id: orderId);
+            if (order.Data == null)
+            {
+                logger.LogWarning($"{orderId} ID'li cari siparişi bulunamadı");
+                return;
+            }
+
+            var body = LoadTemplate("ClientOrderSuccessMailTemplate.html");
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                logger.LogWarning("ClientOrderSuccessMailTemplate.html yüklenemedi, e-posta gönderilmedi.");
+                return;
+            }
+            var itemsTableRows = string.Join(Environment.NewLine, order.Data.Items.Select(item =>
+                    $@"
+                    <tr>
+                        <td style='padding: 10px; border: 1px solid #ccc; text-align: left;'>{WebUtility.HtmlEncode(item.ProductName)}</td>
+       <td style='padding: 10px; border: 1px solid #ccc; text-align: right;'>{item.UnitPrice.ToString("C2", new CultureInfo("tr-TR"))}</td>
+                        <td style='padding: 10px; border: 1px solid #ccc; text-align: center;'>{item.Quantity}</td>
+       <td style='padding: 10px; border: 1px solid #ccc; text-align: right;'>{(item.UnitPrice * item.Quantity).ToString("C2", new CultureInfo("tr-TR"))}</td>
+                    </tr>")) +
+                    $@"
+                <tr>
+                <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Alt Toplam</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.SubTotalAmount}</td>
+            </tr>
+            <tr>
+                <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Toplam</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.TotalAmount}</td>
+            </tr>";
+            body = body
+                         .Replace("{{OrderNo}}", WebUtility.HtmlEncode(order.Data.Code))
+                         .Replace("{{ClientName}}", WebUtility.HtmlEncode(order.Data.ClientName))
+                         .Replace("{{DocumentNo}}", WebUtility.HtmlEncode(order.Data.DocumentNo))
+                         .Replace("{{LicensePlate}}", WebUtility.HtmlEncode(order.Data.LicensePlate))
+                         .Replace("{{Note}}", WebUtility.HtmlEncode(order.Data.Note))
+                         .Replace("{{CreatedAt}}", order.Data.CreatedAt.ToString())
+                          .Replace("{{CreatedByFullName}}", WebUtility.HtmlEncode(value: order.Data.CreatedByFullName));
+
+            const string subject = "Cari Sipariş Onayı ✅";
+            await SendInternalAsync(subject, body, null, null, null, isHtml: true, cancellationToken);
         }
 
         private string ConvertAmountToTurkishWords(decimal amount)
@@ -153,7 +237,7 @@ namespace Otomar.Persistance.Services
         private async Task SendInternalAsync(
             string subject,
             string body,
-            string to,
+            string? to,
             string? cc,
             string? bcc,
             bool isHtml,
@@ -163,7 +247,15 @@ namespace Otomar.Persistance.Services
             {
                 var message = new MimeMessage();
                 message.From.Add(MailboxAddress.Parse(emailOptions.Credentials.UserName));
-                message.To.Add(MailboxAddress.Parse(to));
+
+                if (!string.IsNullOrEmpty(to))
+                {
+                    message.To.Add(MailboxAddress.Parse(to));
+                }
+                else
+                {
+                    message.To.Add(MailboxAddress.Parse(emailOptions.Credentials.UserName));
+                }
 
                 // Optional CC/BCC from method parameters
                 if (!string.IsNullOrWhiteSpace(cc))

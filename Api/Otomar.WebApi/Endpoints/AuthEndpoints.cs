@@ -1,4 +1,4 @@
-﻿using Carter;
+using Carter;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.Application.Contracts.Services;
 using Otomar.Application.Dtos.Auth;
@@ -26,8 +26,32 @@ namespace Otomar.WebApi.Endpoints
                 var result = await authService.RegisterAsync(dto, cancellationToken);
                 return result.ToGenericResult();
             })
-          .WithName("Register")
-          .AllowAnonymous();
+            .WithName("Register")
+            .AllowAnonymous();
+
+            group.MapPost("/logout", async ([FromServices] IAuthService authService, CancellationToken cancellationToken) =>
+            {
+                var result = await authService.LogoutAsync(cancellationToken);
+                return result.ToGenericResult();
+            })
+            .WithName("Logout")
+            .RequireAuthorization();
+
+            group.MapPost("/refresh-token", async ([FromBody] CreateTokenByRefreshTokenDto dto, [FromServices] IAuthService authService, CancellationToken cancellationToken) =>
+            {
+                var result = await authService.RefreshTokenAsync(dto, cancellationToken);
+                return result.ToGenericResult();
+            })
+            .WithName("RefreshToken")
+            .AllowAnonymous();
+
+            group.MapPost("/reset-password", async ([FromBody] ResetPasswordDto dto, [FromServices] IAuthService authService, CancellationToken cancellationToken) =>
+            {
+                var result = await authService.ResetPasswordAsync(dto, cancellationToken);
+                return result.ToGenericResult();
+            })
+            .WithName("ResetPassword")
+            .AllowAnonymous();
         }
     }
 }

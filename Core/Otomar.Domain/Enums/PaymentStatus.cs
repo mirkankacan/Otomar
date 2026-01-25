@@ -1,4 +1,4 @@
-﻿namespace Otomar.Application.Enums
+﻿namespace Otomar.Domain.Enums
 {
     public enum PaymentStatus
     {
