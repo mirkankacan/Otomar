@@ -1,4 +1,4 @@
-﻿// HTTP isteklerini yöneten merkezi fonksiyon
+// HTTP isteklerini yöneten merkezi fonksiyon
 async function makeRequest(url, method = 'GET', data = null)
 {
     const options = {
@@ -56,19 +56,25 @@ async function makeRequest(url, method = 'GET', data = null)
     if (response.status === 401)
     {
         let message = 'Oturum süresi doldu. Lütfen tekrar giriş yapın.';
-        let redirectUrl = '/giris-yap';
+        let redirectUrl = '/giris';
 
-        // Backend'den gelen mesajı kontrol et
+        // Backend'den gelen mesajı kontrol et (ProblemDetails formatı)
         try
         {
             const responseText = await response.text();
             if (responseText)
             {
                 const errorData = JSON.parse(responseText);
-                if (errorData.message)
+                // ProblemDetails formatında detail veya title kullan
+                if (errorData.detail)
                 {
-                    message = errorData.message;
+                    message = errorData.detail;
                 }
+                else if (errorData.title)
+                {
+                    message = errorData.title;
+                }
+                // loginUrl yoksa varsayılan kullanılır
                 if (errorData.loginUrl)
                 {
                     redirectUrl = errorData.loginUrl;
@@ -156,8 +162,8 @@ function performLogout(redirectUrl)
     }
 
     // Logout endpoint'ine async istek gönder ama yönlendirmeyi engelleme
-    fetch('/cikis-yap', {
-        method: 'GET',
+    fetch('/giris/cikis', {
+        method: 'POST',
         keepalive: true // Sayfa kapansa bile isteği tamamla
     }).catch(() =>
     {
@@ -165,5 +171,5 @@ function performLogout(redirectUrl)
     });
 
     // Her durumda hemen login sayfasına yönlendir
-    window.location.href = redirectUrl || '/giris-yap';
+    window.location.href = redirectUrl || '/giris';
 }

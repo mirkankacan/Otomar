@@ -4,10 +4,10 @@ using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers
 {
-    [Route("secenek")]
+    [Route("")]
     public class OptionController(IOptionApi optionApi) : Controller
     {
-        [HttpGet("kargo")]
+        [HttpGet("kargo-sinir")]
         public async Task<IActionResult> GetShippingOptions(CancellationToken cancellationToken = default)
         {
             return await optionApi.GetShippingOptionsAsync(cancellationToken).ToActionResultAsync();

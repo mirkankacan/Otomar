@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -895,18 +895,29 @@
     <script src="~/assets/js/plugins/swiper-bundle.min.js"></script>
     <script src="~/assets/js/plugins/glightbox.min.js"></script>
     <script src="~/assets/js/http-client.js"></script>
-    <script src="~/assets/js/custom-toastr.js"></script>
 
     <!-- Customscript js -->
     <script src="~/assets/js/script.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     <script>
-        $(function() {
-            
-        });
         async function getShippingThreshold(){
-
+            try {
+                const response = await makeRequest('/kargo-sinir', 'GET');
+                if (response && response.threshold) {
+                    const thresholdElement = document.querySelector('.shipping__content--desc');
+                    if (thresholdElement) {
+                        thresholdElement.textContent = `₺${response.threshold.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} üzeri ücretsiz kargo`;
+                    }
+                }
+            } catch (error) {
+                console.error('Kargo sınırı alınamadı:', error);
+            }
         }
+        
+        // Sayfa yüklendiğinde kargo sınırını al
+        $(document).ready(async function() {
+            await getShippingThreshold();
+        });
     </script>
 </body>
 </html>

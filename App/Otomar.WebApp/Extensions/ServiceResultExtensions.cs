@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Common;
-using Otomar.WebApp.Responses;
 using Refit;
 using System.Net;
 using System.Net.Http;
