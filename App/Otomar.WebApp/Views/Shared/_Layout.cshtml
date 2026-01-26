@@ -151,15 +151,15 @@
                                     class="main__logo--img" src="/assets/img/logo/otomarlogo.webp" alt="OTOMAR logo-img"></a></h1>
                     </div>
                     <div class="header__search--widget d-none d-lg-block header__sticky--none">
-                        <form class="d-flex header__search--form border-radius-5" action="#">
+                        <div class="d-flex header__search--form border-radius-5" >
 
                             <div class="header__search--box">
                                 <label>
-                                    <input class="header__search--input" placeholder="Aradığınız parçayı bulun!"
+                                    <input id="header-search-input" class="header__search--input" placeholder="Aradığınız parçayı bulun!"
                                         type="text">
                                 </label>
                                 <button class="header__search--button bg__primary text-white" aria-label="search button"
-                                    type="submit">
+                                    type="button" onclick="window.location.href = '/magaza?searchTerm=' + document.getElementById('header-search-input').value;">
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
                                         xmlns="http://www.w3.org/2000/svg">
                                         <path
@@ -168,7 +168,7 @@
                                     </svg>
                                 </button>
                             </div>
-                        </form>
+                        </div>
                     </div>
                     <div class="header__account header__sticky--none">
                         <ul class="header__account--wrapper d-flex align-items-center">

@@ -8,6 +8,8 @@
     var modelName = ViewBag.ModelName as string;
     var versionName = ViewBag.VersionName as string;
     var manufacturerName = ViewBag.ManufacturerName as string;
+    var minPrice = ViewBag.MinPrice as string;
+    var maxPrice= ViewBag.MaxPrice as string;
 }
 
 <!-- Start shop section -->
@@ -81,7 +83,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <button class="primary__btn price__filter--btn" type="submit">Filtrele</button>
+                            <button class="primary__btn price__filter--btn" type="button">Filtrele</button>
                     </div>
                 </div>
             </div>
@@ -93,6 +95,28 @@
                         <div class="d-flex align-items-center flex-wrap gap-2">
                             <span style="font-weight: 600; color: #333; font-size: 13px; margin-right: 8px;">Aktif Filtreler:</span>
                             <div id="active-filters-badges" class="d-flex align-items-center flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Arama -->
+                    <div class="mb-20" style="background: var(--bg-offwhite-color); padding: 12px 16px; border-radius: 8px;">
+                        <div class="d-flex header__search--form border-radius-5">
+                            <div class="header__search--box" style="width:100%;">
+                                <label>
+                                    <input id="search-term-input" 
+                                           class="header__search--input" 
+                                           placeholder="Kelime ile filtrelemek için arama yapınız..." 
+                                           type="text">
+                                </label>
+                                <button id="search-btn" 
+                                        class="header__search--button bg__primary text-white" 
+                                        aria-label="search button" 
+                                        type="button">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M15.6952 14.4991L11.7663 10.5588C12.7765 9.4008 13.33 7.94381 13.33 6.42703C13.33 2.88322 10.34 0 6.66499 0C2.98997 0 0 2.88322 0 6.42703C0 9.97085 2.98997 12.8541 6.66499 12.8541C8.04464 12.8541 9.35938 12.4528 10.4834 11.6911L14.4422 15.6613C14.6076 15.827 14.8302 15.9184 15.0687 15.9184C15.2944 15.9184 15.5086 15.8354 15.6711 15.6845C16.0166 15.364 16.0276 14.8325 15.6952 14.4991ZM6.66499 1.67662C9.38141 1.67662 11.5913 3.8076 11.5913 6.42703C11.5913 9.04647 9.38141 11.1775 6.66499 11.1775C3.94857 11.1775 1.73869 9.04647 1.73869 6.42703C1.73869 3.8076 3.94857 1.67662 6.66499 1.67662Z" fill="currentColor" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -164,6 +188,15 @@
                             </div>
                         </div>
                     </div>
+                       <div id="search-container" class="mb-20" style="background: var(--bg-offwhite-color); padding: 12px 16px; border-radius: 8px;">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span style="font-weight: 600; color: #333; font-size: 13px; margin-right: 8px;">Arama:</span>
+                            <div id="search-input" class="d-flex align-items-center flex-wrap gap-2">
+                                <input type="text" id="search-input" placeholder="Arama yapınız...">
+                                <button id="search-button" class="primary__btn">Ara</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -180,13 +213,16 @@
             brand: '@(brandName ?? "")',
             model: '@(modelName ?? "")',
             version: '@(versionName ?? "")',
-            manufacturer: '@(manufacturerName ?? "")'
+            manufacturer: '@(manufacturerName ?? "")',
+            minPrice: '@(minPrice ?? "")',
+            maxPrice: '@(maxPrice ?? "")',
+            searchTerm: '@(ViewBag.SearchTerm ?? "")'
         };
         let currentPage = 1;
         let pageSize = 36;
         let orderBy = 'latest';
-        let minPrice = null;
-        let maxPrice = null;
+        let minPrice = urlFilters.minPrice ? parseFloat(urlFilters.minPrice) : null;
+        let maxPrice = urlFilters.maxPrice ? parseFloat(urlFilters.maxPrice) : null;
         let isLoading = false;
         let hasMoreProducts = true;
         let totalProductCount = 0;
@@ -228,7 +264,30 @@
                 parts.push(`uretici/${manufacturer}`);
             }
             
-            return parts.length > 0 ? '/magaza/' + parts.join('/') : '/magaza';
+            // Base URL
+            let url = parts.length > 0 ? '/magaza/' + parts.join('/') : '/magaza';
+            
+            // Query parametreleri ekle
+            const queryParams = [];
+            const finalMinPrice = newFilters.minPrice !== undefined ? newFilters.minPrice : urlFilters.minPrice;
+            const finalMaxPrice = newFilters.maxPrice !== undefined ? newFilters.maxPrice : urlFilters.maxPrice;
+            const finalSearchTerm = newFilters.searchTerm !== undefined ? newFilters.searchTerm : urlFilters.searchTerm;
+            
+            if (finalMinPrice) {
+                queryParams.push(`minPrice=${finalMinPrice}`);
+            }
+            if (finalMaxPrice) {
+                queryParams.push(`maxPrice=${finalMaxPrice}`);
+            }
+            if (finalSearchTerm) {
+                queryParams.push(`searchTerm=${encodeURIComponent(finalSearchTerm)}`);
+            }
+            
+            if (queryParams.length > 0) {
+                url += '?' + queryParams.join('&');
+            }
+            
+            return url;
         }
 
         // Aktif filtreleri gösterme fonksiyonu
@@ -330,6 +389,33 @@
                         });
                     }
                 }
+            }
+            
+            // Fiyat filtresi
+            if (urlFilters.minPrice || urlFilters.maxPrice) {
+                let priceDisplay = 'Fiyat: ';
+                if (urlFilters.minPrice && urlFilters.maxPrice) {
+                    priceDisplay += `₺${urlFilters.minPrice} - ₺${urlFilters.maxPrice}`;
+                } else if (urlFilters.minPrice) {
+                    priceDisplay += `₺${urlFilters.minPrice} ve üzeri`;
+                } else if (urlFilters.maxPrice) {
+                    priceDisplay += `₺${urlFilters.maxPrice} ve altı`;
+                }
+                
+                activeFilters.push({
+                    type: 'price',
+                    value: 'price',
+                    displayValue: priceDisplay
+                });
+            }
+            
+            // Arama terimi
+            if (urlFilters.searchTerm) {
+                activeFilters.push({
+                    type: 'search',
+                    value: 'search',
+                    displayValue: `Arama: ${urlFilters.searchTerm}`
+                });
             }
             
             // Eğer aktif filtre varsa göster
@@ -455,11 +541,57 @@
                                     }
                                 }
                                 break;
+                                
+                            case 'price':
+                                // Fiyat filtresi kaldırılır, diğer filtreler kalır
+                                if (urlFilters.mainCategory) {
+                                    parts.push(`kategori/${urlFilters.mainCategory}`);
+                                    if (urlFilters.subCategory) parts.push(urlFilters.subCategory);
+                                }
+                                if (urlFilters.brand) {
+                                    parts.push(`marka/${urlFilters.brand}`);
+                                    if (urlFilters.model) {
+                                        parts.push(`model/${urlFilters.model}`);
+                                        if (urlFilters.version) parts.push(`versiyon/${urlFilters.version}`);
+                                    }
+                                }
+                                if (urlFilters.manufacturer) parts.push(`uretici/${urlFilters.manufacturer}`);
+                                break;
+                                
+                            case 'search':
+                                // Arama terimi kaldırılır, diğer filtreler kalır
+                                if (urlFilters.mainCategory) {
+                                    parts.push(`kategori/${urlFilters.mainCategory}`);
+                                    if (urlFilters.subCategory) parts.push(urlFilters.subCategory);
+                                }
+                                if (urlFilters.brand) {
+                                    parts.push(`marka/${urlFilters.brand}`);
+                                    if (urlFilters.model) {
+                                        parts.push(`model/${urlFilters.model}`);
+                                        if (urlFilters.version) parts.push(`versiyon/${urlFilters.version}`);
+                                    }
+                                }
+                                if (urlFilters.manufacturer) parts.push(`uretici/${urlFilters.manufacturer}`);
+                                break;
                         }
                         
                         // URL'i oluştur
                         if (parts.length > 0) {
                             newUrl += '/' + parts.join('/');
+                        }
+                        
+                        // Kaldırılan filtre hariç, diğer query parametreleri koru
+                        const queryParams = [];
+                        if (filter.type !== 'price') {
+                            if (urlFilters.minPrice) queryParams.push(`minPrice=${urlFilters.minPrice}`);
+                            if (urlFilters.maxPrice) queryParams.push(`maxPrice=${urlFilters.maxPrice}`);
+                        }
+                        if (filter.type !== 'search') {
+                            if (urlFilters.searchTerm) queryParams.push(`searchTerm=${encodeURIComponent(urlFilters.searchTerm)}`);
+                        }
+                        
+                        if (queryParams.length > 0) {
+                            newUrl += '?' + queryParams.join('&');
                         }
                         
                         window.location.href = newUrl;
@@ -714,6 +846,19 @@
                     $('#manufacturers-arrow').css('transform', 'rotate(180deg)');
                 }, 100);
             }
+            
+            // Fiyat filtresi input alanlarını doldur
+            if (urlFilters.minPrice) {
+                document.getElementById('Filter-Price-GTE2').value = urlFilters.minPrice;
+            }
+            if (urlFilters.maxPrice) {
+                document.getElementById('Filter-Price-LTE2').value = urlFilters.maxPrice;
+            }
+            
+            // Arama input'unu doldur
+            if (urlFilters.searchTerm) {
+                document.getElementById('search-term-input').value = urlFilters.searchTerm;
+            }
 
             // Kategoriler toggle
             $('#categories-toggle').on('click', function () {
@@ -766,14 +911,58 @@
                 loadProducts(false);
             });
 
-            // Fiyat filtresi
-            $('.price__filter--form').on('submit', function (e) {
+            // Fiyat filtreleme fonksiyonu
+            function applyPriceFilter() {
+                const minPriceInput = parseFloat($('#Filter-Price-GTE2').val()) || null;
+                const maxPriceInput = parseFloat($('#Filter-Price-LTE2').val()) || null;
+                
+                // Query parametreleriyle yeni URL oluştur
+                const newUrl = buildFilterUrl({
+                    minPrice: minPriceInput,
+                    maxPrice: maxPriceInput
+                });
+                
+                window.location.href = newUrl;
+            }
+            
+            // Fiyat filtresi butonu
+            $('.price__filter--btn').on('click', function (e) {
                 e.preventDefault();
-                minPrice = parseFloat($('#Filter-Price-GTE2').val()) || null;
-                maxPrice = parseFloat($('#Filter-Price-LTE2').val()) || null;
-                currentPage = 1;
-                hasMoreProducts = true;
-                loadProducts(false);
+                applyPriceFilter();
+            });
+            
+            // Fiyat input'larında Enter tuşu
+            $('#Filter-Price-GTE2, #Filter-Price-LTE2').on('keypress', function (e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    applyPriceFilter();
+                }
+            });
+            
+            // Arama filtreleme fonksiyonu
+            function applySearchFilter() {
+                const searchTermInput = $('#search-term-input').val().trim() || null;
+                
+                // Query parametreleriyle yeni URL oluştur
+                const newUrl = buildFilterUrl({
+                    searchTerm: searchTermInput
+                });
+                
+                window.location.href = newUrl;
+            }
+            
+            // Arama butonu
+            $('#search-btn').on('click', function (e) {
+                e.preventDefault();
+                applySearchFilter();
+            });
+            
+            // Arama input'unda Enter tuşu
+            $('#search-term-input').on('keypress', function (e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    applySearchFilter();
+                }
             });
         });
 
@@ -1591,6 +1780,7 @@
                 if (urlFilters.model) params.append('model', urlFilters.model);
                 if (urlFilters.version) params.append('year', urlFilters.version);
                 if (urlFilters.manufacturer) params.append('manufacturer', urlFilters.manufacturer);
+                if (urlFilters.searchTerm) params.append('searchTerm', urlFilters.searchTerm);
 
 
                 // API'den ürünleri çek

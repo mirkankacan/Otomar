@@ -9,6 +9,23 @@ namespace Otomar.WebApp.Controllers
         [Route("")]
         public IActionResult Index()
         {
+            // Query parametrelerinden fiyat filtrelerini al
+            if (Request.Query.TryGetValue("minPrice", out var minPrice))
+            {
+                ViewBag.MinPrice = minPrice.ToString();
+            }
+            
+            if (Request.Query.TryGetValue("maxPrice", out var maxPrice))
+            {
+                ViewBag.MaxPrice = maxPrice.ToString();
+            }
+            
+            // Query parametresinden arama terimini al
+            if (Request.Query.TryGetValue("searchTerm", out var searchTerm))
+            {
+                ViewBag.SearchTerm = searchTerm.ToString();
+            }
+            
             return View();
         }
 
@@ -64,6 +81,23 @@ namespace Otomar.WebApp.Controllers
                     ViewBag.ManufacturerName = segments[i + 1];
                     i++;
                 }
+            }
+            
+            // Query parametrelerinden fiyat filtrelerini al
+            if (Request.Query.TryGetValue("minPrice", out var minPrice))
+            {
+                ViewBag.MinPrice = minPrice.ToString();
+            }
+            
+            if (Request.Query.TryGetValue("maxPrice", out var maxPrice))
+            {
+                ViewBag.MaxPrice = maxPrice.ToString();
+            }
+            
+            // Query parametresinden arama terimini al
+            if (Request.Query.TryGetValue("searchTerm", out var searchTerm))
+            {
+                ViewBag.SearchTerm = searchTerm.ToString();
             }
             
             return View("Index");

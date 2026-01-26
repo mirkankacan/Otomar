@@ -19,12 +19,12 @@ namespace Otomar.Persistance.Services
 
             // Tire ve alt çizgileri boşluğa çevir
             var text = slug.Replace('-', ' ').Replace('_', ' ');
-            
+
             // Her kelimenin ilk harfini büyük yap (Title Case)
             var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var titleCased = string.Join(' ', words.Select(w => 
+            var titleCased = string.Join(' ', words.Select(w =>
                 char.ToUpper(w[0]) + w.Substring(1).ToLower()));
-            
+
             return titleCased;
         }
 
@@ -262,13 +262,13 @@ namespace Otomar.Persistance.Services
 
                 if (productFilterRequestDto.MinPrice.HasValue && productFilterRequestDto.MinPrice > 0)
                 {
-                    whereConditions.Add("SATIS_FIYATI >= @minPrice");
+                    whereConditions.Add("SATIS_FIYAT >= @minPrice");
                     parameters.Add("minPrice", productFilterRequestDto.MinPrice.Value);
                 }
 
                 if (productFilterRequestDto.MaxPrice.HasValue && productFilterRequestDto.MaxPrice > 0)
                 {
-                    whereConditions.Add("SATIS_FIYATI <= @maxPrice");
+                    whereConditions.Add("SATIS_FIYAT <= @maxPrice");
                     parameters.Add("maxPrice", productFilterRequestDto.MaxPrice.Value);
                 }
 
@@ -301,7 +301,7 @@ namespace Otomar.Persistance.Services
                 var orderByClause = decodedSortBy switch
                 {
                     "latest" => " ORDER BY WEB_GOSTER_TARIH DESC",
-                    "popularity" => " ORDER BY ASGARI_STOK DESC",
+                    "bestseller" => " ORDER BY STOK_BAKIYE DESC",
                     "cheap" => " ORDER BY SATIS_FIYAT ASC",
                     "expensive" => " ORDER BY SATIS_FIYAT DESC",
                     _ => " ORDER BY ID DESC"
