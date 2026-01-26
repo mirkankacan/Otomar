@@ -19,7 +19,7 @@ namespace Otomar.WebApp.Controllers
             return await categoryApi.GetManufacturersAsync(cancellationToken).ToActionResultAsync();
         }
 
-        [HttpGet("onerilenler")]
+        [HttpGet("one-cikarilanlar")]
         public async Task<IActionResult> GetFeaturedCategories(CancellationToken cancellationToken = default)
         {
             return await categoryApi.GetFeaturedCategoriesAsync(cancellationToken).ToActionResultAsync();

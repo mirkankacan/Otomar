@@ -1,4 +1,4 @@
-using Otomar.WebApp.Options;
+using Otomar.WebApp.Dtos;
 using Refit;
 
 namespace Otomar.WebApp.Services.Refit

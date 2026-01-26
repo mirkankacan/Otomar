@@ -1,4 +1,4 @@
-﻿@model Otomar.WebApp.Models.Payment.PaymentDto
+﻿@model Otomar.WebApp.Dtos.Payment.PaymentDto
 @{
     ViewData["Title"] = "Ödeme Başarısız";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -21,7 +21,6 @@
     </div>
 </section>
 <!-- End breadcrumb section -->
-
 <!-- Start payment failed section -->
 <section class="checkout__section section--padding">
     <div class="container">
@@ -31,7 +30,7 @@
                     <div class="payment__failed">
                         <div class="payment__failed--icon text-center mb-30">
                             <svg width="80" height="80" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
+                                 xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="12" cy="12" r="10" stroke="#dc3545" stroke-width="2" fill="#f8d7da" />
                                 <path d="M15 9l-6 6M9 9l6 6" stroke="#dc3545" stroke-width="2" stroke-linecap="round" />
                             </svg>
@@ -113,7 +112,6 @@
     </div>
 </section>
 <!-- End payment failed section -->
-
 @section Styles {
     <style>
         .payment__failed {
@@ -126,60 +124,60 @@
 
         @@keyframes shake {
 
-                0%,
-                100% {
-                    transform: translateX(0);
-                }
-
-                25% {
-                    transform: translateX(-10px);
-                }
-
-                75% {
-                    transform: translateX(10px);
-                }
+            0%,
+            100% {
+                transform: translateX(0);
             }
 
-            .checkout__summary {
-                background: #f8f9fa;
-                padding: 30px;
-                border-radius: 5px;
-                margin-top: 20px;
+            25% {
+                transform: translateX(-10px);
             }
 
-            .badge {
-                padding: 5px 10px;
-                border-radius: 3px;
-                font-size: 12px;
-                font-weight: 600;
+            75% {
+                transform: translateX(10px);
             }
+        }
 
-            .badge-danger {
-                background-color: #dc3545;
-                color: white;
-            }
+        .checkout__summary {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
 
-            .alert {
-                padding: 15px;
-                border-radius: 5px;
-                margin-bottom: 20px;
-            }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
 
-            .alert-danger {
-                background-color: #f8d7da;
-                border: 1px solid #f5c6cb;
-                color: #721c24;
-            }
+        .badge-danger {
+            background-color: #dc3545;
+            color: white;
+        }
 
-            .secondary__btn {
-                display: inline-block;
-                padding: 12px 30px;
-                background-color: #6c757d;
-                color: white;
-                text-decoration: none;
-                border-radius: 5px;
-                transition: background-color 0.3s;
-            }
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .secondary__btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
 
             .secondary__btn:hover {
                 background-color: #5a6268;
@@ -187,12 +185,12 @@
                 text-decoration: none;
             }
 
-            .mr-15 {
-                margin-right: 15px;
-            }
+        .mr-15 {
+            margin-right: 15px;
+        }
 
-            .text-muted {
-                color: #6c757d;
-            }
-        </style>
-    }
+        .text-muted {
+            color: #6c757d;
+        }
+    </style>
+}
