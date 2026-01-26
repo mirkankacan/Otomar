@@ -15,7 +15,7 @@ builder.Services.AddApplicationServices()
                 .AddPersistanceServices(builder.Configuration)
                 .AddWebApiServices(builder.Configuration, builder.Host);
 
-builder.Services.AddHealthCheckServices(builder.Configuration);
+//builder.Services.AddHealthCheckServices(builder.Configuration);
 builder.Services.AddOutputCache(options =>
 {
     // Genel kategori cache policy - parametresiz endpoint'ler için
@@ -31,6 +31,28 @@ builder.Services.AddOutputCache(options =>
         builder.Expire(TimeSpan.FromMinutes(5));
         builder.SetVaryByRouteValue("brandId", "modelId");
         builder.Tag("categories");
+    });
+    // Featured products - daha uzun cache
+    options.AddPolicy("FeaturedProductsCache", builder =>
+    {
+        builder.Expire(TimeSpan.FromMinutes(3));
+        builder.Tag("products", "featured");
+    });
+
+    // Ürün detayı (ID) - kısa cache
+    options.AddPolicy("ProductByIdCache", builder =>
+    {
+        builder.Expire(TimeSpan.FromMinutes(2));
+        builder.SetVaryByRouteValue("id");
+        builder.Tag("products", "product-detail");
+    });
+
+    // Ürün detayı (Code) - kısa cache
+    options.AddPolicy("ProductByCodeCache", builder =>
+    {
+        builder.Expire(TimeSpan.FromMinutes(2));
+        builder.SetVaryByRouteValue("code");
+        builder.Tag("products", "product-detail");
     });
 });
 
@@ -67,7 +89,7 @@ if (app.Environment.IsDevelopment())
     }
 }
 
-app.MapHealthCheckServices();
+//app.MapHealthCheckServices();
 
 app.MapCarter();
 app.Run();

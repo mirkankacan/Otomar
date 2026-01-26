@@ -27,21 +27,24 @@ namespace Otomar.WebApi.Endpoints
                 var result = await productService.GetFeaturedProductsAsync();
                 return result.ToGenericResult();
             })
-            .WithName("GetFeaturedProducts");
+            .WithName("GetFeaturedProducts")
+            .CacheOutput("FeaturedProductsCache");
 
             group.MapGet("/{id:int}", async (int id, [FromServices] IProductService productService) =>
             {
                 var result = await productService.GetProductByIdAsync(id);
                 return result.ToGenericResult();
             })
-             .WithName("GetProductById");
+             .WithName("GetProductById")
+              .CacheOutput("ProductByIdCache");
 
             group.MapGet(pattern: "/{code}", async (string code, [FromServices] IProductService productService) =>
             {
                 var result = await productService.GetProductByCodeAsync(code);
                 return result.ToGenericResult();
             })
-              .WithName("GetProductByCode");
+              .WithName("GetProductByCode")
+               .CacheOutput("ProductByCodeCache");
         }
     }
 }
