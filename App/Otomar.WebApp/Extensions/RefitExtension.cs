@@ -11,7 +11,7 @@ namespace Otomar.WebApp.Extensions
             var apiOptions = configuration.GetSection(nameof(ApiOptions)).Get<ApiOptions>()!;
 
             var baseAddress = new Uri(apiOptions.BaseUrl);
-            var timeout = TimeSpan.FromSeconds(30);
+            var timeout = TimeSpan.FromSeconds(60);
 
             services.AddRefitClient<IAuthApi>()
                 .ConfigureHttpClient(c =>

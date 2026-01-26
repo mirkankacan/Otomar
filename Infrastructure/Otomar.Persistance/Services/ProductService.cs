@@ -11,6 +11,23 @@ namespace Otomar.Persistance.Services
 {
     public class ProductService(IAppDbContext context, ILogger<ProductService> logger) : IProductService
     {
+        // Slug'ı normal metne çeviren helper metod
+        private static string ConvertSlugToText(string slug)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+                return string.Empty;
+
+            // Tire ve alt çizgileri boşluğa çevir
+            var text = slug.Replace('-', ' ').Replace('_', ' ');
+            
+            // Her kelimenin ilk harfini büyük yap (Title Case)
+            var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var titleCased = string.Join(' ', words.Select(w => 
+                char.ToUpper(w[0]) + w.Substring(1).ToLower()));
+            
+            return titleCased;
+        }
+
         public async Task<ServiceResult<FeaturedProductDto>> GetFeaturedProductsAsync()
         {
             try
@@ -39,18 +56,20 @@ namespace Otomar.Persistance.Services
 
                 var tasks = new[]
                   {
+                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY ID DESC"),
+                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY STOK_BAKIYE DESC"),
                         context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY WEB_GOSTER_TARIH DESC"),
-                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY ASGARI_STOK DESC"),
-                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY SATIS_FIYAT DESC"),
-                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY URETICI_KODU DESC")
+                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY SATIS_FIYAT ASC"),
+                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY SATIS_FIYAT DESC")
                     };
                 var results = await Task.WhenAll(tasks);
                 var homePageProducts = new FeaturedProductDto
                 {
-                    Recent = results[0],
+                    Recommended = results[0],
                     BestSeller = results[1],
-                    Top = results[2],
-                    ByRate = results[3]
+                    Latest = results[2],
+                    Lowestprice = results[3],
+                    HighestPrice = results[4]
                 };
                 return ServiceResult<FeaturedProductDto>.SuccessAsOk(homePageProducts);
             }
@@ -208,32 +227,37 @@ namespace Otomar.Persistance.Services
 
                 if (!string.IsNullOrWhiteSpace(productFilterRequestDto.MainCategory))
                 {
+                    var mainCategoryText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.MainCategory.Trim()));
                     whereConditions.Add("ANA_GRUP_ADI LIKE '%' + @mainCategory + '%'");
-                    parameters.Add("mainCategory", HttpUtility.UrlDecode(productFilterRequestDto.MainCategory.Trim()));
+                    parameters.Add("mainCategory", mainCategoryText);
                 }
 
                 if (!string.IsNullOrWhiteSpace(productFilterRequestDto.SubCategory))
                 {
+                    var subCategoryText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.SubCategory.Trim()));
                     whereConditions.Add("ALT_GRUP_ADI LIKE '%' + @subCategory + '%'");
-                    parameters.Add("subCategory", HttpUtility.UrlDecode(productFilterRequestDto.SubCategory.Trim()));
+                    parameters.Add("subCategory", subCategoryText);
                 }
 
                 if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Brand))
                 {
-                    whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MARKA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) = @brand)");
-                    parameters.Add("brand", HttpUtility.UrlDecode(productFilterRequestDto.Brand.Trim()));
+                    var brandText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Brand.Trim()));
+                    whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MARKA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @brand + '%')");
+                    parameters.Add("brand", brandText);
                 }
 
                 if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Model))
                 {
-                    whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MODEL_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) = @model)");
-                    parameters.Add("model", HttpUtility.UrlDecode(productFilterRequestDto.Model.Trim()));
+                    var modelText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Model.Trim()));
+                    whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MODEL_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @model + '%')");
+                    parameters.Add("model", modelText);
                 }
 
                 if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Year))
                 {
-                    whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(KASA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) = @year)");
-                    parameters.Add("year", HttpUtility.UrlDecode(productFilterRequestDto.Year.Trim()));
+                    var yearText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Year.Trim()));
+                    whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(KASA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @year + '%')");
+                    parameters.Add("year", yearText);
                 }
 
                 if (productFilterRequestDto.MinPrice.HasValue && productFilterRequestDto.MinPrice > 0)
@@ -252,7 +276,7 @@ namespace Otomar.Persistance.Services
                 {
                     var decodedManufacturer = HttpUtility.UrlDecode(productFilterRequestDto.Manufacturer);
                     var manufacturerList = decodedManufacturer.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(c => c.Trim())
+                        .Select(c => ConvertSlugToText(c.Trim()))
                         .Where(c => !string.IsNullOrEmpty(c))
                         .ToList();
 

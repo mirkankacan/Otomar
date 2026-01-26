@@ -16,9 +16,27 @@ builder.Services.AddApplicationServices()
                 .AddWebApiServices(builder.Configuration, builder.Host);
 
 builder.Services.AddHealthCheckServices(builder.Configuration);
+builder.Services.AddOutputCache(options =>
+{
+    // Genel kategori cache policy - parametresiz endpoint'ler için
+    options.AddPolicy("CategoryCache", builder =>
+    {
+        builder.Expire(TimeSpan.FromMinutes(5));
+        builder.Tag("categories");
+    });
+
+    // Parametreli endpoint'ler için - brandId, modelId gibi
+    options.AddPolicy("CategoryByIdCache", builder =>
+    {
+        builder.Expire(TimeSpan.FromMinutes(5));
+        builder.SetVaryByRouteValue("brandId", "modelId");
+        builder.Tag("categories");
+    });
+});
 
 var app = builder.Build();
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseOutputCache();
 
 if (app.Environment.IsDevelopment())
 {

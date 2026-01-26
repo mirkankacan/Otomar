@@ -1,0 +1,100 @@
+@*
+    Skeleton Loader Kullanım Template'i
+    Bu dosyayı kopyalayarak başka sayfalarda skeleton loader kullanabilirsiniz.
+*@
+
+@{
+    ViewData["Title"] = "Sayfa Başlığı";
+}
+
+<!-- Container - dinamik içerik buraya yüklenecek -->
+<section class="section--padding">
+    <div class="container">
+        <div class="row" id="content-container">
+            <!-- Skeleton loader veya dinamik içerik buraya gelecek -->
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(async function () {
+            // ADIM 1: Skeleton loader göster
+            // Aşağıdaki seçeneklerden birini kullanın:
+            
+            // Ürün kartları için:
+            SkeletonLoader.showProductSkeleton('content-container', 8);
+            
+            // Kategori kartları için:
+            // SkeletonLoader.showCategorySkeleton('content-container', 6);
+            
+            // Genel amaçlı kartlar için:
+            // SkeletonLoader.showCardSkeleton('content-container', 4, {
+            //     colClass: 'col-lg-3 col-md-6 col-12',
+            //     hasImage: true,
+            //     imageHeight: '200px',
+            //     lineCount: 3,
+            //     hasButton: true
+            // });
+            
+            // Liste için:
+            // SkeletonLoader.showListSkeleton('content-container', 5, {
+            //     hasAvatar: true,
+            //     lineCount: 2
+            // });
+            
+            // Tablo için (tbody id'si verin):
+            // SkeletonLoader.showTableSkeleton('table-body', 5, 4);
+            
+            // Form için:
+            // SkeletonLoader.showFormSkeleton('form-container', 4);
+            
+            // ADIM 2: Verileri yükle
+            await loadData();
+        });
+
+        async function loadData() {
+            const container = document.getElementById('content-container');
+            
+            try {
+                // API'den veri çek
+                const response = await makeRequest('/api/endpoint', 'GET');
+                
+                // Response kontrolü
+                if (!response || !Array.isArray(response)) {
+                    SkeletonLoader.showError('content-container', 'Veriler yüklenemedi.');
+                    return;
+                }
+                
+                // Boş kontrol
+                if (response.length === 0) {
+                    SkeletonLoader.showEmpty('content-container', 'Henüz veri bulunmamaktadır.');
+                    return;
+                }
+                
+                // ADIM 3: Skeleton'ı temizle
+                SkeletonLoader.clear('content-container');
+                
+                // ADIM 4: Gerçek verileri render et
+                response.forEach(item => {
+                    const element = createItem(item);
+                    container.appendChild(element);
+                });
+                
+            } catch (error) {
+                console.error('Veri yükleme hatası:', error);
+                SkeletonLoader.showError('content-container', 'Bir hata oluştu. Lütfen sayfayı yenileyin.');
+            }
+        }
+
+        function createItem(data) {
+            // Gerçek HTML elementini oluştur
+            const div = document.createElement('div');
+            div.className = 'col-lg-3 col-md-6 col-12';
+            
+            // ... içeriği oluştur
+            
+            return div;
+        }
+    </script>
+}

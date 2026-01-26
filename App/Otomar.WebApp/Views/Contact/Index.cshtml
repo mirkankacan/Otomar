@@ -1,0 +1,287 @@
+@{
+    ViewData["Title"] = "İletişim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Start contact section -->
+<section class="contact__section section--padding">
+    <div class="container">
+        <div class="contact__section--heading text-center mb-40">
+            <h2 class="contact__section--heading__maintitle">İletişim</h2>
+        </div>
+
+        <div class="contact__map--area section--padding pt-0 mt-5">
+            <iframe class="contact__map--iframe"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3125.4307604455157!2d27.175448076379727!3d38.43151807405781!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14b9629cbf32f14f%3A0x457e69342a748698!2sOTOMAR%20Otomobilcilik%20Yedek%20Par%C3%A7a%20San.%20Ltd.%20%C5%9Eti.!5e0!3m2!1str!2str!4v1725627586883!5m2!1str!2str"
+                style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+
+        <div class="main__contact--area position__relative">
+            <div class="contact__form">
+                <h3 class="contact__form--title mb-30">E-posta Gönder</h3>
+                <form class="contact__form--inner" id="contactForm" action="#">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6">
+                            <div class="contact__form--list mb-20">
+                                <label class="contact__form--label" for="txtFirstName">İsim <span
+                                        class="contact__form--label__star">*</span></label>
+                                <input class="contact__form--input" name="firstName" id="txtFirstName"
+                                    placeholder="İsim giriniz..." type="text" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="contact__form--list mb-20">
+                                <label class="contact__form--label" for="txtLastName">Soyisim <span
+                                        class="contact__form--label__star">*</span></label>
+                                <input class="contact__form--input" name="lastName" id="txtLastName"
+                                    placeholder="Soyisim giriniz..." type="text" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="contact__form--list mb-20">
+                                <label class="contact__form--label" for="txtPhoneNumber">Telefon Numarası <span
+                                        class="contact__form--label__star">*</span></label>
+                                <input class="contact__form--input" name="phoneNumber" id="txtPhoneNumber"
+                                    placeholder="Telefon numarası giriniz..." type="tel" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="contact__form--list mb-20">
+                                <label class="contact__form--label" for="txtEmail">E-posta <span
+                                        class="contact__form--label__star">*</span></label>
+                                <input class="contact__form--input" name="email" id="txtEmail"
+                                    placeholder="E-posta giriniz..." type="email" required>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="contact__form--list mb-15">
+                                <label class="contact__form--label" for="txtMessage">Mesajınız <span
+                                        class="contact__form--label__star">*</span></label>
+                                <textarea class="contact__form--textarea" name="message" id="txtMessage"
+                                    placeholder="Mesaj giriniz..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="contact__form--btn primary__btn" type="submit"> <span>Gönder</span></button>
+                </form>
+            </div>
+            <div class="contact__info border-radius-5">
+                <div class="contact__info--items">
+                    <h3 class="contact__info--content__title text-white mb-15">Telefon</h3>
+                    <div class="contact__info--items__inner d-flex">
+                        <div class="contact__info--icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="31.568" height="31.128"
+                                viewBox="0 0 31.568 31.128">
+                                <path id="ic_phone_forwarded_24px"
+                                    d="M26.676,16.564l7.892-7.782L26.676,1V5.669H20.362v6.226h6.314Zm3.157,7a18.162,18.162,0,0,1-5.635-.887,1.627,1.627,0,0,0-1.61.374l-3.472,3.424a23.585,23.585,0,0,1-10.4-10.257l3.472-3.44a1.48,1.48,0,0,0,.395-1.556,17.457,17.457,0,0,1-.9-5.556A1.572,1.572,0,0,0,10.1,4.113H4.578A1.572,1.572,0,0,0,3,5.669,26.645,26.645,0,0,0,29.832,32.128a1.572,1.572,0,0,0,1.578-1.556V25.124A1.572,1.572,0,0,0,29.832,23.568Z"
+                                    transform="translate(-3 -1)" fill="currentColor" />
+                            </svg>
+                        </div>
+                        <div class="contact__info--content">
+                            <p class="contact__info--content__desc text-white"> <a onclick="sendWhatsAppMessage()"
+                                    href="#">+90 (543) 268 66 27 (WhatsApp)</a> <a href="tel:+902324337337">+90 (232) 4
+                                    337 337 (PBX)</a> </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact__info--items">
+                    <h3 class="contact__info--content__title text-white mb-15">E-posta</h3>
+                    <div class="contact__info--items__inner d-flex">
+                        <div class="contact__info--icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="31.57" height="31.13"
+                                viewBox="0 0 31.57 31.13">
+                                <path id="ic_email_24px"
+                                    d="M30.413,4H5.157C3.421,4,2.016,5.751,2.016,7.891L2,31.239c0,2.14,1.421,3.891,3.157,3.891H30.413c1.736,0,3.157-1.751,3.157-3.891V7.891C33.57,5.751,32.149,4,30.413,4Zm0,7.783L17.785,21.511,5.157,11.783V7.891l12.628,9.728L30.413,7.891Z"
+                                    transform="translate(-2 -4)" fill="currentColor" />
+                            </svg>
+                        </div>
+                        <div class="contact__info--content">
+                            <p class="contact__info--content__desc text-white"> <a
+                                    href="mailto:bilgi@otomar.com.tr">bilgi@otomar.com.tr</a></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact__info--items">
+                    <h3 class="contact__info--content__title text-white mb-15">Adres</h3>
+                    <div class="contact__info--items__inner d-flex">
+                        <div class="contact__info--icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="31.57" height="31.13"
+                                viewBox="0 0 31.57 31.13">
+                                <path id="ic_account_balance_24px"
+                                    d="M5.323,14.341V24.718h4.985V14.341Zm9.969,0V24.718h4.985V14.341ZM2,32.13H33.57V27.683H2ZM25.262,14.341V24.718h4.985V14.341ZM17.785,1,2,8.412v2.965H33.57V8.412Z"
+                                    transform="translate(-2 -1)" fill="currentColor" />
+                            </svg>
+                        </div>
+                        <div class="contact__info--content">
+                            <p class="contact__info--content__desc text-white">
+                                <a href="https://maps.app.goo.gl/HXptxN42cfwaiMrQ8" target="_blank">
+                                    1.Sanayi Sitesi ,Mersinli Mah. 2822 Sk. No:30 - Konak - İzmir
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End contact section -->
+<!-- Start brand section -->
+<div class="brand__section brand__section--style3 section--padding">
+    <div class="container">
+        <div class="brand__section--inner__style3 d-flex justify-content-between align-items-center">
+
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/abarth.webp" width=152 alt="Abarth marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/alfa romeo.webp" width=152
+                    alt="Alfa Romeo marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/citroen.webp" width=152 alt="Citroen marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/ds automobiles.webp" width=152
+                    alt="DS Automobiles marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/fiat.webp" width=152 alt="Fiat marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/jeep.webp" width=152 alt="Jeep marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/lancia.webp" width=152 alt="Lancia marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/opel.webp" width=152 alt="Opel marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/peugeot.webp" width=152 alt="Peugeot marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/ram.webp" width=152 alt="Ram marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/tofaş.webp" width=152 alt="Tofaş marka logosu">
+            </div>
+            <div class="brang__logo--items">
+                <img class="brang__logo--img" src="/assets/img/logo/toyota.webp" width=152 alt="Toyota marka logosu">
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End brand section -->
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Gerçek zamanlı validasyon ekle
+            Validator.validateOnInput('#txtEmail', 
+                (value) => Validator.isValidEmail(value), 
+                'Geçerli bir e-posta adresi giriniz.'
+            );
+
+            Validator.validateOnInput('#txtPhoneNumber', 
+                (value) => Validator.isValidPhone(value), 
+                'Geçerli bir telefon numarası giriniz. (Örn: 05XX XXX XX XX)'
+            );
+
+            Validator.validateOnInput('#txtMessage', 
+                (value) => Validator.isValidLength(value, 10, 1000), 
+                'Mesaj en az 10, en fazla 1000 karakter olabilir.'
+            );
+
+            // Form submit
+            $('#contactForm').on('submit', async function (e) {
+                e.preventDefault();
+
+                // Tüm hataları temizle
+                Validator.clearAllErrors(this);
+
+                // Form verilerini al
+                const formData = {
+                    name: $('#txtFirstName').val().trim(),
+                    surname: $('#txtLastName').val().trim(),
+                    phoneNumber: $('#txtPhoneNumber').val().trim(),
+                    email: $('#txtEmail').val().trim(),
+                    message: $('#txtMessage').val().trim()
+                };
+
+                // Validasyon kuralları
+                const rules = {
+                    name: {
+                        required: true,
+                        requiredMessage: 'İsim alanı zorunludur.',
+                        maxLength: 100,
+                        maxLengthMessage: 'İsim en fazla 100 karakter olabilir.'
+                    },
+                    surname: {
+                        required: true,
+                        requiredMessage: 'Soyisim alanı zorunludur.',
+                        maxLength: 100,
+                        maxLengthMessage: 'Soyisim en fazla 100 karakter olabilir.'
+                    },
+                    phoneNumber: {
+                        required: true,
+                        requiredMessage: 'Telefon numarası zorunludur.',
+                        phone: true,
+                        phoneMessage: 'Geçerli bir telefon numarası giriniz.'
+                    },
+                    email: {
+                        required: true,
+                        requiredMessage: 'E-posta adresi zorunludur.',
+                        email: true,
+                        emailMessage: 'Geçerli bir e-posta adresi giriniz.'
+                    },
+                    message: {
+                        required: true,
+                        requiredMessage: 'Mesaj alanı zorunludur.',
+                        minLength: 10,
+                        minLengthMessage: 'Mesaj en az 10 karakter olmalıdır.',
+                        maxLength: 1000,
+                        maxLengthMessage: 'Mesaj en fazla 1000 karakter olabilir.'
+                    }
+                };
+
+                // Validasyon yap
+                const validation = Validator.validateForm(formData, rules);
+                
+                if (!validation.isValid) {
+                    // Hataları göster
+                    Validator.displayErrors(validation.errors, '#contactForm');
+                    toastr.error('Lütfen formu eksiksiz ve doğru doldurunuz.', 'Validasyon Hatası');
+                    return;
+                }
+
+                // Submit butonunu disable et
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalHtml = submitBtn.html();
+                submitBtn.prop('disabled', true).html('<span>Gönderiliyor...</span>');
+
+                try {
+                    // API'ye istek at
+                    const response = await makeRequest('/iletisim/mail-gonder', 'POST', formData);
+
+                    // Başarılı mesaj
+                    toastr.success('Mesajınız başarıyla gönderildi. En kısa sürede size dönüş yapacağız.', 'Başarılı');
+
+                    // Formu temizle
+                    $('#contactForm')[0].reset();
+                    Validator.clearAllErrors(this);
+
+                } catch (error) {
+                    // Hata mesajı
+                    const errorMessage = error.detail || error.message || 'Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyiniz.';
+                    toastr.error(errorMessage, error.title || 'Hata');
+
+                } finally {
+                    // Submit butonunu tekrar aktif et
+                    submitBtn.prop('disabled', false).html(originalHtml);
+                }
+            });
+        });
+    </script>
+
+}

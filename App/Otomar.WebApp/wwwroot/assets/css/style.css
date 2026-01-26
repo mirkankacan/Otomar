@@ -890,8 +890,8 @@ select {
   right: 20px;
   z-index: 99;
   outline: none;
-  background-color: var(--secondary-color);
-  color: var(--text-white-color);
+  background-color: #25D366;
+  color: #ffffff;
   box-shadow: 0 2px 22px rgba(0, 0, 0, 0.16);
   cursor: pointer;
   transform: translateY(50px);
@@ -899,8 +899,8 @@ select {
   visibility: hidden;
   transition: 0.3s;
   line-height: 1;
-  width: 4.3rem;
-  height: 4.3rem;
+  width: 8rem;
+  height: 8rem;
   border-radius: 50%;
   border: 0;
   display: flex;
@@ -909,7 +909,7 @@ select {
 }
 
 #scroll__top:hover {
-  background: var(--primary-color);
+  background: #128C7E;
 }
 
 @media only screen and (max-width: 991px) {
@@ -924,9 +924,29 @@ select {
   transform: translateY(0);
 }
 
-#scroll__top svg {
-  width: 25px;
+#scroll__top .whatsapp-icon {
+  width: 48px;
+  height: 48px;
   line-height: 1;
+  transition: opacity 0.3s ease;
+  position: absolute;
+}
+
+#scroll__top .send-icon {
+  width: 48px;
+  height: 48px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  position: absolute;
+}
+
+#scroll__top:hover .whatsapp-icon {
+  opacity: 0;
+}
+
+#scroll__top:hover .send-icon {
+  opacity: 1;
 }
 
 .visually-hidden {
@@ -2843,6 +2863,48 @@ body.overlay__active::before,
   font-size: 1.5rem;
   /*  padding: 1rem 0;*/
   font-weight: 500;
+}
+
+/* Model hover effects */
+.header__mega--menu li a:hover .img-thumbnail {
+  border-color: var(--secondary-color) !important;
+  transition: border-color 0.3s ease;
+}
+
+.header__mega--menu li a:hover .model-name {
+  color: var(--secondary-color) !important;
+  transition: color 0.3s ease;
+}
+
+/* Grid layout mega menu responsive */
+@media only screen and (max-width: 1400px) {
+  .header__mega--menu {
+    grid-template-columns: repeat(8, 1fr) !important;
+  }
+}
+
+@media only screen and (max-width: 1200px) {
+  .header__mega--menu {
+    grid-template-columns: repeat(6, 1fr) !important;
+  }
+}
+
+@media only screen and (max-width: 991px) {
+  .header__mega--menu {
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .header__mega--menu {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+@media only screen and (max-width: 575px) {
+  .header__mega--menu {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
 }
 
 /*

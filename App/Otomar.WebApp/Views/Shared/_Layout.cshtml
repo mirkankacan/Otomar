@@ -6,20 +6,22 @@
     <title>@ViewData["Title"] • OTOMAR Yedek Parça</title>
     <meta name="description" content="OTOMAR Yedek Parça E-Ticaret Sitesi">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" type="image/x-icon" href="~/assets/img/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/img/favicon.ico">
 
     <!-- ======= All CSS Plugins here ======== -->
-    <link rel="stylesheet" href="~/assets/css/plugins/swiper-bundle.min.css">
-    <link rel="stylesheet" href="~/assets/css/plugins/glightbox.min.css">
+    <link rel="stylesheet" href="/assets/css/plugins/swiper-bundle.min.css">
+    <link rel="stylesheet" href="/assets/css/plugins/glightbox.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha512-6S2HWzVFxruDlZxI3sXOZZ4/eJ8AcxkQH1+JjSe/ONCEqR9L4Ysq5JdT5ipqtzU7WHalNwzwBv+iE51gNHJNqQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500&display=swap"
         rel="stylesheet">
 
     <!-- Plugin css -->
-    <link rel="stylesheet" href="~/assets/css/vendor/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/vendor/bootstrap.min.css">
 
     <!-- Custom Style CSS -->
-    <link rel="stylesheet" href="~/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/skeleton-loader.css">
     @await RenderSectionAsync("Seo", required: false)
     @await RenderSectionAsync("Styles", required: false)
     <style>
@@ -89,7 +91,11 @@
                 <div class="header__topbar--inner d-flex align-items-center justify-content-between">
                     <ul class="header__topbar--info d-none d-lg-flex">
                         <li class="header__info--list">
-                            <a class="header__info--link" href="/iletisim">GİF</a>
+                            <a class="header__info--link" onclick="sendWhatsAppMessage()">
+                               <video autoplay muted loop playsinline style="height:20px; width:auto;">
+       <source src="/assets/img/other/whatsappdestek.webm" type="video/webm">
+   </video>
+                                    </a>
 
                         </li>
                         <li class="header__info--list">
@@ -321,7 +327,7 @@
             <div class="offcanvas__inner">
                 <div class="offcanvas__logo">
                     <a class="offcanvas__logo_link" href="/ana-sayfa">
-                        <img src="assets/img/logo/nav-log.webp" alt="Grocee Logo" width="158" height="36">
+                        <img src="/assets/img/logo/nav-log.webp" alt="Grocee Logo" width="158" height="36">
                     </a>
                     <button class="offcanvas__close--btn" data-offcanvas>close</button>
                 </div>
@@ -552,7 +558,7 @@
             <div class="minicart__product">
                 <div class="minicart__product--items d-flex">
                     <div class="minicart__thumb">
-                        <a href="product-details.html"><img src="assets/img/product/small-product/product1.webp"
+                        <a href="product-details.html"><img src="/assets/img/product/small-product/product1.webp"
                                 alt="prduct-img"></a>
                     </div>
                     <div class="minicart__text">
@@ -868,14 +874,14 @@
             <div class="container">
                 <div class="footer__bottom--inenr d-flex justify-content-between align-items-center">
                     <div class="footer__logo">
-                        <a class="footer__logo--link" href="/ana-sayfa"><img src="/assets/img/logo/otomar.png" alt="OTOMAR logo-img" style="width:178px"></a>
+                        <a class="footer__logo--link" href="/ana-sayfa"><img src="~/assets/img/logo/otomar.png" alt="OTOMAR logo-img" loading="lazy" style="width:178px"></a>
                     </div>
                     <p class="copyright__content">
                         <span class="text__secondary">2025 - @DateTime.Now.Year © </span> İdeaktif
                         Danışmanlık ve Yazılım Ltd.
                     </p>
                     <div class="footer__payment">
-                        <img src="assets/img/icon/payment-img.webp" alt="payment-img" style="width:285px">
+                        <img src="/assets/img/icon/payment-img.webp" alt="payment-img" style="width:285px" loading="lazy">
                     </div>
                 </div>
             </div>
@@ -883,25 +889,83 @@
     </footer>
     <!-- End footer section -->
 
-    <!-- Scroll top bar -->
-    <button id="scroll__top"><svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
-            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="48"
-                d="M112 244l144-144 144 144M256 120v292" />
-        </svg></button>
+    <!-- Scroll top bar converted to WhatsApp button -->
+    <button id="scroll__top" onclick="sendWhatsAppMessage()" class="active">
+        <svg class="whatsapp-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+        <svg class="send-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+    </button>
 
     <!-- All Script JS Plugins here  -->
     <script src="https://code.jquery.com/jquery-4.0.0.min.js"
         integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script>
-    <script src="~/assets/js/vendor/popper.js" defer="defer"></script>
-    <script src="~/assets/js/vendor/bootstrap.min.js" defer="defer"></script>
-    <script src="~/assets/js/plugins/swiper-bundle.min.js"></script>
-    <script src="~/assets/js/plugins/glightbox.min.js"></script>
-    <script src="~/assets/js/http-client.js"></script>
+    <script src="/assets/js/vendor/popper.js" defer="defer"></script>
+    <script src="/assets/js/vendor/bootstrap.min.js" defer="defer"></script>
+    <script src="/assets/js/plugins/swiper-bundle.min.js"></script>
+    <script src="/assets/js/plugins/glightbox.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha512-lbwH47l/tPXJYG9AcFNoJaTMhGvYWhVM9YI43CT+uteTRRaiLCui8snIgyAN8XWgNjNhCqlAUdzZptso6OCoFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/assets/js/validation.js"></script>
+    <script src="/assets/js/http-client.js"></script>
+    <script src="/assets/js/skeleton-loader.js"></script>
 
     <!-- Customscript js -->
-    <script src="~/assets/js/script.js"></script>
+    <script src="/assets/js/_script.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     <script>
+    function sendWhatsAppMessage() {
+     const phoneNumber = '905432686627';
+     const webUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}`;
+     let isAppOpened = false;
+     window.open(webUrl, '_blank');
+ }
+        function generateSlug(text) {
+    const turkishMap = {
+        'ç': 'c', 'Ç': 'c',
+        'ğ': 'g', 'Ğ': 'g',
+        'ı': 'i', 'İ': 'i',
+        'ö': 'o', 'Ö': 'o',
+        'ş': 's', 'Ş': 's',
+        'ü': 'u', 'Ü': 'u'
+    };
+    
+    return text
+        .toString()
+        .split('')
+        .map(char => turkishMap[char] || char)
+        .join('')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+}
+         // Türk Lirası formatına çevirme fonksiyonu
+        function formatTurkishLira(amount) {
+            if (!amount && amount !== 0) return '₺0,00';
+
+            // Sayıyı string'e çevir ve ondalık kısmı ayır
+            const numStr = amount.toFixed(2);
+            const parts = numStr.split('.');
+            const integerPart = parts[0];
+            const decimalPart = parts[1] || '00';
+
+            // Binlik ayırıcı ekle (nokta)
+            let formattedInteger = '';
+            for (let i = integerPart.length - 1, j = 0; i >= 0; i--, j++) {
+                if (j > 0 && j % 3 === 0) {
+                    formattedInteger = '.' + formattedInteger;
+                }
+                formattedInteger = integerPart[i] + formattedInteger;
+            }
+
+            // Türk Lirası formatı: ₺1.234,56
+            return `₺${formattedInteger},${decimalPart}`;
+        }
         async function getShippingThreshold() {
             try {
                 const response = await makeRequest('/kargo-sinir', 'GET');
@@ -924,6 +988,9 @@
                     console.error('Kategori verisi beklenen formatta değil:', response);
                     return;
                 }
+                
+                // Kategori verisini global olarak kaydet (Shop sayfasında kullanmak için)
+                window.categoriesData = response;
                 const menuWrapper = document.getElementById('dynamic-menu-wrapper');
                 const allProductsSubmenu = document.getElementById('all-products-submenu');
                 const allProductsMenuItem = document.getElementById('all-products-menu-item');
@@ -1029,6 +1096,7 @@
                     if (category.gruP_IKON) {
                         const icon = document.createElement('img');
                         icon.src = `/${category.gruP_IKON}`;
+                        icon.loading = 'lazy';
                         icon.style.width = '20px';
                         icon.style.height = '20px';
                         icon.style.objectFit = 'contain';
@@ -1223,7 +1291,8 @@
                     console.error('Marka verisi beklenen formatta değil:', response);
                     return;
                 }
-                console.log(response);
+                // Veriyi global olarak kaydet (Shop sayfasında kullanmak için)
+                window.brandsModelsYearsData = response;
                 const menuWrapper = document.getElementById('dynamic-menu-wrapper');
                 if (!menuWrapper) {
                     console.error('Menü wrapper bulunamadı');
@@ -1289,7 +1358,7 @@
                     brandLogo.alt = `${markaAdi} logo`;
                     brandLogo.onerror = function() {
                         // Alternatif olarak slug formatını dene
-                        this.src = `/assets/img/logo/${brandSlug}.webp`;
+                        this.src =`/assets/img/logo/${brandSlug}.webp`;
                     };
                     brandLink.appendChild(brandLogo);
                     
@@ -1310,68 +1379,72 @@
                     
                     brandMenuItem.appendChild(brandLink);
                     
-                    // Mega menu (modeller için)
+                    // Mega menu (modeller için) - Grid layout (10 sütun)
                     const megaMenu = document.createElement('ul');
-                    megaMenu.className = 'header__mega--menu d-flex';
+                    megaMenu.className = 'header__mega--menu';
+                    megaMenu.style.display = 'grid';
+                    megaMenu.style.gridTemplateColumns = 'repeat(10, 1fr)';
+                    megaMenu.style.gap = '8px';
+                    megaMenu.style.padding = '20px';
+                    megaMenu.style.width = '100%';
+                    megaMenu.style.maxWidth = '1400px';
                     
-                    // Modelleri sütunlara böl (her sütunda max 8 model)
-                    // Property adları: modelsYears, modeL_KODU, modeL_ADI, aktif
+                    // Modelleri filtrele
                     const modelsYears = brand.modelsYears || brand.ModelsYears || [];
                     const models = modelsYears.filter(model => {
                         const aktif = model.aktif !== undefined ? model.aktif : model.AKTIF;
                         return aktif;
                     });
-                    const modelsPerColumn = 8;
-                    const columns = Math.ceil(models.length / modelsPerColumn);
                     
-                    for (let colIndex = 0; colIndex < columns; colIndex++) {
-                        const columnLi = document.createElement('li');
-                        columnLi.className = 'header__mega--menu__li';
+                    // Her modeli grid item olarak ekle
+                    models.forEach(model => {
+                        const modelLi = document.createElement('li');
+                        modelLi.style.listStyle = 'none';
+                        modelLi.style.display = 'flex';
+                        modelLi.style.flexDirection = 'column';
+                        modelLi.style.alignItems = 'center';
+                        modelLi.style.textAlign = 'center';
                         
-                        const subMenu = document.createElement('ul');
-                        subMenu.className = 'header__mega--sub__menu';
+                        const modelAdi = model.modeL_ADI || model.MODEL_ADI;
                         
-                        const startIndex = colIndex * modelsPerColumn;
-                        const endIndex = Math.min(startIndex + modelsPerColumn, models.length);
-                        const columnModels = models.slice(startIndex, endIndex);
+                        const modelLink = document.createElement('a');
+                        modelLink.href = '#';
+                        modelLink.style.display = 'flex';
+                        modelLink.style.flexDirection = 'column';
+                        modelLink.style.alignItems = 'center';
+                        modelLink.style.textDecoration = 'none';
+                        modelLink.style.width = '100%';
                         
-                        columnModels.forEach(model => {
-                            const modelLi = document.createElement('li');
-                            modelLi.className = 'header__mega--sub__menu_li';
-                            
-                            // Property adları: modeL_KODU, modeL_ADI, aktif
-                            const modelAdi = model.modeL_ADI || model.MODEL_ADI;
-                            
-                            const modelLink = document.createElement('a');
-                            modelLink.className = 'header__mega--sub__menu--title d-flex flex-column align-items-center text-center';
-                            const modelSlug = modelAdi.toLowerCase().replace(/\s+/g, '-');
-                            modelLink.href = `https://otomar.com.tr/otomar_web/assets/img/logo/alfa romeo.webp`;
-                            
-                            // Model logosu (UPPERCASE marka adı / UPPERCASE model adı.webp)
-                            const modelImg = document.createElement('img');
-                            modelImg.src = `/assets/img/cars/${markaAdi.toUpperCase()}/${modelAdi.toUpperCase()}.webp`;
-                            modelImg.style.width = '100%';
-                            modelImg.style.height = '60px';
-                            modelImg.style.objectFit = 'contain';
-                            modelImg.style.marginBottom = '8px';
-                            modelImg.alt = `${markaAdi} ${modelAdi} logo`;
-                            modelImg.onerror = function() {
-                                this.style.display = 'none';
-                            };
-                            modelLink.appendChild(modelImg);
-                            
-                            // Model adı
-                            const modelName = document.createElement('span');
-                            modelName.textContent = modelAdi.toUpperCase();
-                            modelLink.appendChild(modelName);
-                            
-                            modelLi.appendChild(modelLink);
-                            subMenu.appendChild(modelLi);
-                        });
+                        // Model logosu
+                        const modelImg = document.createElement('img');
+                        modelImg.className = 'img-thumbnail';
+                        modelImg.src = `/assets/img/cars/${markaAdi.toUpperCase()}/${modelAdi.toUpperCase()}.webp`;
+                        modelImg.loading = 'lazy';
+                        modelImg.style.width = '100%';
+                        modelImg.style.height = '80px';
+                        modelImg.style.objectFit = 'contain';
+                        modelImg.style.marginBottom = '8px';
+                        modelImg.style.transition = 'border-color 0.3s ease';
+                        modelImg.alt = `${markaAdi} ${modelAdi}`;
+                        modelImg.onerror = function() {
+                            this.style.display = 'none';
+                        };
+                        modelLink.appendChild(modelImg);
                         
-                        columnLi.appendChild(subMenu);
-                        megaMenu.appendChild(columnLi);
-                    }
+                        // Model adı
+                        const modelName = document.createElement('span');
+                        modelName.className = 'model-name';
+                        modelName.textContent = modelAdi.toUpperCase();
+                        modelName.style.fontSize = '1.2rem';
+                        modelName.style.fontWeight = '500';
+                        modelName.style.color = '#333';
+                        modelName.style.wordBreak = 'break-word';
+                        modelName.style.transition = 'color 0.3s ease';
+                        modelLink.appendChild(modelName);
+                        
+                        modelLi.appendChild(modelLink);
+                        megaMenu.appendChild(modelLi);
+                    });
                     
                     brandMenuItem.appendChild(megaMenu);
                     // "Tüm Ürünler" menüsünden sonra, "Diğer" menüsünden önce ekle
@@ -1399,7 +1472,6 @@
                     
                     remainingBrands.forEach(brand => {
                         const markaAdi = brand.markA_ADI || brand.MARKA_ADI;
-                        const brandSlug = markaAdi.toLowerCase().replace(/\s+/g, '-');
                         
                         // Marka menü öğesi
                         const brandMenuItem = document.createElement('li');
@@ -1424,7 +1496,7 @@
                         brandLogo.alt = `${markaAdi} logo`;
                         brandLogo.onerror = function() {
                             // Alternatif olarak slug formatını dene
-                            this.src = `/assets/img/logo/${brandSlug}.webp`;
+                            this.src = `/assets/img/logo/${markaAdi}.webp`;
                         };
                         brandLink.appendChild(brandLogo);
                         

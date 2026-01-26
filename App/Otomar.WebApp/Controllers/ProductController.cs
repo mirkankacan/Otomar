@@ -20,7 +20,7 @@ namespace Otomar.WebApp.Controllers
             return await productApi.GetProductsAsync(request, cancellationToken).ToActionResultAsync();
         }
 
-        [HttpGet("onerilenler")]
+        [HttpGet("one-cikarilanlar")]
         public async Task<IActionResult> GetFeaturedProducts(CancellationToken cancellationToken = default)
         {
             return await productApi.GetFeaturedProductsAsync(cancellationToken).ToActionResultAsync();
