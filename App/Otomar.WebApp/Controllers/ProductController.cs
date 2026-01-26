@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Product;
 using Otomar.WebApp.Extensions;
+using Otomar.WebApp.Helpers;
 using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers
@@ -8,10 +9,22 @@ namespace Otomar.WebApp.Controllers
     [Route("urun")]
     public class ProductController(IProductApi productApi) : Controller
     {
-        [HttpGet]
-        public IActionResult Index()
+        [HttpGet("{stockName}/{stockCode}")]
+        public async Task<IActionResult> Index(string stockName, string stockCode, CancellationToken cancellationToken = default)
         {
-            return View();
+            if (string.IsNullOrEmpty(stockName) || string.IsNullOrEmpty(stockCode))
+                return Redirect("/ana-sayfa");
+            var response = await productApi.GetProductByCodeAsync(stockCode, cancellationToken);
+            if (response == null)
+                return Redirect("/ana-sayfa");
+
+            var requestSlug = SlugHelper.Generate(stockName);
+            var responseSlug = SlugHelper.Generate(response.STOK_ADI);
+
+            if (!requestSlug.Equals(responseSlug, StringComparison.OrdinalIgnoreCase))
+                return Redirect("/ana-sayfa");
+
+            return View(response);
         }
 
         [HttpGet("listele")]
@@ -26,7 +39,7 @@ namespace Otomar.WebApp.Controllers
             return await productApi.GetFeaturedProductsAsync(cancellationToken).ToActionResultAsync();
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetProductById(int id, CancellationToken cancellationToken = default)
         {
             return await productApi.GetProductByIdAsync(id, cancellationToken).ToActionResultAsync();

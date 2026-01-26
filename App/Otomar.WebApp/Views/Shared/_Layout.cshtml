@@ -881,7 +881,7 @@
                         Danışmanlık ve Yazılım Ltd.
                     </p>
                     <div class="footer__payment">
-                        <img src="/assets/img/icon/payment-img.webp" alt="payment-img" style="width:285px" loading="lazy">
+                        <img src="/assets/img/icon/payment-img.webp" alt="Kabul edilen ödeme yöntemleri" style="width:285px" loading="lazy">
                     </div>
                 </div>
             </div>
@@ -915,6 +915,7 @@
     <script src="/assets/js/_script.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     <script>
+       
     function sendWhatsAppMessage() {
      const phoneNumber = '905432686627';
      const webUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}`;
@@ -1523,6 +1524,25 @@
             await getShippingThreshold();
             await loadDynamicMenu();
             await loadBrandsMenu();
+                     // Decrease butonuna ek kontrol
+            $('.decrease').on('click', function() {
+                let input = $(this).siblings('label').find('[data-counter]');
+                let currentValue = parseInt(input.val()) || 1;
+
+                // Eğer 1 ise, 1'de kal
+                if (currentValue <= 1) {
+                    input.val(1);
+                    return false; // Butonu durdur
+                }
+            });
+
+            // Input'a manuel 0 veya negatif değer girilmesini engelle
+            $('[data-counter]').on('input change blur', function() {
+                let value = parseInt($(this).val());
+                if (isNaN(value) || value < 1) {
+                    $(this).val(1);
+                }
+            });
         });
     </script>
 </body>

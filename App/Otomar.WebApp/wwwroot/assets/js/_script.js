@@ -135,27 +135,31 @@ if (scrollTop) {
   1. slider swiper activation
 */
 var swiper = new Swiper(".hero__slider--activation", {
-  slidesPerView: 1,
-  loop: true,
-  clickable: true,
-  speed: 500,
-  spaceBetween: 30,
-  navigation: {
-    nextEl: ".swiper-button-next",
-    prevEl: ".swiper-button-prev",
-  },
-  pagination: {
-    el: ".swiper-pagination",
+    slidesPerView: 1,
+    loop: true,
     clickable: true,
-  },
+    speed: 500,
+    spaceBetween: 30,
+    autoplay: {
+        delay: 4000,  // 4 saniyede bir geçiþ
+        disableOnInteraction: false,  // Kullanýcý týkladýðýnda durmasýn
+        pauseOnMouseEnter: true,  // Mouse üzerine gelince dursun
+    },
+    navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+    },
+    pagination: {
+        el: ".swiper-pagination",
+        clickable: true,
+    },
 });
-
 /*
   2. product swiper column4 activation
 */
 var swiper = new Swiper(".product__swiper--activation", {
   slidesPerView: 4,
-  loop: true,
+  loop: false,
   clickable: true,
   spaceBetween: 30,
   breakpoints: {
@@ -220,7 +224,7 @@ var swiper = new Swiper(".product__swiper--column4__style2", {
   4. single product nav activation
 */
 var swiper = new Swiper(".single__product--nav", {
-  loop: true,
+    loop: false,
   spaceBetween: 20,
   slidesPerView: 5,
   freeMode: true,
@@ -252,7 +256,7 @@ var swiper = new Swiper(".single__product--nav", {
   },
 });
 var swiper2 = new Swiper(".single__product--preview", {
-  loop: true,
+    loop: false,
   spaceBetween: 10,
   thumbs: {
     swiper: swiper,

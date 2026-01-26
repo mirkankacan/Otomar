@@ -1,0 +1,264 @@
+﻿@model ProductDto
+@{
+    ViewData["Title"] = Model.STOK_ADI;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var images = new List<string>();
+
+    // Vitrin fotoğrafı varsa ilk sıraya ekle
+    if (!string.IsNullOrEmpty(Model.VITRIN_FOTO))
+    {
+        images.Add(Model.VITRIN_FOTO);
+    }
+
+    // DOSYA_KONUM'daki fotoğrafları ekle
+    if (!string.IsNullOrEmpty(Model.DOSYA_KONUM))
+    {
+        var dosyaFotolar = Model.DOSYA_KONUM.Split(';')
+            .Select(f => f.Trim())
+            .Where(f => !string.IsNullOrEmpty(f));
+        images.AddRange(dosyaFotolar);
+    }
+    var imageIndex = 0;
+}
+
+<!-- Start product details section -->
+<section class="product__details--section section--padding">
+    <div class="container">
+        <div class="row row-cols-lg-2 row-cols-md-2">
+            <div class="col">
+                <div class="product__details--media">
+                    <div class="single__product--preview swiper mb-25">
+                        <div class="swiper-wrapper">
+                            @{
+                                imageIndex = 0;
+                            }
+                            @foreach (var image in images)
+                            {
+                                imageIndex++;
+                                <div class="swiper-slide">
+                                    <div class="product__media--preview__items">
+                                        <a class="product__media--preview__items--link glightbox" data-gallery="product-media-preview" href="@image">
+                                            <img class="product__media--preview__items--img" src="@image" alt="@Model.STOK_ADI @imageIndex. ürün resmi">
+                                        </a>
+                                        <div class="product__media--view__icon">
+                                            <a class="product__media--view__icon--link glightbox" href="@image" data-gallery="product-media-zoom">
+                                                <svg class="product__items--action__btn--svg" xmlns="http://www.w3.org/2000/svg" width="22.51" height="22.443" viewBox="0 0 512 512">
+                                                    <path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"></path>
+                                                    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"></path>
+                                                </svg>
+                                                <span class="visually-hidden">product view</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="single__product--nav swiper">
+                        <div class="swiper-wrapper">
+                            @{
+                                imageIndex = 0;
+                            }
+                            @foreach (var image in images)
+                            {
+                                imageIndex++;
+                                <div class="swiper-slide">
+                                    <div class="product__media--nav__items">
+                                        <img class="product__media--nav__items--img" src="@image" alt="@Model.STOK_ADI @imageIndex. ürün resmi">
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="swiper__nav--btn swiper-button-next">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="-chevron-right">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                        <div class="swiper__nav--btn swiper-button-prev">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="-chevron-left">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="product__details--info">
+                    <form action="#">
+                        <h2 class="product__details--info__title mb-15">
+                            @Model.STOK_ADI
+                        </h2>
+                        <div class="product__details--info__price mb-12">
+                            <span class="current__price">₺@Model.SATIS_FIYAT.ToString("N2", new System.Globalization.CultureInfo("tr-TR"))</span>
+                        </div>
+                        <div class="product__variant">
+                            <div class="product__variant--list mb-15">
+                                <div class="product__details--info__meta">
+                                    <p class="product__details--info__meta--list"><strong>Kod:</strong> <span>@Model.URETICI_KODU.Replace(";", ",")</span></p>
+                                    <p class="product__details--info__meta--list"><strong>Uyumlu Araçlar:</strong> <span style="display:unset !important">@Model.KASA_ADI.Replace(";",",")</span></p>
+                                    <p class="product__details--info__meta--list d-flex align-items-center">
+                                        <strong>Marka:</strong>
+                                        <span class="d-flex align-items-center ms-2">
+                                            @Model.URETICI_MARKA_ADI
+                                            <img class="img-fluid ms-2" src="@($"/assets/img/logo/{Model.URETICI_MARKA_ADI.ToLower(new System.Globalization.CultureInfo("en-EN"))}.webp")" style="width: 100px; max-width: 100px; height: auto; object-fit: contain;" />
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="product__variant--list quantity d-flex align-items-center mb-20">
+                                <div class="quantity__box">
+                                    <button type="button" class="quantity__value quickview__value--quantity decrease" aria-label="quantity value" value="Decrease Value">-</button>
+                                    <label>
+                                        <input type="number" class="quantity__number quickview__value--number" value="1" data-counter />
+                                    </label>
+                                    <button type="button" class="quantity__value quickview__value--quantity increase" aria-label="quantity value" value="Increase Value">+</button>
+                                </div>
+                                <button class="primary__btn quickview__cart--btn" type="submit">Sepete Ekle</button>
+                            </div>
+                            <div class="product__variant--list mb-15">
+                                <button class="variant__buy--now__btn primary__btn" type="submit">Satın Al</button>
+                            </div>
+                        </div>
+                        <div class="guarantee__safe--checkout">
+                            <h5 class="guarantee__safe--checkout__title">Garantili Güvenli Ödeme</h5>
+                            <img class="guarantee__safe--checkout__img" src="/assets/img/icon/payment-img.webp" alt="Kabul edilen ödeme yöntemleri" loading="lazy" style="width:285px">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End product details section -->
+<!-- Start product details tab section -->
+<section class="product__details--tab__section section--padding">
+    <div class="container">
+        <div class="row row-cols-1">
+            <div class="col">
+                <ul class="product__tab--one product__details--tab d-flex mb-30">
+                    <li class="product__details--tab__list active" data-toggle="tab" data-target="#description">Açıklama</li>
+                    <li class="product__details--tab__list" data-toggle="tab" data-target="#information">Ek Bilgiler</li>
+                </ul>
+                <div class="product__details--tab__inner border-radius-10">
+                    <div class="tab_content">
+                        <div id="description" class="tab_pane active show">
+                            <div class="product__tab--content">
+                                <div class="product__tab--content__step mb-30">
+                                    <h2 class="product__tab--content__title h4 mb-10">@Model.STOK_ADI</h2>
+                                    <p class="product__tab--content__desc">  @(string.IsNullOrEmpty(Model.ACIKLAMA) ?
+                                                                                $"{Model.STOK_ADI}, {Model.STOK_KODU} stok kodlu, {Model.URETICI_MARKA_ADI} marka, {Model.URETICI_KODU} üretici kodlu {(Model.URETICI_MARKA_ADI?.ToUpper() != "ITHAL" ? "orijinal " : "")}yedek parça. Bu ürün hakkında daha detaylı bilgi için WhatsApp ikonuna tıklayıp bizimle iletişime geçin…"
+                                                                                : Model.ACIKLAMA)
+                                                                            </p>
+                                </div>
+                           
+                            </div>
+                        </div>
+                        <div id="information" class="tab_pane">
+                            <div class="product__tab--conten">
+                                <div class="product__tab--content__step">
+                                    <ul class="additional__info_list">
+                                        <li class="additional__info_list--item">
+                                            <span class="info__list--item-head"><strong>Kod</strong></span>
+                                            <span class="info__list--item-content ms-2">@Model.URETICI_KODU.Replace(";", ",")</span>
+                                        </li>
+                                        <li class="additional__info_list--item">
+                                            <span class="info__list--item-head"><strong>Stok Kodu</strong></span>
+                                            <span class="info__list--item-content ms-2">@Model.STOK_KODU</span>
+                                        </li>
+                                        <li class="additional__info_list--item">
+                                            <span class="info__list--item-head"><strong>Uyumlu Araçlar</strong></span>
+                                            <span class="info__list--item-content ms-2">@Model.KASA_ADI.Replace(";", ",")</span>
+                                        </li>
+                                        <li class="additional__info_list--item">
+                                            <span class="info__list--item-head"><strong>Marka</strong></span>
+                                            <span class="info__list--item-content d-flex align-items-center ms-2">OPAR  <img class="img-fluid ms-2" src="@($"/assets/img/logo/{Model.URETICI_MARKA_ADI.ToLower(new System.Globalization.CultureInfo("en-EN"))}.webp")" style="width: 100px; max-width: 100px; height: auto; object-fit: contain;" /></span>
+                                        </li>
+                                        <li class="additional__info_list--item">
+                                            <span class="info__list--item-head"><strong>Ana Grup</strong></span>
+                                            <span class="info__list--item-content ms-2">
+                                                @if (!string.IsNullOrEmpty(Model.ANA_GRUP_ADI))
+                                                {
+                                                    @string.Join(", ", Model.ANA_GRUP_ADI.Split(';').Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).Distinct())
+                                                }
+                                            </span>
+                                        </li>
+                                        <li class="additional__info_list--item">
+                                            <span class="info__list--item-head"><strong>Alt Grup</strong></span>
+                                            <span class="info__list--item-content ms-2">
+                                                @if (!string.IsNullOrEmpty(Model.ALT_GRUP_ADI))
+                                                {
+                                                    @string.Join(", ", Model.ALT_GRUP_ADI.Split(';').Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).Distinct())
+                                                }
+                                            </span>
+                                        </li>
+                                        <li class="additional__info_list--item">
+                                            <span class="info__list--item-head"><strong>Hashtagler</strong></span>
+                                            <span class="info__list--item-content ms-2">
+                                                @if (!string.IsNullOrEmpty(Model.HASHTAG))
+                                                {
+                                                    @string.Join(", ", Model.HASHTAG.Split(" ").Select(x => "#" + x.Trim()).Where(x => x.Length > 1).Distinct())
+                                                }
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End product details tab section -->
+<!-- Start product section -->
+<section class="product__section section--padding ">
+    <div class="container">
+        <div class="section__heading border-bottom mb-30">
+            <h2 class="section__heading--maintitle">ŞUNLAR <span>DA İLGİNİZİ ÇEKEBİLİR</span></h2>
+        </div>
+        <div class="product__section--inner pb-15 product__swiper--activation swiper">
+            <div class="swiper-wrapper">
+           
+                <div class="swiper-slide">
+                    <article class="product__card">
+                        <div class="product__card--thumbnail">
+                            <a class="product__card--thumbnail__link display-block" href="product-details.html">
+                                <img class="product__card--thumbnail__img product__primary--img" src="/assets/img/product/main-product/product1.webp" alt="product-img">
+                                <img class="product__card--thumbnail__img product__secondary--img" src="/assets/img/product/main-product/product3.webp" alt="product-img">
+                            </a>
+                       
+                        </div>
+                        <div class="product__card--content">
+                            <h3 class="product__card--title">
+                                <a href="product-details.html">
+                                    Ürün Adı Gelecek
+                                </a>
+                            </h3>
+                            <div class="product__card--price">
+                                <span class="current__price">₺0,00</span>
+                            </div>
+                            <div class="product__card--footer">
+                                <a class="product__card--btn primary__btn" href="cart.html">
+                                    <svg width="14" height="11" viewBox="0 0 14 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.2371 4H11.5261L8.5027 0.460938C8.29176 0.226562 7.9402 0.203125 7.70582 0.390625C7.47145 0.601562 7.44801 0.953125 7.63551 1.1875L10.0496 4H3.46364L5.8777 1.1875C6.0652 0.953125 6.04176 0.601562 5.80739 0.390625C5.57301 0.203125 5.22145 0.226562 5.01051 0.460938L1.98707 4H0.299574C0.135511 4 0.0183239 4.14062 0.0183239 4.28125V4.84375C0.0183239 5.00781 0.135511 5.125 0.299574 5.125H0.721449L1.3777 9.78906C1.44801 10.3516 1.91676 10.75 2.47926 10.75H11.0339C11.5964 10.75 12.0652 10.3516 12.1355 9.78906L12.7918 5.125H13.2371C13.3777 5.125 13.5183 5.00781 13.5183 4.84375V4.28125C13.5183 4.14062 13.3777 4 13.2371 4ZM11.0339 9.625H2.47926L1.86989 5.125H11.6433L11.0339 9.625ZM7.33082 6.4375C7.33082 6.13281 7.07301 5.875 6.76832 5.875C6.4402 5.875 6.20582 6.13281 6.20582 6.4375V8.3125C6.20582 8.64062 6.4402 8.875 6.76832 8.875C7.07301 8.875 7.33082 8.64062 7.33082 8.3125V6.4375ZM9.95582 6.4375C9.95582 6.13281 9.69801 5.875 9.39332 5.875C9.0652 5.875 8.83082 6.13281 8.83082 6.4375V8.3125C8.83082 8.64062 9.0652 8.875 9.39332 8.875C9.69801 8.875 9.95582 8.64062 9.95582 8.3125V6.4375ZM4.70582 6.4375C4.70582 6.13281 4.44801 5.875 4.14332 5.875C3.8152 5.875 3.58082 6.13281 3.58082 6.4375V8.3125C3.58082 8.64062 3.8152 8.875 4.14332 8.875C4.44801 8.875 4.70582 8.64062 4.70582 8.3125V6.4375Z" fill="currentColor" />
+                                    </svg>
+                                    Sepete Ekle
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+            <div class="swiper__nav--btn swiper-button-next">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class=" -chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <div class="swiper__nav--btn swiper-button-prev">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class=" -chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End product section -->
