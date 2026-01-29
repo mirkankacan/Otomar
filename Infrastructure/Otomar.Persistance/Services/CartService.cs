@@ -103,8 +103,8 @@ namespace Otomar.Persistance.Services
                     });
                 }
 
-                // Kargo ücreti hesapla
-                cart.ShippingCost = CalculateShippingCost(cart.SubTotal);
+                // Kargo ücreti hesapla (sepet boşken 0)
+                cart.ShippingCost = CalculateShippingCost(cart.SubTotal, cart.Items.Count);
 
                 // Redis'e kaydet
                 await SaveCartAsync(cartKey, cart, cancellationToken);
@@ -164,8 +164,8 @@ namespace Otomar.Persistance.Services
                     item.Quantity = dto.Quantity;
                 }
 
-                // Kargo ücreti hesapla
-                cart.ShippingCost = CalculateShippingCost(cart.SubTotal);
+                // Kargo ücreti hesapla (sepet boşken 0)
+                cart.ShippingCost = CalculateShippingCost(cart.SubTotal, cart.Items.Count);
 
                 await SaveCartAsync(cartKey, cart, cancellationToken);
 
@@ -198,8 +198,8 @@ namespace Otomar.Persistance.Services
 
                 cart.Items.Remove(item);
 
-                // Kargo ücreti hesapla
-                cart.ShippingCost = CalculateShippingCost(cart.SubTotal);
+                // Kargo ücreti hesapla (sepet boşken 0)
+                cart.ShippingCost = CalculateShippingCost(cart.SubTotal, cart.Items.Count);
 
                 await SaveCartAsync(cartKey, cart, cancellationToken);
 
@@ -218,10 +218,14 @@ namespace Otomar.Persistance.Services
             try
             {
                 var cartKey = GetCartKey();
-                var cart = await GetCartInternalAsync(cartKey, cancellationToken);
 
-                // Kargo ücreti hesapla
-                cart.ShippingCost = CalculateShippingCost(cart.SubTotal);
+                var cart = await GetCartInternalAsync(cartKey, cancellationToken);
+                if (cart.Items.Any())
+                {
+                    await SaveCartAsync(cartKey, cart, cancellationToken);
+                }
+                // Kargo ücreti hesapla (sepet boşken 0)
+                cart.ShippingCost = CalculateShippingCost(cart.SubTotal, cart.Items.Count);
 
                 return ServiceResult<CartDto>.SuccessAsOk(cart);
             }
@@ -314,8 +318,10 @@ namespace Otomar.Persistance.Services
             await cache.SetStringAsync(cartKey, cartJson, cacheOptions, cancellationToken);
         }
 
-        private decimal CalculateShippingCost(decimal subTotal)
+        private decimal CalculateShippingCost(decimal subTotal, int itemCount)
         {
+            if (itemCount == 0)
+                return 0;
             return subTotal >= shippingOptions.Threshold ? 0 : shippingOptions.Cost;
         }
     }

@@ -22,7 +22,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.Name = ".OTOMAR.WebAppSession";
     options.Cookie.MaxAge = TimeSpan.FromMinutes(10);
 });

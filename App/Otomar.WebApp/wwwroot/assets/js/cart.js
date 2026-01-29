@@ -1,228 +1,227 @@
-﻿// wwwroot/js/cart.js - Sepet işlemleri için örnek JavaScript
+// wwwroot/assets/js/cart.js - CartController (/sepet) ile uyumlu, http-client.js kullanır
 const CartManager = {
-    apiUrl: '/api/cart',
+    baseUrl: '/sepet',
 
-    // Sepeti getir
+    // makeRequest (http-client.js) yoksa fetch ile yedek
+    async _request(url, method, data) {
+        if (typeof makeRequest === 'function') {
+            return makeRequest(url, method, data);
+        }
+        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        if (token && ['POST', 'PUT', 'DELETE'].includes(method)) options.headers['X-CSRF-TOKEN'] = token;
+        if (data && ['POST', 'PUT'].includes(method)) options.body = JSON.stringify(data);
+        const res = await fetch(url, options);
+        if (!res.ok) throw { detail: await res.text() };
+        const ct = res.headers.get('content-type');
+        return ct && ct.includes('application/json') ? res.json() : null;
+    },
+
+    // Sepeti getir - GET /sepet/getir
     async getCart() {
         try {
-            const response = await fetch(this.apiUrl);
-            if (response.ok) {
-                return await response.json();
-            }
-            return null;
-        } catch (error) {
-            console.error('Sepet getirme hatası:', error);
+            return await this._request(`${this.baseUrl}/getir`, 'GET');
+        } catch (e) {
+            console.error('Sepet getirme hatası:', e);
             return null;
         }
     },
 
-    // Sepete ürün ekle
+    // Sepete ürün ekle - POST /sepet/ekle
     async addToCart(productId, quantity = 1) {
         try {
-            const response = await fetch(`${this.apiUrl}/items`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ productId, quantity })
-            });
-
-            if (response.ok) {
-                const cart = await response.json();
-                this.updateCartUI(cart);
-                this.showNotification('Ürün sepete eklendi', 'success');
-                return cart;
-            } else {
-                const error = await response.text();
-                this.showNotification(error || 'Ürün eklenemedi', 'error');
-                return null;
-            }
-        } catch (error) {
-            console.error('Sepete ekleme hatası:', error);
-            this.showNotification('Bir hata oluştu', 'error');
+            const cart = await this._request(`${this.baseUrl}/ekle`, 'POST', { productId, quantity });
+            this.updateCartUI(cart);
+            this.showNotification('Ürün sepete eklendi', 'success');
+            return cart;
+        } catch (e) {
+            const msg = (e && (e.detail || e.title)) || 'Ürün eklenemedi';
+            this.showNotification(typeof msg === 'string' ? msg : 'Ürün eklenemedi', 'error');
             return null;
         }
     },
 
-    // Sepetteki ürün miktarını güncelle
+    // Sepetteki ürün miktarını güncelle - PUT /sepet/guncelle
     async updateCartItem(productId, quantity) {
         try {
-            const response = await fetch(`${this.apiUrl}/items`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ productId, quantity })
-            });
-
-            if (response.ok) {
-                const cart = await response.json();
-                this.updateCartUI(cart);
-                return cart;
-            }
-            return null;
-        } catch (error) {
-            console.error('Güncelleme hatası:', error);
+            const cart = await this._request(`${this.baseUrl}/guncelle`, 'PUT', { productId, quantity });
+            this.updateCartUI(cart);
+            return cart;
+        } catch (e) {
+            console.error('Güncelleme hatası:', e);
             return null;
         }
     },
 
-    // Sepetten ürün sil
+    // Sepetten ürün sil - DELETE /sepet/sil/{productId}
     async removeFromCart(productId) {
         try {
-            const response = await fetch(`${this.apiUrl}/items/${productId}`, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                const cart = await response.json();
-                this.updateCartUI(cart);
-                this.showNotification('Ürün sepetten silindi', 'success');
-                return cart;
-            }
-            return null;
-        } catch (error) {
-            console.error('Silme hatası:', error);
+            const cart = await this._request(`${this.baseUrl}/sil/${productId}`, 'DELETE');
+            this.updateCartUI(cart);
+            this.showNotification('Ürün sepetten silindi', 'success');
+            return cart;
+        } catch (e) {
+            console.error('Silme hatası:', e);
             return null;
         }
     },
 
-    // Sepeti temizle
+    // Sepeti temizle - DELETE /sepet/temizle
     async clearCart() {
-        if (!confirm('Sepeti tamamen temizlemek istediğinizden emin misiniz?')) {
-            return;
-        }
-
+        if (!confirm('Sepeti tamamen temizlemek istediğinizden emin misiniz?')) return;
         try {
-            const response = await fetch(this.apiUrl, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                this.updateCartUI({ Items: [], SubTotal: 0, ShippingCost: 0, Total: 0, ItemCount: 0 });
-                this.showNotification('Sepet temizlendi', 'success');
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.error('Temizleme hatası:', error);
+            await this._request(`${this.baseUrl}/temizle`, 'DELETE');
+            this.updateCartUI({ items: [], subTotal: 0, shippingCost: 0, total: 0, itemCount: 0 });
+            this.showNotification('Sepet temizlendi', 'success');
+            return true;
+        } catch (e) {
+            console.error('Temizleme hatası:', e);
             return false;
         }
     },
 
-    // UI güncelleme
+    // Sepeti yenile - POST /sepet/yenile
+    async refreshCart() {
+        try {
+            const cart = await this._request(`${this.baseUrl}/yenile`, 'POST');
+            this.updateCartUI(cart);
+            return cart;
+        } catch (e) {
+            console.error('Sepet yenileme hatası:', e);
+            return null;
+        }
+    },
+
+    // API yanıtındaki alan adları (PascalCase veya camelCase) için uyumlu erişim
+    normalizeCart(cart) {
+        if (!cart) return cart;
+        return {
+            Items: cart.items ?? cart.Items ?? [],
+            SubTotal: cart.subTotal ?? cart.SubTotal ?? 0,
+            ShippingCost: cart.shippingCost ?? cart.ShippingCost ?? 0,
+            Total: cart.total ?? cart.Total ?? 0,
+            ItemCount: cart.itemCount ?? cart.ItemCount ?? 0
+        };
+    },
+
+    // Türkçe tutar formatı: layout'taki formatTurkishLira varsa onu kullan, yoksa basit format
+    formatPrice(value) {
+        const num = value ?? 0;
+        if (typeof formatTurkishLira === 'function') {
+            return formatTurkishLira(num);
+        }
+        return num.toFixed(2).replace('.', ',') + ' ₺';
+    },
+
+    // UI güncelleme (header + offcanvas minicart)
     updateCartUI(cart) {
-        // Sepet badge'ini güncelle
-        const badge = document.querySelector('.cart-badge');
-        if (badge) {
-            badge.textContent = cart.ItemCount || 0;
-            badge.style.display = cart.ItemCount > 0 ? 'inline-block' : 'none';
-        }
+        const c = this.normalizeCart(cart);
+        const count = c.ItemCount ?? 0;
+        const total = c.Total ?? 0;
+        const subTotal = c.SubTotal ?? 0;
+        const shipping = c.ShippingCost ?? 0;
 
-        // Sepet toplam tutarını güncelle
-        const totalElement = document.querySelector('.cart-total');
-        if (totalElement) {
-            totalElement.textContent = cart.Total.toFixed(2) + ' ₺';
-        }
+        // Sepet adet badge'leri (header + sticky)
+        document.querySelectorAll('.cart-badge, .items__count').forEach(el => {
+            el.textContent = count;
+            el.style.display = count > 0 ? '' : 'none';
+        });
 
-        // Sepet sayfasındaysak listeyi güncelle
+        // Header'daki toplam (minicart__btn--text__price)
+        document.querySelectorAll('.minicart__btn--text__price.cart-total, .cart-total').forEach(el => {
+            el.textContent = this.formatPrice(total);
+        });
+
+        // Offcanvas minicart tutarları
+        const subEl = document.getElementById('cart-amount-subtotal');
+        const shipEl = document.getElementById('cart-amount-shipping');
+        const totalEl = document.getElementById('cart-amount-total');
+        if (subEl) subEl.textContent = this.formatPrice(subTotal);
+        if (shipEl) shipEl.textContent = this.formatPrice(shipping);
+        if (totalEl) totalEl.textContent = this.formatPrice(total);
+
+        // Sepet listesi (offcanvas #cart-items)
         const cartList = document.querySelector('#cart-items');
         if (cartList) {
-            this.renderCartItems(cart);
+            this.renderCartItems(c);
         }
     },
 
-    // Sepet öğelerini render et
+    // Sepet öğelerini render et (Layout minicart yapısı)
     renderCartItems(cart) {
         const cartList = document.querySelector('#cart-items');
         if (!cartList) return;
 
-        if (!cart.Items || cart.Items.length === 0) {
-            cartList.innerHTML = '<div class="empty-cart">Sepetiniz boş</div>';
+        const items = cart?.Items ?? cart?.items ?? [];
+
+        if (!items.length) {
+            cartList.innerHTML = '<div class="minicart__empty text-center py-4" data-cart-empty><p class="mb-0">Sepetiniz boş</p></div>';
             return;
         }
 
         let html = '';
-        cart.Items.forEach(item => {
+        items.forEach(item => {
+            const productId = item.productId ?? item.ProductId;
+            const productName = (item.productName ?? item.ProductName ?? '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const unitPrice = item.unitPrice ?? item.UnitPrice ?? 0;
+            const quantity = item.quantity ?? item.Quantity ?? 1;
+            const imagePath = item.imagePath ?? item.ImagePath ?? '';
+            const stockQuantity = item.stockQuantity ?? item.StockQuantity ?? 999;
+            // formatPrice "₺1.234,56" veya "123,45 ₺" döner; template'te ₺ zaten var
+            const priceStr = this.formatPrice(unitPrice).replace(/^₺| ₺$/g, '').trim();
+
             html += `
-                <div class="cart-item" data-product-id="${item.ProductId}">
-                    <img src="${item.ImagePath}" alt="${item.ProductName}">
-                    <div class="item-details">
-                        <h4>${item.ProductName}</h4>
-                        <p class="item-code">${item.ProductCode}</p>
-                        <p class="item-price">${item.UnitPrice.toFixed(2)} ₺</p>
+                <div class="minicart__product--items d-flex cart-item" data-product-id="${productId}">
+                    <div class="minicart__thumb">
+                        <a href="/magaza/urun/${productId}"><img src="${imagePath || '/assets/img/placeholder.webp'}" alt="${productName}"></a>
                     </div>
-                    <div class="item-quantity">
-                        <button onclick="CartManager.decreaseQuantity(${item.ProductId})">-</button>
-                        <input type="number" value="${item.Quantity}"
-                               min="1" max="${item.StockQuantity || 999}"
-                               onchange="CartManager.updateCartItem(${item.ProductId}, this.value)">
-                        <button onclick="CartManager.increaseQuantity(${item.ProductId})">+</button>
+                    <div class="minicart__text">
+                        <h4 class="minicart__subtitle"><a href="/magaza/urun/${productId}">${productName}</a></h4>
+                        <div class="minicart__price">
+                            <span class="minicart__current--price">₺${priceStr}</span>
+                        </div>
+                        <div class="minicart__text--footer d-flex align-items-center">
+                            <div class="quantity__box minicart__quantity">
+                                <button type="button" class="quantity__value decrease" aria-label="azalt" onclick="CartManager.decreaseQuantity(${productId})">-</button>
+                                <label>
+                                    <input type="number" class="quantity__number" value="${quantity}" min="1" max="${stockQuantity}" onchange="CartManager.updateCartItem(${productId}, this.value)" data-counter />
+                                </label>
+                                <button type="button" class="quantity__value increase" aria-label="artır" onclick="CartManager.increaseQuantity(${productId})">+</button>
+                            </div>
+                            <button class="minicart__product--remove" type="button" onclick="CartManager.removeFromCart(${productId})">KALDIR</button>
+                        </div>
                     </div>
-                    <div class="item-total">
-                        ${(item.UnitPrice * item.Quantity).toFixed(2)} ₺
-                    </div>
-                    <button class="remove-btn" onclick="CartManager.removeFromCart(${item.ProductId})">
-                        <i class="fa fa-trash"></i>
-                    </button>
                 </div>
             `;
         });
 
-        // Toplam bilgilerini ekle
-        html += `
-            <div class="cart-summary">
-                <div class="summary-row">
-                    <span>Ara Toplam:</span>
-                    <span>${cart.SubTotal.toFixed(2)} ₺</span>
-                </div>
-                <div class="summary-row">
-                    <span>Kargo:</span>
-                    <span>${cart.ShippingCost.toFixed(2)} ₺</span>
-                </div>
-                <div class="summary-row total">
-                    <span>Toplam:</span>
-                    <span>${cart.Total.toFixed(2)} ₺</span>
-                </div>
-            </div>
-        `;
-
         cartList.innerHTML = html;
     },
 
-    // Miktar artır
     async increaseQuantity(productId) {
         const input = document.querySelector(`[data-product-id="${productId}"] input[type="number"]`);
         if (input) {
-            const newQuantity = parseInt(input.value) + 1;
+            const newQuantity = parseInt(input.value, 10) + 1;
             await this.updateCartItem(productId, newQuantity);
         }
     },
 
-    // Miktar azalt
     async decreaseQuantity(productId) {
         const input = document.querySelector(`[data-product-id="${productId}"] input[type="number"]`);
         if (input) {
-            const newQuantity = Math.max(1, parseInt(input.value) - 1);
+            const newQuantity = Math.max(1, parseInt(input.value, 10) - 1);
             await this.updateCartItem(productId, newQuantity);
         }
     },
 
-    // Bildirim göster
     showNotification(message, type = 'info') {
-        // Basit alert yerine daha güzel bir notification sistemi kullanabilirsiniz
-        // Örn: Toastr, SweetAlert, vb.
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        if (typeof toastr === 'undefined') return;
+        if (type === 'success') toastr["success"](message);
+        else if (type === 'error') toastr["error"](message);
+        else if (type === 'warning') toastr["warning"](message);
+        else toastr["info"](message);
     },
 
-    // Sayfa yüklendiğinde sepeti getir
     async init() {
         const cart = await this.getCart();
         if (cart) {
@@ -231,23 +230,22 @@ const CartManager = {
     }
 };
 
-// Sayfa yüklendiğinde çalıştır
 document.addEventListener('DOMContentLoaded', () => {
     CartManager.init();
 });
 
-// jQuery ile kullanım örneği
-$(document).ready(function () {
-    // Sepete ekle butonları
-    $('.add-to-cart-btn').on('click', function () {
-        const productId = $(this).data('product-id');
-        const quantity = $(this).closest('.product-card').find('.quantity-input').val() || 1;
-        CartManager.addToCart(productId, parseInt(quantity));
-    });
+// jQuery ile kullanım (jQuery yüklüyse)
+if (typeof $ !== 'undefined') {
+    $(document).ready(function () {
+        $('.add-to-cart-btn').on('click', function () {
+            const productId = $(this).data('product-id');
+            const quantity = $(this).closest('.product-card').find('.quantity-input').val() || 1;
+            CartManager.addToCart(productId, parseInt(quantity, 10));
+        });
 
-    // Hızlı sepete ekle
-    $('.quick-add-btn').on('click', function () {
-        const productId = $(this).data('product-id');
-        CartManager.addToCart(productId, 1);
+        $('.quick-add-btn').on('click', function () {
+            const productId = $(this).data('product-id');
+            CartManager.addToCart(productId, 1);
+        });
     });
-});
+}

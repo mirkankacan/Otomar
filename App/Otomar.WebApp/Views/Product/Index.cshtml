@@ -1,4 +1,4 @@
-﻿@model ProductDto
+@model ProductDto
 @{
     ViewData["Title"] = Model.STOK_ADI;
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -38,7 +38,10 @@
                                 <div class="swiper-slide">
                                     <div class="product__media--preview__items">
                                         <a class="product__media--preview__items--link glightbox" data-gallery="product-media-preview" href="@image">
-                                            <img class="product__media--preview__items--img" src="@image" alt="@Model.STOK_ADI @imageIndex. ürün resmi">
+                                            <img class="product__media--nav__items--img"
+                                                 src="@image"
+                                                 alt="@Model.STOK_ADI @imageIndex. ürün resmi"
+                                                 loading="@(imageIndex == 1 ? "eager" : "lazy")">
                                         </a>
                                         <div class="product__media--view__icon">
                                             <a class="product__media--view__icon--link glightbox" href="@image" data-gallery="product-media-zoom">
@@ -64,7 +67,7 @@
                                 imageIndex++;
                                 <div class="swiper-slide">
                                     <div class="product__media--nav__items">
-                                        <img class="product__media--nav__items--img" src="@image" alt="@Model.STOK_ADI @imageIndex. ürün resmi">
+                                        <img class="product__media--nav__items--img" src="@image" alt="@Model.STOK_ADI @imageIndex. ürün resmi" loading="lazy">
                                     </div>
                                 </div>
                             }
@@ -114,10 +117,10 @@
                                     </label>
                                     <button type="button" class="quantity__value quickview__value--quantity increase" aria-label="quantity value" value="Increase Value">+</button>
                                 </div>
-                                <button class="primary__btn quickview__cart--btn" type="submit">Sepete Ekle</button>
+                                <button class="primary__btn quickview__cart--btn" type="button" id="btn-sepete-ekle" data-product-id="@Model.ID">Sepete Ekle</button>
                             </div>
                             <div class="product__variant--list mb-15">
-                                <button class="variant__buy--now__btn primary__btn" type="submit">Satın Al</button>
+                                <button class="variant__buy--now__btn primary__btn" type="button" id="btn-satin-al" data-product-id="@Model.ID">Satın Al</button>
                             </div>
                         </div>
                         <div class="guarantee__safe--checkout">
@@ -151,7 +154,7 @@
                                                                                 : Model.ACIKLAMA)
                                                                             </p>
                                 </div>
-                           
+
                             </div>
                         </div>
                         <div id="information" class="tab_pane">
@@ -221,15 +224,15 @@
         </div>
         <div class="product__section--inner pb-15 product__swiper--activation swiper">
             <div class="swiper-wrapper">
-           
+
                 <div class="swiper-slide">
                     <article class="product__card">
                         <div class="product__card--thumbnail">
                             <a class="product__card--thumbnail__link display-block" href="product-details.html">
-                                <img class="product__card--thumbnail__img product__primary--img" src="/assets/img/product/main-product/product1.webp" alt="product-img">
-                                <img class="product__card--thumbnail__img product__secondary--img" src="/assets/img/product/main-product/product3.webp" alt="product-img">
+                                <img class="product__card--thumbnail__img product__primary--img" src="/assets/img/product/main-product/product1.webp" alt="product-img" loading="lazy">
+                                <img class="product__card--thumbnail__img product__secondary--img" src="/assets/img/product/main-product/product3.webp" alt="product-img" loading="lazy">
                             </a>
-                       
+
                         </div>
                         <div class="product__card--content">
                             <h3 class="product__card--title">
@@ -262,3 +265,26 @@
     </div>
 </section>
 <!-- End product section -->
+@section Scripts {
+<script>
+    $(document).ready(function () {
+        $('#btn-sepete-ekle').on('click', function (e) {
+            e.preventDefault();
+            if (typeof CartManager === 'undefined') return;
+            var productId = $(this).data('product-id');
+            var qty = parseInt($('.quickview__value--number').val(), 10) || 1;
+            console.log(productId, qty);
+            CartManager.addToCart(productId, qty);
+        });
+
+        $('#btn-satin-al').on('click', function (e) {
+            e.preventDefault();
+            if (typeof CartManager === 'undefined') return;
+            var productId = $(this).data('product-id');
+            CartManager.addToCart(productId, 1).then(function (cart) {
+                if (cart) window.location.href = '/odeme';
+            });
+        });
+    });
+</script>
+}
