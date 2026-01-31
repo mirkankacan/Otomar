@@ -92,7 +92,7 @@ namespace Otomar.Persistance.Services
                 {
                     return ServiceResult<Guid>.Error("Sepet Bulunamadı", "Satın alma işlemi tamamlanamadı sepet bulunamadı.", HttpStatusCode.BadRequest);
                 }
-                var subTotalAmount = cart.Data.Items.Sum(item => item.UnitPrice * item.Quantity);
+                var subTotalAmount = cart.Data.SubTotal;
                 decimal shippingCost = cart.Data.ShippingCost;
                 decimal totalAmount = cart.Data.Total;
 
@@ -133,13 +133,14 @@ namespace Otomar.Persistance.Services
                 // 2. Order Item'ları ekle
 
                 var itemInsertQuery = @"
-                INSERT INTO IdtOrderItems (ProductId, ProductName, UnitPrice, Quantity, OrderId)
-                VALUES (@ProductId, @ProductName, @UnitPrice, @Quantity, @OrderId);";
+                INSERT INTO IdtOrderItems (ProductId, ProductName,ProductCode, UnitPrice, Quantity, OrderId)
+                VALUES (@ProductId, @ProductName,@ProductCode, @UnitPrice, @Quantity, @OrderId);";
 
                 var orderItems = cart.Data!.Items!.Select(item => new
                 {
                     ProductId = item.ProductId,
                     ProductName = item.ProductName,
+                    ProductCode = item.ProductCode,
                     UnitPrice = item.UnitPrice,
                     Quantity = item.Quantity,
                     OrderId = orderId
@@ -191,7 +192,7 @@ namespace Otomar.Persistance.Services
 
                 await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
 
-                logger.LogInformation($"{orderId} ID'li sipariş oluşturuldu");
+                logger.LogInformation($"{orderId} ID'li sanal pos siparişi oluşturuldu");
 
                 return ServiceResult<Guid>.SuccessAsCreated(orderId, $"/api/orders/{orderId}");
             }
@@ -227,6 +228,7 @@ namespace Otomar.Persistance.Services
                     ICOI.Id AS ItemId,
                     ICOI.ProductId,
                     ICOI.ProductName,
+                    ICOI.ProductCode,
                     ICOI.UnitPrice,
                     ICOI.Quantity,
                     ICOI.OrderId
@@ -267,6 +269,7 @@ namespace Otomar.Persistance.Services
                             Id = r.ItemId,
                             ProductId = r.ProductId,
                             ProductName = r.ProductName,
+                            ProductCode = r.ProductCode,
                             UnitPrice = r.UnitPrice,
                             Quantity = r.Quantity,
                             OrderId = r.ItemOrderId
@@ -305,6 +308,7 @@ namespace Otomar.Persistance.Services
                     ICOI.Id AS ItemId,
                     ICOI.ProductId,
                     ICOI.ProductName,
+                    ICOI.ProductCode,
                     ICOI.UnitPrice,
                     ICOI.Quantity,
                     ICOI.OrderId
@@ -355,6 +359,7 @@ namespace Otomar.Persistance.Services
                             Id = row.ItemId,
                             ProductId = row.ProductId,
                             ProductName = row.ProductName,
+                            ProductCode = row.ProductCode,
                             UnitPrice = row.UnitPrice,
                             Quantity = row.Quantity,
                             OrderId = row.ItemOrderId
@@ -399,6 +404,7 @@ namespace Otomar.Persistance.Services
                     ICOI.Id AS ItemId,
                     ICOI.ProductId,
                     ICOI.ProductName,
+                    ICOI.ProductCode,
                     ICOI.UnitPrice,
                     ICOI.Quantity,
                     ICOI.OrderId
@@ -450,6 +456,7 @@ namespace Otomar.Persistance.Services
                             Id = row.ItemId,
                             ProductId = row.ProductId,
                             ProductName = row.ProductName,
+                            ProductCode = row.ProductCode,
                             UnitPrice = row.UnitPrice,
                             Quantity = row.Quantity,
                             OrderId = row.ItemOrderId
@@ -507,10 +514,11 @@ namespace Otomar.Persistance.Services
                         p.TotalAmount AS PaymentTotalAmount,
                         p.Status AS PaymentStatus,
                         p.CreatedAt AS PaymentCreatedAt,
-                        p.BankProcReturnCode,
+                        p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
                         oi.Id AS ItemId,
                         oi.ProductId,
                         oi.ProductName,
+                        oi.ProductCode,
                         oi.UnitPrice,
                         oi.Quantity,
                         oi.OrderId AS ItemOrderId
@@ -566,7 +574,10 @@ namespace Otomar.Persistance.Services
                         TotalAmount = firstRow.PaymentTotalAmount,
                         Status = (PaymentStatus)firstRow.PaymentStatus,
                         CreatedAt = firstRow.PaymentCreatedAt,
-                        BankProcReturnCode = firstRow.BankProcReturnCode
+                        BankProcReturnCode = firstRow.BankProcReturnCode,
+                        MaskedCreditCard = firstRow.MaskedCreditCard,
+                        BankCardBrand = firstRow.BankCardBrand,
+                        BankCardIssuer = firstRow.BankCardIssuer
                     } : null,
                     Items = rowList
                         .Where(r => !Convert.IsDBNull(r.ItemId) && r.ItemId != null)
@@ -575,6 +586,7 @@ namespace Otomar.Persistance.Services
                             Id = r.ItemId,
                             ProductId = r.ProductId,
                             ProductName = r.ProductName,
+                            ProductCode = r.ProductCode,
                             UnitPrice = r.UnitPrice,
                             Quantity = r.Quantity,
                             OrderId = r.ItemOrderId
@@ -622,10 +634,11 @@ namespace Otomar.Persistance.Services
                         p.TotalAmount AS PaymentTotalAmount,
                         p.Status AS PaymentStatus,
                         p.CreatedAt AS PaymentCreatedAt,
-                        p.BankProcReturnCode,
+                        p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
                         oi.Id AS ItemId,
                         oi.ProductId,
                         oi.ProductName,
+                        oi.ProductCode,
                         oi.UnitPrice,
                         oi.Quantity,
                         oi.OrderId AS ItemOrderId
@@ -680,6 +693,9 @@ namespace Otomar.Persistance.Services
                         OrderCode = firstRow.PaymentOrderCode,
                         TotalAmount = firstRow.PaymentTotalAmount,
                         BankProcReturnCode = firstRow.BankProcReturnCode,
+                        MaskedCreditCard = firstRow.MaskedCreditCard,
+                        BankCardBrand = firstRow.BankCardBrand,
+                        BankCardIssuer = firstRow.BankCardIssuer,
                         Status = (PaymentStatus)firstRow.PaymentStatus,
                         CreatedAt = firstRow.PaymentCreatedAt
                     } : null,
@@ -697,14 +713,13 @@ namespace Otomar.Persistance.Services
                             Id = r.ItemId,
                             ProductId = r.ProductId,
                             ProductName = r.ProductName,
+                            ProductCode = r.ProductCode,
                             UnitPrice = r.UnitPrice,
                             Quantity = r.Quantity,
                             OrderId = r.ItemOrderId
                         })
                         .ToList()
                 };
-
-
 
                 return ServiceResult<OrderDto>.SuccessAsOk(order);
             }
@@ -752,10 +767,11 @@ namespace Otomar.Persistance.Services
                         p.TotalAmount AS PaymentTotalAmount,
                         p.Status AS PaymentStatus,
                         p.CreatedAt AS PaymentCreatedAt,
-p.BankProcReturnCode,
+p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
                         oi.Id AS ItemId,
                         oi.ProductId,
                         oi.ProductName,
+                        oi.ProductCode,
                         oi.UnitPrice,
                         oi.Quantity,
                         oi.OrderId AS ItemOrderId
@@ -815,6 +831,9 @@ p.BankProcReturnCode,
                                 Status = (PaymentStatus)row.PaymentStatus,
                                 CreatedAt = row.PaymentCreatedAt,
                                 BankProcReturnCode = row.BankProcReturnCode,
+                                MaskedCreditCard = row.MaskedCreditCard,
+                                BankCardBrand = row.BankCardBrand,
+                                BankCardIssuer = row.BankCardIssuer
                             } : null,
                             Items = new List<OrderItemDto>()
                         };
@@ -840,6 +859,7 @@ p.BankProcReturnCode,
                             Id = row.ItemId,
                             ProductId = row.ProductId,
                             ProductName = row.ProductName,
+                            ProductCode = row.ProductCode,
                             UnitPrice = row.UnitPrice,
                             Quantity = row.Quantity,
                             OrderId = row.ItemOrderId
@@ -902,10 +922,11 @@ p.BankProcReturnCode,
                         p.TotalAmount AS PaymentTotalAmount,
                         p.Status AS PaymentStatus,
                         p.CreatedAt AS PaymentCreatedAt,
-                        p.BankProcReturnCode,
+                        p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
                         oi.Id AS ItemId,
                         oi.ProductId,
                         oi.ProductName,
+                        oi.ProductCode,
                         oi.UnitPrice,
                         oi.Quantity,
                         oi.OrderId AS ItemOrderId
@@ -966,6 +987,9 @@ p.BankProcReturnCode,
                                 Status = (PaymentStatus)row.PaymentStatus,
                                 CreatedAt = row.PaymentCreatedAt,
                                 BankProcReturnCode = row.BankProcReturnCode,
+                                MaskedCreditCard = row.MaskedCreditCard,
+                                BankCardBrand = row.BankCardBrand,
+                                BankCardIssuer = row.BankCardIssuer
                             } : null,
                             Items = new List<OrderItemDto>()
                         };
@@ -991,6 +1015,7 @@ p.BankProcReturnCode,
                             Id = row.ItemId,
                             ProductId = row.ProductId,
                             ProductName = row.ProductName,
+                            ProductCode = row.ProductCode,
                             UnitPrice = row.UnitPrice,
                             Quantity = row.Quantity,
                             OrderId = row.ItemOrderId

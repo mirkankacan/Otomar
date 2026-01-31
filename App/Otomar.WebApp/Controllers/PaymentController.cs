@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Payment;
-using Otomar.WebApp.Dtos.Order;
-using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Services.Refit;
 using Refit;
 using System.Text.Json;
@@ -9,11 +7,24 @@ using System.Text.Json;
 namespace Otomar.WebApp.Controllers
 {
     [Route("odeme")]
-    public class PaymentController(IPaymentApi paymentApi, IOrderApi orderApi, ILogger<PaymentController> logger) : Controller
+    public class PaymentController(IPaymentApi paymentApi, IOrderApi orderApi, ICartApi cartApi, ILogger<PaymentController> logger) : Controller
     {
         [HttpGet("")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken = default)
         {
+            try
+            {
+                var cart = await cartApi.GetCartAsync(cancellationToken);
+                if (cart?.Items == null || cart.Items.Count == 0)
+                {
+                    return RedirectToAction(nameof(CartController.Index), "Cart");
+                }
+            }
+            catch
+            {
+                return RedirectToAction(nameof(CartController.Index), "Cart");
+            }
+
             return View();
         }
 
@@ -94,7 +105,6 @@ namespace Otomar.WebApp.Controllers
             }
             catch (ApiException)
             {
-                // Hata durumunda ana sayfaya yönlendir
             }
             return RedirectToAction("Index", "Home");
         }
@@ -106,19 +116,18 @@ namespace Otomar.WebApp.Controllers
             {
                 try
                 {
-                    var payment = await paymentApi.GetPaymentByOrderCodeAsync(orderCode, cancellationToken);
-                    if (payment != null)
+                    var order = await orderApi.GetOrderByCodeAsync(orderCode, cancellationToken);
+                    if (order != null && order.Payment != null)
                     {
-                        if (payment.BankProcReturnCode == "00")
+                        if (order.Payment.BankProcReturnCode == "00")
                         {
                             return Redirect($"/odeme/basarili/{orderCode}");
                         }
-                        return View(payment);
+                        return View(order);
                     }
                 }
                 catch (ApiException)
                 {
-                    // Hata durumunda boş view döndür
                 }
             }
             return View();

@@ -1,5 +1,6 @@
 ﻿using Otomar.Application.Common;
 using Otomar.Application.Dtos.Product;
+using System.Data;
 
 namespace Otomar.Application.Contracts.Services
 {
@@ -7,7 +8,7 @@ namespace Otomar.Application.Contracts.Services
     {
         Task<ServiceResult<PagedResult<ProductDto>>> GetProductsAsync(ProductFilterRequestDto productFilterRequestDto);
 
-        Task<ServiceResult<ProductDto?>> GetProductByIdAsync(int id);
+        Task<ServiceResult<ProductDto?>> GetProductByIdAsync(int id, IDbTransaction transaction = null);
 
         Task<ServiceResult<ProductDto?>> GetProductByCodeAsync(string code);
 

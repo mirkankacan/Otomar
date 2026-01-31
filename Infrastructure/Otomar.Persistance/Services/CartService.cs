@@ -1,3 +1,5 @@
+using System.Net;
+using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
@@ -6,8 +8,6 @@ using Otomar.Application.Contracts.Services;
 using Otomar.Application.Dtos.Cart;
 using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
-using System.Net;
-using System.Text.Json;
 
 namespace Otomar.Persistance.Services
 {
@@ -73,6 +73,17 @@ namespace Otomar.Persistance.Services
 
                 if (existingItem != null)
                 {
+                    // Fiyat değişikliği kontrolü
+                    if (existingItem.UnitPrice != product.SATIS_FIYAT)
+                    {
+                        logger.LogWarning(
+                            "Sepete ekleme sırasında fiyat değişikliği tespit edildi. Ürün: {ProductId}, Eski: {OldPrice:C2}, Yeni: {NewPrice:C2}",
+                            dto.ProductId, existingItem.UnitPrice, product.SATIS_FIYAT);
+
+                        // Fiyatı otomatik güncelle
+                        existingItem.UnitPrice = product.SATIS_FIYAT;
+                    }
+
                     // Varsa miktarı artır
                     var newQuantity = existingItem.Quantity + dto.Quantity;
 
@@ -86,6 +97,8 @@ namespace Otomar.Persistance.Services
                     }
 
                     existingItem.Quantity = newQuantity;
+                    // Stok bilgisini güncelle
+                    existingItem.StockQuantity = product.STOK_BAKIYE;
                 }
                 else
                 {
@@ -145,23 +158,50 @@ namespace Otomar.Persistance.Services
                         HttpStatusCode.NotFound);
                 }
 
-                if (dto.Quantity == 0)
+                // Güncel ürün bilgisini al
+                var productResult = await productService.GetProductByIdAsync(dto.ProductId);
+                if (productResult.IsSuccess && productResult.Data != null)
                 {
-                    // Miktar 0 ise sil
-                    cart.Items.Remove(item);
+                    var product = productResult.Data;
+
+                    // Fiyat değişikliği kontrolü
+                    if (item.UnitPrice != product.SATIS_FIYAT)
+                    {
+                        logger.LogWarning(
+                            "Sepet güncelleme sırasında fiyat değişikliği tespit edildi. Ürün: {ProductId}, Eski: {OldPrice:C2}, Yeni: {NewPrice:C2}",
+                            dto.ProductId, item.UnitPrice, product.SATIS_FIYAT);
+
+                        // Fiyatı otomatik güncelle
+                        item.UnitPrice = product.SATIS_FIYAT;
+                    }
+
+                    // Stok bilgisini güncelle
+                    item.StockQuantity = product.STOK_BAKIYE;
+
+                    if (dto.Quantity == 0)
+                    {
+                        // Miktar 0 ise sil
+                        cart.Items.Remove(item);
+                    }
+                    else
+                    {
+                        // Güncel stok kontrolü
+                        if (product.STOK_BAKIYE.HasValue && product.STOK_BAKIYE < dto.Quantity)
+                        {
+                            return ServiceResult<CartDto>.Error(
+                                "Yetersiz Stok",
+                                $"Yeterli stok yok. Mevcut stok: {product.STOK_BAKIYE}, İstenen: {dto.Quantity}",
+                                HttpStatusCode.BadRequest);
+                        }
+
+                        item.Quantity = dto.Quantity;
+                    }
                 }
                 else
                 {
-                    // Stok kontrolü
-                    if (item.StockQuantity.HasValue && item.StockQuantity < dto.Quantity)
-                    {
-                        return ServiceResult<CartDto>.Error(
-                            "Yetersiz Stok",
-                            $"Yeterli stok yok. Mevcut stok: {item.StockQuantity}, İstenen: {dto.Quantity}",
-                            HttpStatusCode.BadRequest);
-                    }
-
-                    item.Quantity = dto.Quantity;
+                    // Ürün artık mevcut değilse
+                    logger.LogWarning("Güncellenmeye çalışılan ürün bulunamadı: {ProductId}", dto.ProductId);
+                    cart.Items.Remove(item);
                 }
 
                 // Kargo ücreti hesapla (sepet boşken 0)
@@ -220,10 +260,57 @@ namespace Otomar.Persistance.Services
                 var cartKey = GetCartKey();
 
                 var cart = await GetCartInternalAsync(cartKey, cancellationToken);
+
                 if (cart.Items.Any())
                 {
-                    await SaveCartAsync(cartKey, cart, cancellationToken);
+                    var priceUpdated = false;
+                    var itemsToRemove = new List<CartItemDto>();
+
+                    // Her ürün için güncel fiyat ve stok kontrolü
+                    foreach (var item in cart.Items)
+                    {
+                        var productResult = await productService.GetProductByIdAsync(item.ProductId);
+
+                        if (productResult.IsSuccess && productResult.Data != null)
+                        {
+                            var product = productResult.Data;
+
+                            // Fiyat değişikliği kontrolü
+                            if (item.UnitPrice != product.SATIS_FIYAT)
+                            {
+                                logger.LogInformation(
+                                    "Sepet görüntüleme sırasında fiyat değişikliği tespit edildi. Ürün: {ProductId}, Eski: {OldPrice:C2}, Yeni: {NewPrice:C2}",
+                                    item.ProductId, item.UnitPrice, product.SATIS_FIYAT);
+
+                                item.UnitPrice = product.SATIS_FIYAT;
+                                priceUpdated = true;
+                            }
+
+                            // Stok bilgisini güncelle
+                            item.StockQuantity = product.STOK_BAKIYE;
+                        }
+                        else
+                        {
+                            // Ürün artık mevcut değilse sepetten kaldır
+                            logger.LogWarning("Sepetteki ürün artık mevcut değil: {ProductId}", item.ProductId);
+                            itemsToRemove.Add(item);
+                            priceUpdated = true;
+                        }
+                    }
+
+                    // Mevcut olmayan ürünleri kaldır
+                    foreach (var item in itemsToRemove)
+                    {
+                        cart.Items.Remove(item);
+                    }
+
+                    // Değişiklik varsa kaydet
+                    if (priceUpdated)
+                    {
+                        await SaveCartAsync(cartKey, cart, cancellationToken);
+                    }
                 }
+
                 // Kargo ücreti hesapla (sepet boşken 0)
                 cart.ShippingCost = CalculateShippingCost(cart.SubTotal, cart.Items.Count);
 

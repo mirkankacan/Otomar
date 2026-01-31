@@ -18,14 +18,16 @@ builder.Services.AddControllersWithViews(options =>
 }).AddRazorRuntimeCompilation();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(10);
+    options.IdleTimeout = TimeSpan.FromHours(24);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.Name = ".OTOMAR.WebAppSession";
-    options.Cookie.MaxAge = TimeSpan.FromMinutes(10);
+    options.Cookie.MaxAge = TimeSpan.FromHours(24);
 });
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddOptionsExtensions();
 
 // Refit API Clients

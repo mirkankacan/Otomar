@@ -29,7 +29,10 @@ namespace Otomar.Persistance.Helpers
 
             return xml.ToString();
         }
-
+        public static string IsBankAmountConvert(decimal amount)
+        {
+            return amount.ToString("F2", CultureInfo.InvariantCulture).Replace(".", ",");
+        }
         public static string GenerateHash(Dictionary<string, string> formData, PaymentOptions paymentOptions)
         {
             var sortedParams = formData

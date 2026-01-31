@@ -13,7 +13,110 @@ const Validator = {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     },
+    /**
+ * Vergi numarası validasyonu (Türkiye)
+ * @param {string} taxNumber - Kontrol edilecek vergi numarası
+ * @returns {boolean} - Geçerli ise true
+ */
+    isValidTaxNumber(taxNumber)
+    {
+        if (!taxNumber || taxNumber.length !== 10 || !this.isNumeric(taxNumber))
+        {
+            return false;
+        }
 
+        const digits = taxNumber.split('').map(Number);
+        let sum = 0;
+
+        for (let i = 0; i < 9; i++)
+        {
+            let temp = (digits[i] + (9 - i)) % 10;
+            sum += (temp * Math.pow(2, 9 - i)) % 9;
+            if (temp !== 0 && (temp * Math.pow(2, 9 - i)) % 9 === 0) sum += 9;
+        }
+
+        const lastDigit = sum % 10 === 0 ? 0 : 10 - (sum % 10);
+        return lastDigit === digits[9];
+    },
+
+    /**
+     * Kredi kartı numarası Luhn algoritması ile validasyon
+     * @param {string} cardNumber - Kontrol edilecek kart numarası
+     * @returns {boolean} - Geçerli ise true
+     */
+    isValidCreditCard(cardNumber)
+    {
+        const cleanNumber = cardNumber.replace(/\s/g, '');
+
+        if (!this.isNumeric(cleanNumber) || cleanNumber.length < 13 || cleanNumber.length > 19)
+        {
+            return false;
+        }
+
+        // Luhn algoritması
+        let sum = 0;
+        let isEven = false;
+
+        for (let i = cleanNumber.length - 1; i >= 0; i--)
+        {
+            let digit = parseInt(cleanNumber[i]);
+
+            if (isEven)
+            {
+                digit *= 2;
+                if (digit > 9)
+                {
+                    digit -= 9;
+                }
+            }
+
+            sum += digit;
+            isEven = !isEven;
+        }
+
+        return sum % 10 === 0;
+    },
+
+    /**
+     * Kredi kartı son kullanma tarihi validasyonu
+     * @param {string} expiry - MM/YY formatında tarih
+     * @returns {boolean} - Geçerli ise true
+     */
+    isValidCardExpiry(expiry)
+    {
+        if (!expiry || expiry.length !== 5)
+        {
+            return false;
+        }
+
+        const [month, year] = expiry.split('/').map(Number);
+
+        if (month < 1 || month > 12)
+        {
+            return false;
+        }
+
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear() % 100; // Son 2 hane
+        const currentMonth = currentDate.getMonth() + 1;
+
+        if (year < currentYear || (year === currentYear && month < currentMonth))
+        {
+            return false;
+        }
+
+        return true;
+    },
+
+    /**
+     * CVV validasyonu
+     * @param {string} cvv - Kontrol edilecek CVV
+     * @returns {boolean} - Geçerli ise true
+     */
+    isValidCVV(cvv)
+    {
+        return this.isNumeric(cvv) && (cvv.length === 3 || cvv.length === 4);
+    },
     /**
      * Türkiye telefon numarası formatını kontrol eder
      * @param {string} phone - Kontrol edilecek telefon numarası
@@ -57,33 +160,67 @@ const Validator = {
     },
 
     /**
+     * Türkiye telefon numarası validasyonu (+90 5xx... veya 10 hane 5xx...; 90 sonrası 0 basılamaz)
+     * @param {string} phone - Kontrol edilecek telefon (+90, boşluk/tire ile gelebilir)
+     * @returns {boolean} - Geçerli ise true
+     */
+    isValidPhone(phone) {
+        const digits = (phone || '').replace(/\D/g, '');
+        // +90 5xx xxx xx xx → 12 hane (90 + 10), 3. hane 0 olamaz
+        if (digits.length === 12 && digits.startsWith('90') && digits[2] !== '0') return true;
+        // 10 hane 5xx... (0 ile başlamaz)
+        if (digits.length === 10 && digits[0] !== '0') return true;
+        // 11 hane 05xx...
+        if (digits.length === 11 && digits[0] === '0' && digits[1] !== '0') return true;
+        return false;
+    },
+
+    /**
      * TC Kimlik No validasyonu
      * @param {string} tcNo - Kontrol edilecek TC Kimlik No
      * @returns {boolean} - Geçerli ise true
      */
-    isValidTCKN(tcNo) {
-        if (!tcNo || tcNo.length !== 11 || !this.isNumeric(tcNo) || tcNo[0] === '0') {
+    /**
+  * TC Kimlik No validasyonu (Doğru Algoritma)
+  * @param {string} tcNo - Kontrol edilecek TC Kimlik No
+  * @returns {boolean} - Geçerli ise true
+  */
+    isValidTCKN(tcNo)
+    {
+        if (!tcNo || tcNo.length !== 11 || !this.isNumeric(tcNo) || tcNo[0] === '0')
+        {
             return false;
         }
 
         const digits = tcNo.split('').map(Number);
-        
-        // İlk 10 hanenin toplamının birler basamağı 11. haneye eşit olmalı
-        const sum10 = digits.slice(0, 10).reduce((a, b) => a + b, 0);
-        if (sum10 % 10 !== digits[10]) {
-            return false;
-        }
 
-        // İlk 9 hanenin toplamının birler basamağı 10. haneye eşit olmalı
-        const sum9 = digits.slice(0, 9).reduce((a, b) => a + b, 0);
-        if (sum9 % 10 !== digits[9]) {
-            return false;
-        }
-
-        // Tek hanelerin toplamının 7 katı - Çift hanelerin toplamının 9 katı + 10. hane = 11. hane
+        // 1. Kural: 1, 3, 5, 7, 9. hanelerin toplamının 7 katından, 
+        // 2, 4, 6, 8. hanelerin toplamının 9 katını çıkartıp 10'a böldüğümüzde 
+        // kalan 10. haneyi vermelidir.
         const oddSum = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
         const evenSum = digits[1] + digits[3] + digits[5] + digits[7];
-        if ((oddSum * 7 - evenSum * 9 + digits[9]) % 10 !== digits[10]) {
+        const check10 = (oddSum * 7 - evenSum) % 10;
+
+        if (check10 < 0)
+        {
+            // Negatif değer kontrolü
+            if ((check10 + 10) !== digits[9])
+            {
+                return false;
+            }
+        } else
+        {
+            if (check10 !== digits[9])
+            {
+                return false;
+            }
+        }
+
+        // 2. Kural: İlk 10 hanenin toplamının 10'a bölümünden kalan, 
+        // 11. haneyi vermelidir.
+        const sum10 = digits.slice(0, 10).reduce((a, b) => a + b, 0);
+        if (sum10 % 10 !== digits[10])
+        {
             return false;
         }
 

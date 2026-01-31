@@ -11,10 +11,8 @@ namespace Otomar.Application.Dtos.Order
 
         public string Email { get; set; }
         public string IdentityNumber { get; set; }
-
         [JsonIgnore]
-        public OrderType OrderType { get; set; }
-
+        public OrderType OrderType => OrderType.Purchase;
         public AddressDto? BillingAddress { get; set; }
 
         public AddressDto? ShippingAddress { get; set; }

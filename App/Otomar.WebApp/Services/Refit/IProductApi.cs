@@ -17,5 +17,8 @@ namespace Otomar.WebApp.Services.Refit
 
         [Get("/api/products/{code}")]
         Task<ProductDto> GetProductByCodeAsync(string code, CancellationToken cancellationToken = default);
+
+        [Get("/api/products/similar/{code}")]
+        Task<IEnumerable<SimilarProductDto>> GetSimilarProductsByCodeAsync(string code, CancellationToken cancellationToken = default);
     }
 }

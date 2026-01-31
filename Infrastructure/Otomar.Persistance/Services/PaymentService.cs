@@ -11,12 +11,11 @@ using Otomar.Domain.Enums;
 using Otomar.Persistance.Data;
 using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
-using System.Globalization;
 using System.Net;
 
 namespace Otomar.Persistance.Services
 {
-    public class PaymentService(IAppDbContext context, HttpClient httpClient, IHttpContextAccessor accessor, IIdentityService identityService, PaymentOptions paymentOptions, ILogger<PaymentService> logger, IDistributedCache cache, IOrderService orderService, ICartService cartService) : IPaymentService
+    public class PaymentService(IAppDbContext context, HttpClient httpClient, IHttpContextAccessor accessor, IIdentityService identityService, PaymentOptions paymentOptions, ILogger<PaymentService> logger, IDistributedCache cache, IOrderService orderService, ICartService cartService, IProductService productService) : IPaymentService
     {
         public async Task<ServiceResult<InitializePaymentResponseDto>> InitializeVirtualPosPaymentAsync(InitializeVirtualPosPaymentDto dto, CancellationToken cancellationToken)
         {
@@ -25,7 +24,7 @@ namespace Otomar.Persistance.Services
             try
             {
                 var orderCode = OrderCodeGeneratorHelper.Generate();
-                var amountStr = dto.Amount.ToString("0.##", CultureInfo.InvariantCulture);
+                var amountStr = IsBankHelper.IsBankAmountConvert(dto.Amount);
 
                 var parameters = BuildPaymentParameters(
                     orderCode,
@@ -45,9 +44,7 @@ namespace Otomar.Persistance.Services
                 {
                     Email = dto.Email,
                     Code = orderCode,
-                    IdentityNumber = dto.TaxNumber.Length == 11 ? dto.TaxNumber : null,
                     Amount = dto.Amount,
-                    OrderType = OrderType.VirtualPOS,
                     Corporate = new CorporateDto()
                     {
                         CompanyName = dto.ClientName,
@@ -96,9 +93,8 @@ namespace Otomar.Persistance.Services
                     return ServiceResult<InitializePaymentResponseDto>.Error("Sepet Bulunamadı", "Ödeme işlemi başlatılamadı sepet bulunamadı.", HttpStatusCode.BadRequest);
                 }
 
-                var amountStr = cart.Data.Total.ToString("0.##", CultureInfo.InvariantCulture);
+                var amountStr = IsBankHelper.IsBankAmountConvert(cart.Data.Total);
                 dto.Order.Code = orderCode;
-                dto.Order.OrderType = OrderType.Purchase;
                 var parameters = BuildPaymentParameters(
                     orderCode,
                     amountStr,
@@ -277,12 +273,13 @@ namespace Otomar.Persistance.Services
                     // 2. ÖDEMEYE AİT SİPARİŞİ GÜNCELLE
                     var orderUpdateQuery = @"
                             UPDATE IdtOrders
-                            SET Status = @Status, PaymentId = @PaymentId
+                            SET Status = @Status, PaymentId = @PaymentId, UpdatedAt = @UpdatedAt
                             WHERE Id = @OrderId";
 
                     var orderUpdateParameters = new DynamicParameters();
                     orderUpdateParameters.Add("OrderId", orderId);
                     orderUpdateParameters.Add("PaymentId", paymentId);
+                    orderUpdateParameters.Add("UpdatedAt", DateTime.Now);
                     orderUpdateParameters.Add("Status", isPaymentSuccessful ? OrderStatus.Paid : OrderStatus.PaymentFailed);
 
                     var affectedRows = await context.Connection.ExecuteAsync(orderUpdateQuery, orderUpdateParameters, transaction);

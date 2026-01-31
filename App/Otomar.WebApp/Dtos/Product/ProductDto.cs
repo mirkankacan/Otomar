@@ -1,4 +1,25 @@
 namespace Otomar.WebApp.Dtos.Product
 {
-    public record ProductDto(int ID, string STOK_KODU, string? OEM_KODU, string STOK_ADI, string URETICI_KODU, string URETICI_MARKA_ADI, string URETICI_MARKA_LOGO, decimal SATIS_FIYAT, string ANA_GRUP_ID, string ANA_GRUP_ADI, string ALT_GRUP_ID, string ALT_GRUP_ADI, string DOSYA_KONUM, string? VITRIN_FOTO, string? HASHTAG, string? ACIKLAMA, string MARKA_ADI, string MODEL_ADI, string KASA_ADI, decimal? STOK_BAKIYE);
+    public class ProductDto
+    {
+        public int ID { get; set; }
+        public string STOK_KODU { get; set; }
+        public string? OEM_KODU { get; set; }
+        public string STOK_ADI { get; set; }
+        public string URETICI_KODU { get; set; }
+        public string URETICI_MARKA_ADI { get; set; }
+        public string URETICI_MARKA_LOGO { get; set; }
+        public decimal SATIS_FIYAT { get; set; }
+        public string ANA_GRUP_ADI { get; set; }
+        public string ALT_GRUP_ADI { get; set; }
+        public string DOSYA_KONUM { get; set; }
+        public string? VITRIN_FOTO { get; set; }
+        public string? HASHTAG { get; set; }
+        public string? ACIKLAMA { get; set; }
+        public string MARKA_ADI { get; set; }
+        public string MODEL_ADI { get; set; }
+        public string KASA_ADI { get; set; }
+        public decimal? STOK_BAKIYE { get; set; }
+        public bool HasStock { get; set; }
+    }
 }

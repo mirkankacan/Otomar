@@ -5,16 +5,16 @@ using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers
 {
-    [Route("giris")]
+    [Route("")]
     public class AuthController(IAuthApi authApi) : Controller
     {
-        [HttpGet("")]
+        [HttpGet("giris-yap")]
         public IActionResult Login()
         {
             return View();
         }
 
-        [HttpGet("kayit")]
+        [HttpGet("kayit-ol")]
         public IActionResult Register()
         {
             return View();
@@ -34,7 +34,7 @@ namespace Otomar.WebApp.Controllers
             return await authApi.RegisterAsync(dto, cancellationToken).ToActionResultAsync();
         }
 
-        [HttpPost("cikis")]
+        [HttpPost("cikis-yap")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout(CancellationToken cancellationToken = default)
         {

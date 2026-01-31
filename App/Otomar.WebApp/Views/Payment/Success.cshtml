@@ -1,5 +1,326 @@
 @model Otomar.WebApp.Dtos.Order.OrderDto
+@using System.Globalization
 @{
     ViewData["Title"] = "Ödeme Başarılı";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_PaymentLayout.cshtml";
+    var culture = new CultureInfo("tr-TR");
+    var customerName = Model.BillingAddress?.Name ?? Model.ShippingAddress?.Name ?? "Müşteri";
+    var hasShipping = Model.ShippingAddress != null;
+    var hasBilling = Model.BillingAddress != null;
 }
+
+@section Styles {
+    <style>
+
+        .thankyou-page {
+            background: #fafafa;
+            min-height: 100vh;
+            padding: 2rem 0 4rem;
+        }
+
+        .thankyou-store {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 0.5rem;
+        }
+
+        .thankyou-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .thankyou-badge-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--secondary-color, #0d6efd);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .thankyou-greeting {
+            font-size: 1.125rem;
+            color: #374151;
+            margin-bottom: 1.5rem;
+        }
+
+        .thankyou-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .thankyou-card-title {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .thankyou-address {
+            font-size: 1.4rem;
+            color: #111;
+            line-height: 1.6;
+        }
+
+        .thankyou-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            font-size: 1.4rem;
+            color: #374151;
+        }
+
+        .thankyou-btn-continue {
+            display: inline-block;
+            background: var(--secondary-color, #0d6efd);
+            color: #fff;
+            padding: 0.875rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 1rem;
+        }
+
+            .thankyou-btn-continue:hover {
+                color: #fff;
+                opacity: 0.9;
+            }
+
+        .thankyou-help {
+            font-size: 1.4rem;
+            color: #6b7280;
+            margin-top: 2rem;
+        }
+
+            .thankyou-help a {
+                color: var(--secondary-color, #0d6efd);
+                font-weight: 600;
+                text-decoration: none;
+            }
+
+        .thankyou-email {
+            color: var(--secondary-color, #0d6efd);
+            text-decoration: underline;
+        }
+    </style>
+}
+<div class="thankyou-page">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-7 col-md-12 mb-4 mb-lg-0">
+                <h1 class="thankyou-store">OTOMAR Yedek Parça</h1>
+                <div class="thankyou-badge">
+                    <span class="thankyou-badge-icon" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.5">
+                            <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                    </span>
+                    @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                    {
+                        <span>Sipariş #@Model.Code</span>
+                    }
+                    else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                    {
+                        <span>Ödeme #@Model.Code</span>
+                    }
+
+                </div>
+                <p class="thankyou-greeting">Teşekkürler @customerName!</p>
+
+                <div class="thankyou-card">
+                    @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                    {
+                        <h2 class="thankyou-card-title">Siparişiniz onaylandı</h2>
+                        <p class="thankyou-address mb-0">
+                      
+                                <text> Siparişinizi aldık ve hazırlıyoruz. </text>
+                            
+                            
+                            @if (!string.IsNullOrEmpty(Model.Email))
+                            {
+
+                                <text>
+                                    Detaylar <a href="mailto:@Model.Email" class="thankyou-email">@Model.Email</a>
+                                    adresine gönderildi.
+                                </text>
+                            }
+
+                        </p>
+                    }
+                    else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                    {
+                        <h2 class="thankyou-card-title">Ödemeniz onaylandı</h2>
+                        <text> Sanal POS ödemenizi aldık. </text>
+                    }
+            
+                </div>
+
+            
+                @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                {
+
+                    <div class="thankyou-card-title">Müşteri bilgileri</div>
+                    <div class="row">
+                        @if (hasShipping)
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="thankyou-card h-100">
+                                    <div class="thankyou-card-title">Teslimat adresi</div>
+                                    <div class="thankyou-address">
+                                        @Model.ShippingAddress!.Name<br />
+                                        @if (!string.IsNullOrEmpty(Model.ShippingAddress.Street))
+                                        {
+                                            @Model.ShippingAddress.Street
+
+                                            <br />
+                                        }
+                                        @(Model.ShippingAddress.City ?? "") @(Model.ShippingAddress.District ?? "")<br />
+                                        @if (!string.IsNullOrEmpty(Model.ShippingAddress.Phone))
+                                        {
+                                            @Model.ShippingAddress.Phone
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (hasBilling)
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="thankyou-card h-100">
+                                    <div class="thankyou-card-title">Fatura adresi</div>
+                                    <div class="thankyou-address">
+                                        @Model.BillingAddress!.Name<br />
+                                        @if (!string.IsNullOrEmpty(Model.BillingAddress.Street))
+                                        {
+                                            @Model.BillingAddress.Street
+
+                                            <br />
+                                        }
+                                        @(Model.BillingAddress.City ?? "") @(Model.BillingAddress.District ?? "")<br />
+                                        @if (!string.IsNullOrEmpty(Model.BillingAddress.Phone))
+                                        {
+                                            @Model.BillingAddress.Phone
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (Model.Payment != null)
+                {
+                    <div class="thankyou-card">
+                        <div class="thankyou-row">
+                            <span>Ödeme Yöntemi</span>
+                            <span>
+                                @(Model.Payment.BankCardIssuer ?? "Kart") @(Model.Payment.BankCardBrand ?? "") @(Model.Payment.MaskedCreditCard ?? "") —
+                                ₺@Model.TotalAmount.ToString("N2", culture)
+                            </span>
+                        </div>
+                    </div>
+                }
+
+                <p class="thankyou-help">
+                    Yardım mı lazım? <a href="/iletisim">Bize ulaşın</a>.
+                </p>
+                <a href="/magaza" class="thankyou-btn-continue">Alışverişe Devam Et</a>
+            </div>
+
+            <div class="col-lg-5 col-md-6">
+                <aside class="checkout__sidebar sidebar border-radius-10">
+                    @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                    {
+                        <h2 class="checkout__order--summary__title text-center mb-15">Sipariş Özeti</h2>
+                        <div class="cart__table checkout__product--table">
+                            <table class="cart__table--inner">
+                                <tbody class="cart__table--body">
+
+                                        @foreach (var item in Model.Items)
+                                        {
+                                            var lineTotal = item.UnitPrice * item.Quantity;
+                                            <tr class="cart__table--body__items " data-product-id="@item.ProductId">
+                                                <td class="cart__table--body__list">
+                                                    <div class="product__image two d-flex align-items-center">
+
+                                                        <div class="product__description">
+                                                        <h4 class="product__description--name"><a href="/urun/generateSlug(@item.ProductName)/@item.ProductCode">@item.ProductName</a></h4>
+                                                            <span class="product__description--variant">Stok Kodu: @item.ProductCode</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="cart__table--body__list">
+                                                    <span class="cart__price">₺@lineTotal.ToString("N2", culture)</span>
+                                                </td>
+                                            </tr>
+                                        }
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="checkout__total mb-20">
+                            <table class="checkout__total--table">
+                                <tbody class="checkout__total--body">
+                                    <tr class="checkout__total--items">
+                                        <td class="checkout__total--title text-left">Alt Toplam </td>
+                                        <td class="checkout__total--amount text-right">
+                                            ₺@Model.SubTotalAmount.ToString("N2", culture)
+                                        </td>
+                                    </tr>
+                                    <tr class="checkout__total--items">
+                                        <td class="checkout__total--title text-left">Kargo</td>
+                                        <td class="checkout__total--calculated__text text-right" >₺@((Model.ShippingAmount ?? 0).ToString("N2", culture))</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot class="checkout__total--footer">
+                                    <tr class="checkout__total--footer__items">
+                                        <td class="checkout__total--footer__title checkout__total--footer__list text-left">Toplam </td>
+                                        <td class="checkout__total--footer__amount checkout__total--footer__list text-right">₺@Model.TotalAmount.ToString("N2", culture)</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+                        </div>
+
+                    }
+                    else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                    {
+                        <h2 class="checkout__order--summary__title text-center mb-15">Ödeme Özeti</h2>
+
+                        <div class="checkout__total mb-20">
+                            <table class="checkout__total--table">
+                                <tbody class="checkout__total--body">
+
+                                </tbody>
+                                <tfoot class="checkout__total--footer">
+                                    <tr class="checkout__total--footer__items">
+                                        <td class="checkout__total--footer__title checkout__total--footer__list text-left">Toplam </td>
+                                        <td class="checkout__total--footer__amount checkout__total--footer__list text-right">₺@Model.TotalAmount.ToString("N2", culture)</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+                        </div>
+                    }
+
+                    <a href="/magaza" class="checkout__now--btn primary__btn d-block text-center">
+                        Alışverişe Devam
+                        Et
+                    </a>
+
+                </aside>
+            </div>
+        </div>
+    </div>
+</div>

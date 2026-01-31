@@ -45,6 +45,14 @@ namespace Otomar.WebApi.Endpoints
             })
               .WithName("GetProductByCode")
                .CacheOutput("ProductByCodeCache");
+
+            group.MapGet(pattern: "/similar/{code}", async (string code, [FromServices] IProductService productService) =>
+            {
+                var result = await productService.GetSimilarProductsByCodeAsync(code);
+                return result.ToGenericResult();
+            })
+            .WithName("GetSimilarProductsByCode")
+             .CacheOutput("ProductByCodeCache");
         }
     }
 }

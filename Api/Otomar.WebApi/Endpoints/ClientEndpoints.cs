@@ -21,7 +21,7 @@ namespace Otomar.WebApi.Endpoints
 
             group.MapGet("/taxNumber/{taxNumber}", async (string taxNumber, [FromServices] IClientService clientService) =>
             {
-                var result = await clientService.GetClientByTaxNumberAsync(taxNumber);
+                var result = await clientService.GetClientByTaxTcNumberAsync(taxNumber);
                 return result.ToGenericResult();
             })
           .WithName("GetClientByTaxNumber");

@@ -14,7 +14,7 @@ namespace Otomar.Application.Dtos.Order
         public decimal Amount { get; set; }
 
         [JsonIgnore]
-        public OrderType OrderType { get; set; }
+        public OrderType OrderType => OrderType.VirtualPOS;
 
         public AddressDto? BillingAddress { get; set; }
 

@@ -7,7 +7,7 @@ namespace Otomar.Application.Contracts.Services
     {
         Task<ServiceResult<IEnumerable<TransactionDto>>> GetClientTransactionsByCodeAsync(string clientCode);
 
-        Task<ServiceResult<ClientDto>> GetClientByTaxNumberAsync(string taxNumber);
+        Task<ServiceResult<ClientDto>> GetClientByTaxTcNumberAsync(string taxNumber);
 
         Task<ServiceResult<ClientDto>> GetClientByCodeAsync(string clientCode);
     }

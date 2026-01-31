@@ -1,3 +1,4 @@
+using Otomar.WebApp.Handlers;
 using Otomar.WebApp.Options;
 using Otomar.WebApp.Services.Refit;
 using Refit;
@@ -9,9 +10,9 @@ namespace Otomar.WebApp.Extensions
         public static IServiceCollection AddRefitClients(this IServiceCollection services, IConfiguration configuration)
         {
             var apiOptions = configuration.GetSection(nameof(ApiOptions)).Get<ApiOptions>()!;
-
             var baseAddress = new Uri(apiOptions.BaseUrl);
             var timeout = TimeSpan.FromSeconds(60);
+            services.AddTransient<CartSessionHandler>();
 
             services.AddRefitClient<IAuthApi>()
                 .ConfigureHttpClient(c =>
@@ -27,7 +28,7 @@ namespace Otomar.WebApp.Extensions
                     c.BaseAddress = baseAddress;
                     c.DefaultRequestHeaders.Add("Accept", "application/json");
                     c.Timeout = timeout;
-                });
+                }).AddHttpMessageHandler<CartSessionHandler>();
 
             services.AddRefitClient<ICategoryApi>()
                 .ConfigureHttpClient(c =>
@@ -75,7 +76,7 @@ namespace Otomar.WebApp.Extensions
                     c.BaseAddress = baseAddress;
                     c.DefaultRequestHeaders.Add("Accept", "application/json");
                     c.Timeout = timeout;
-                });
+                }).AddHttpMessageHandler<CartSessionHandler>();
 
             services.AddRefitClient<IProductApi>()
                 .ConfigureHttpClient(c =>

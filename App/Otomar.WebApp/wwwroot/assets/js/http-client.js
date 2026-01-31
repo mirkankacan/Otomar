@@ -50,82 +50,104 @@ async function makeRequest(url, method = 'GET', data = null)
         }
     }
 
-    const response = await fetch(url, options);
-
-    // 401 Unauthorized hatası için özel işlem
-    if (response.status === 401)
+    try
     {
-        let message = 'Oturum süresi doldu. Lütfen tekrar giriş yapın.';
-        let redirectUrl = '/giris';
+        const response = await fetch(url, options);
 
-        // Backend'den gelen mesajı kontrol et (ProblemDetails formatı)
-        try
+        // 401 Unauthorized hatası için özel işlem
+        if (response.status === 401)
         {
-            const responseText = await response.text();
-            if (responseText)
+            let message = 'Oturum süresi doldu. Lütfen tekrar giriş yapın.';
+            let redirectUrl = '/giris';
+
+            // Backend'den gelen mesajı kontrol et (ProblemDetails formatı)
+            try
             {
-                const errorData = JSON.parse(responseText);
-                // ProblemDetails formatında detail veya title kullan
-                if (errorData.detail)
+                const responseText = await response.text();
+                if (responseText)
                 {
-                    message = errorData.detail;
-                }
-                else if (errorData.title)
-                {
-                    message = errorData.title;
-                }
-                // loginUrl yoksa varsayılan kullanılır
-                if (errorData.loginUrl)
-                {
-                    redirectUrl = errorData.loginUrl;
+                    const errorData = JSON.parse(responseText);
+                    // ProblemDetails formatında detail veya title kullan
+                    if (errorData.detail)
+                    {
+                        message = errorData.detail;
+                    }
+                    else if (errorData.title)
+                    {
+                        message = errorData.title;
+                    }
+                    // loginUrl yoksa varsayılan kullanılır
+                    if (errorData.loginUrl)
+                    {
+                        redirectUrl = errorData.loginUrl;
+                    }
                 }
             }
-        }
-        catch (parseError)
-        {
-            // JSON parse hatası - varsayılan mesaj kullan
-        }
+            catch (parseError)
+            {
+                // JSON parse hatası - varsayılan mesaj kullan
+            }
 
-        // Direkt logout ve yönlendirme yap
-        await handleUnauthorizedError(message, redirectUrl);
+            // Direkt logout ve yönlendirme yap
+            await handleUnauthorizedError(message, redirectUrl);
 
-        // Bu noktaya gelmemeli ama yine de hata fırlat
-        throw {
-            title: 'Oturum Sonlandı',
-            detail: message
-        };
-    }
-
-    if (!response.ok)
-    {
-        try
-        {
-            const responseText = await response.text();
-            const errorData = JSON.parse(responseText);
-
+            // Bu noktaya gelmemeli ama yine de hata fırlat
             throw {
-                title: errorData.title || 'Hata',
-                detail: errorData.detail || errorData.message || `Bir hata oluştu. (HTTP ${response.status})`
+                title: 'Oturum Sonlandı',
+                detail: message
             };
-        } catch (parseError)
+        }
+
+        if (!response.ok)
         {
-            if (parseError.title && parseError.detail)
-            {
-                throw parseError;
-            }
-            throw {
+            let errorObj = {
                 title: 'Hata',
                 detail: `Bir hata oluştu. (HTTP ${response.status})`
             };
-        }
-    }
 
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json'))
+            try
+            {
+                const responseText = await response.text();
+                const errorData = JSON.parse(responseText);
+
+                errorObj = {
+                    title: errorData.title || 'Hata',
+                    detail: errorData.detail || errorData.message || `Bir hata oluştu. (HTTP ${response.status})`
+                };
+            } catch (parseError)
+            {
+                // JSON parse edilemezse varsayılan mesaj kullan
+            }
+
+            // Hata mesajını toastr ile göster
+            showErrorToastr(errorObj);
+
+            // Hatayı fırlat ki catch bloğu çalışsın
+            throw errorObj;
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json'))
+        {
+            return await response.json();
+        }
+        return null;
+
+    } catch (error)
     {
-        return await response.json();
+        // Eğer hata zaten işlenmediyse (title/detail yoksa), toastr göster
+        if (!error.title || !error.detail)
+        {
+            const errorObj = {
+                title: 'Bağlantı Hatası',
+                detail: error.message || 'Sunucuya bağlanılamadı. Lütfen internet bağlantınızı kontrol edin.'
+            };
+            showErrorToastr(errorObj);
+            throw errorObj;
+        }
+        // Hata zaten işlenmişse direkt fırlat
+        throw error;
     }
-    return null;
 }
 
 // 401 hatası için logout ve yönlendirme fonksiyonu
@@ -162,7 +184,7 @@ function performLogout(redirectUrl)
     }
 
     // Logout endpoint'ine async istek gönder ama yönlendirmeyi engelleme
-    fetch('/giris/cikis', {
+    fetch('/cikis-yap', {
         method: 'POST',
         keepalive: true // Sayfa kapansa bile isteği tamamla
     }).catch(() =>
@@ -171,5 +193,21 @@ function performLogout(redirectUrl)
     });
 
     // Her durumda hemen login sayfasına yönlendir
-    window.location.href = redirectUrl || '/giris';
+    window.location.href = redirectUrl || '/giris-yap';
+}
+
+// Toastr ile hata gösterme helper fonksiyonu
+function showErrorToastr(error)
+{
+    if (typeof toastr !== 'undefined')
+    {
+        const title = error.title || 'Hata';
+        const detail = error.detail || 'Bir hata oluştu.';
+
+        toastr.error(detail, title, {
+            timeOut: 5000,
+            closeButton: true,
+            progressBar: true
+        });
+    }
 }

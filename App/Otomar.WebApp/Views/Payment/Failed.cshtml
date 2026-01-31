@@ -1,196 +1,338 @@
-﻿@model Otomar.WebApp.Dtos.Payment.PaymentDto
+@model Otomar.WebApp.Dtos.Order.OrderDto?
+@using System.Globalization
 @{
     ViewData["Title"] = "Ödeme Başarısız";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_PaymentLayout.cshtml";
+    var culture = new CultureInfo("tr-TR");
+    var customerName = Model?.BillingAddress?.Name ?? Model?.ShippingAddress?.Name ?? "Müşteri";
+    var hasShipping = Model?.ShippingAddress != null;
+    var hasBilling = Model?.BillingAddress != null;
 }
 
-<!-- Start breadcrumb section -->
-<section class="breadcrumb__section breadcrumb__bg">
-    <div class="container">
-        <div class="row row-cols-1">
-            <div class="col">
-                <div class="breadcrumb__content text-center">
-                    <h1 class="breadcrumb__content--title mb-15">Ödeme Başarısız</h1>
-                    <ul class="breadcrumb__content--menu d-flex justify-content-center">
-                        <li class="breadcrumb__content--menu__items"><a href="/">Ana Sayfa</a></li>
-                        <li class="breadcrumb__content--menu__items"><span>Ödeme Başarısız</span></li>
-                    </ul>
-                </div>
+@section Styles {
+    <style>
+        .failed-page {
+            background: #fafafa;
+            min-height: 100vh;
+            padding: 2rem 0 4rem;
+        }
+
+        .failed-store {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 0.5rem;
+        }
+
+        .failed-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .failed-badge-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #dc3545;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .failed-greeting {
+            font-size: 1.125rem;
+            color: #374151;
+            margin-bottom: 1.5rem;
+        }
+
+        .failed-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .failed-card--danger {
+            border-color: #f5c2c7;
+            background: #fff5f5;
+        }
+
+        .failed-card-title {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .failed-address {
+            font-size: 1.4rem;
+            color: #111;
+            line-height: 1.6;
+        }
+
+        .failed-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            font-size: 1.4rem;
+            color: #374151;
+        }
+
+        .failed-btn {
+            display: inline-block;
+            padding: 0.875rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 0.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .failed-btn-primary {
+            background: var(--secondary-color, #0d6efd);
+            color: #fff;
+        }
+
+        .failed-btn-primary:hover {
+            color: #fff;
+            opacity: 0.9;
+            background-color:black;
+        }
+
+        .failed-btn-outline {
+            background: transparent;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .failed-btn-outline:hover {
+            background: #f9fafb;
+            color: #111;
+        }
+
+        .failed-help {
+            font-size: 1.4rem;
+            color: #6b7280;
+            margin-top: 2rem;
+        }
+
+        .failed-help a {
+            color: var(--secondary-color, #0d6efd);
+            font-weight: 600;
+            text-decoration: none;
+        }
+    </style>
+}
+
+@if (Model == null)
+{
+    <div class="failed-page">
+        <div class="container">
+            <div class="failed-card failed-card--danger">
+                <h2 class="failed-card-title">Bir hata oluştu</h2>
+                <p class="failed-address mb-0">Ödemeniz de hata oluştu. Sipariş bilgileri yüklenemedi veya oturum süresi dolmuş olabilir. Lütfen ödeme sayfasından tekrar deneyin.</p>
+                <a href="/odeme" class="failed-btn failed-btn-primary">Ödemeye Dön</a>
+                <a href="/magaza" class="failed-btn failed-btn-outline">Mağazaya Git</a>
+                <p class="failed-help">
+                    Yardım mı lazım? <a href="/iletisim">Bize ulaşın</a>.
+                </p>
             </div>
         </div>
     </div>
-</section>
-<!-- End breadcrumb section -->
-<!-- Start payment failed section -->
-<section class="checkout__section section--padding">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 offset-lg-2">
-                <div class="checkout__form--inner">
-                    <div class="payment__failed">
-                        <div class="payment__failed--icon text-center mb-30">
-                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="12" r="10" stroke="#dc3545" stroke-width="2" fill="#f8d7da" />
-                                <path d="M15 9l-6 6M9 9l6 6" stroke="#dc3545" stroke-width="2" stroke-linecap="round" />
+}
+else
+{
+    <div class="failed-page">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-7 col-md-12 mb-4 mb-lg-0">
+                    <h1 class="failed-store">OTOMAR Yedek Parça</h1>
+                    <div class="failed-badge">
+                        <span class="failed-badge-icon" aria-hidden="true">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M18 6L6 18M6 6l12 12" />
                             </svg>
-                        </div>
-                        <div class="payment__failed--content text-center mb-30">
-                            <h2 class="payment__failed--title mb-15">Ödeme İşlemi Başarısız</h2>
-                            <p class="payment__failed--desc mb-20">
-                                Ödeme işleminiz gerçekleştirilemedi.
-                                Lütfen kart bilgilerinizi kontrol ederek tekrar deneyiniz.
+                        </span>
+                        <span>Ödeme başarısız</span>
+                        @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                        {
+                            <span>— Sipariş #@Model.Code</span>
+                        }
+                        else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                        {
+                            <span>— Ödeme #@Model.Code</span>
+                        }
+                    </div>
+                    <p class="failed-greeting">Merhaba @customerName</p>
+
+                    <div class="failed-card failed-card--danger">
+                        @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                        {
+                            <h2 class="failed-card-title">Sipariş ödemesi alınamadı</h2>
+                            <p class="failed-address mb-0">
+                                Ödemeniz banka tarafından reddedildi veya işlem iptal edildi. Kart bilgilerinizi kontrol edip tekrar deneyebilirsiniz. Sorun devam ederse lütfen bankanızla iletişime geçin veya farklı bir ödeme yöntemi kullanın.
                             </p>
-                            @if (TempData["ErrorMessage"] != null)
+                        }
+                        else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                        {
+                            <h2 class="failed-card-title">Sanal POS ödemesi tamamlanamadı</h2>
+                            <p class="failed-address mb-0">
+                                Ödemeniz işleme alınamadı. Kart bilgilerinizi ve bakiye durumunuzu kontrol edip tekrar deneyebilirsiniz.
+                            </p>
+                        }
+                    </div>
+
+                    @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase && (hasShipping || hasBilling))
+                    {
+                        <div class="failed-card-title">Kayıtlı adresler</div>
+                        <div class="row">
+                            @if (hasShipping)
                             {
-                                <div class="alert alert-danger mb-20">
-                                    @TempData["ErrorMessage"]
+                                <div class="col-md-6 mb-3">
+                                    <div class="failed-card h-100">
+                                        <div class="failed-card-title">Teslimat adresi</div>
+                                        <div class="failed-address">
+                                            @Model.ShippingAddress!.Name<br />
+                                            @if (!string.IsNullOrEmpty(Model.ShippingAddress.Street))
+                                            {
+                                                @Model.ShippingAddress.Street<br />
+                                            }
+                                            @(Model.ShippingAddress.City ?? "") @(Model.ShippingAddress.District ?? "")<br />
+                                            @if (!string.IsNullOrEmpty(Model.ShippingAddress.Phone))
+                                            {
+                                                @Model.ShippingAddress.Phone
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @if (hasBilling)
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <div class="failed-card h-100">
+                                        <div class="failed-card-title">Fatura adresi</div>
+                                        <div class="failed-address">
+                                            @Model.BillingAddress!.Name<br />
+                                            @if (!string.IsNullOrEmpty(Model.BillingAddress.Street))
+                                            {
+                                                @Model.BillingAddress.Street<br />
+                                            }
+                                            @(Model.BillingAddress.City ?? "") @(Model.BillingAddress.District ?? "")<br />
+                                            @if (!string.IsNullOrEmpty(Model.BillingAddress.Phone))
+                                            {
+                                                @Model.BillingAddress.Phone
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
                             }
                         </div>
-                        @if (Model != null)
+                    }
+
+                    <p class="failed-help">
+                        Yardım mı lazım? <a href="/iletisim">Bize ulaşın</a>.
+                    </p>
+                    @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                    {
+                        <a href="/odeme" class="failed-btn failed-btn-primary">Ödemeyi Tekrar Dene</a>
+                    }
+                    else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                    {
+                        <a href="/odeme/sanal-pos" class="failed-btn failed-btn-primary">Ödemeyi Tekrar Dene</a>
+                    }
+                    <a href="/magaza" class="failed-btn failed-btn-outline">Alışverişe Devam Et</a>
+                </div>
+
+                <div class="col-lg-5 col-md-6">
+                    <aside class="checkout__sidebar sidebar border-radius-10">
+                        @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
                         {
-                            <div class="payment__failed--details">
-                                <div class="checkout__summary">
-                                    <div class="checkout__summary--inner">
-                                        <h3 class="checkout__summary--title mb-20">Ödeme Detayları</h3>
-                                        <table class="checkout__summary--total__table">
-                                            <tbody>
-                                                @if (!string.IsNullOrEmpty(Model.OrderCode))
-                                                {
-                                                    <tr class="checkout__summary--total__list">
-                                                        <td class="checkout__summary--total__title text-left">Sipariş Kodu</td>
-                                                        <td class="checkout__summary--amount text-right">
-                                                            <strong>@Model.OrderCode</strong>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                                <tr class="checkout__summary--total__list">
-                                                    <td class="checkout__summary--total__title text-left">Ödeme Durumu</td>
-                                                    <td class="checkout__summary--amount text-right">
-                                                        <span class="badge badge-danger">@Model.Status</span>
-                                                    </td>
-                                                </tr>
-                                                @if (Model.TotalAmount > 0)
-                                                {
-                                                    <tr class="checkout__summary--total__list">
-                                                        <td class="checkout__summary--total__title text-left">Tutar</td>
-                                                        <td class="checkout__summary--amount text-right">
-                                                            <strong>@Model.TotalAmount.ToString("N2") ₺</strong>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                                @if (Model.CreatedAt != default(DateTime))
-                                                {
-                                                    <tr class="checkout__summary--total__list">
-                                                        <td class="checkout__summary--total__title text-left">Tarih</td>
-                                                        <td class="checkout__summary--amount text-right">
-                                                            @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                            <h2 class="checkout__order--summary__title text-center mb-15">Sipariş Özeti</h2>
+                            <div class="cart__table checkout__product--table">
+                                <table class="cart__table--inner">
+                                    <tbody class="cart__table--body">
+
+                                        @foreach (var item in Model.Items)
+                                        {
+                                            var lineTotal = item.UnitPrice * item.Quantity;
+                                            <tr class="cart__table--body__items " data-product-id="@item.ProductId">
+                                                <td class="cart__table--body__list">
+                                                    <div class="product__image two d-flex align-items-center">
+
+                                                        <div class="product__description">
+                                                            <h4 class="product__description--name"><a href="/urun/generateSlug(@item.ProductName)/@item.ProductCode">@item.ProductName</a></h4>
+                                                            <span class="product__description--variant">Stok Kodu: @item.ProductCode</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="cart__table--body__list">
+                                                    <span class="cart__price">₺@lineTotal.ToString("N2", culture)</span>
+                                                </td>
+                                            </tr>
+                                        }
+
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="checkout__total mb-20">
+                                <table class="checkout__total--table">
+                                    <tbody class="checkout__total--body">
+                                        <tr class="checkout__total--items">
+                                            <td class="checkout__total--title text-left">Alt Toplam </td>
+                                            <td class="checkout__total--amount text-right">
+                                                ₺@Model.SubTotalAmount.ToString("N2", culture)
+                                            </td>
+                                        </tr>
+                                        <tr class="checkout__total--items">
+                                            <td class="checkout__total--title text-left">Kargo</td>
+                                            <td class="checkout__total--calculated__text text-right">₺@((Model.ShippingAmount ?? 0).ToString("N2", culture))</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot class="checkout__total--footer">
+                                        <tr class="checkout__total--footer__items">
+                                            <td class="checkout__total--footer__title checkout__total--footer__list text-left">Toplam </td>
+                                            <td class="checkout__total--footer__amount checkout__total--footer__list text-right">₺@Model.TotalAmount.ToString("N2", culture)</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+
+                            </div>
+
+                        }
+                        else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                        {
+                            <h2 class="checkout__order--summary__title text-center mb-15">Ödeme Özeti</h2>
+
+                            <div class="checkout__total mb-20">
+                                <table class="checkout__total--table">
+                                    <tbody class="checkout__total--body">
+                                    </tbody>
+                                    <tfoot class="checkout__total--footer">
+                                        <tr class="checkout__total--footer__items">
+                                            <td class="checkout__total--footer__title checkout__total--footer__list text-left">Toplam </td>
+                                            <td class="checkout__total--footer__amount checkout__total--footer__list text-right">₺@Model.TotalAmount.ToString("N2", culture)</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+
                             </div>
                         }
-                        <div class="payment__failed--actions text-center mt-30">
-                            <a href="/odeme" class="primary__btn mr-15">Tekrar Dene</a>
-                            <a href="/" class="secondary__btn">Ana Sayfaya Dön</a>
-                        </div>
-                        <div class="payment__failed--help text-center mt-30">
-                            <p class="text-muted">
-                                Sorun devam ederse lütfen <a href="/iletisim">müşteri hizmetlerimiz</a> ile iletişime
-                                geçiniz.
-                            </p>
-                        </div>
-                    </div>
+
+                        <a href="/magaza" class="checkout__now--btn primary__btn d-block text-center">
+                            Alışverişe Devam
+                            Et
+                        </a>
+
+                    </aside>
                 </div>
             </div>
         </div>
     </div>
-</section>
-<!-- End payment failed section -->
-@section Styles {
-    <style>
-        .payment__failed {
-            padding: 40px 20px;
-        }
-
-        .payment__failed--icon svg {
-            animation: shake 0.5s ease-out;
-        }
-
-        @@keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            25% {
-                transform: translateX(-10px);
-            }
-
-            75% {
-                transform: translateX(10px);
-            }
-        }
-
-        .checkout__summary {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-
-        .badge {
-            padding: 5px 10px;
-            border-radius: 3px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .badge-danger {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-
-        .alert-danger {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        .secondary__btn {
-            display: inline-block;
-            padding: 12px 30px;
-            background-color: #6c757d;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-
-            .secondary__btn:hover {
-                background-color: #5a6268;
-                color: white;
-                text-decoration: none;
-            }
-
-        .mr-15 {
-            margin-right: 15px;
-        }
-
-        .text-muted {
-            color: #6c757d;
-        }
-    </style>
 }

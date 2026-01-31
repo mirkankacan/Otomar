@@ -14,6 +14,7 @@ namespace Otomar.WebApp.Controllers
         {
             if (string.IsNullOrEmpty(stockName) || string.IsNullOrEmpty(stockCode))
                 return Redirect("/ana-sayfa");
+
             var response = await productApi.GetProductByCodeAsync(stockCode, cancellationToken);
             if (response == null)
                 return Redirect("/ana-sayfa");
@@ -22,7 +23,10 @@ namespace Otomar.WebApp.Controllers
             var responseSlug = SlugHelper.Generate(response.STOK_ADI);
 
             if (!requestSlug.Equals(responseSlug, StringComparison.OrdinalIgnoreCase))
-                return Redirect("/ana-sayfa");
+            {
+                // Doðru URL'ye 301 (Permanent Redirect) ile yönlendir
+                return RedirectPermanent($"/urun/{responseSlug}/{stockCode}");
+            }
 
             return View(response);
         }
@@ -49,6 +53,12 @@ namespace Otomar.WebApp.Controllers
         public async Task<IActionResult> GetProductByCode(string code, CancellationToken cancellationToken = default)
         {
             return await productApi.GetProductByCodeAsync(code, cancellationToken).ToActionResultAsync();
+        }
+
+        [HttpGet("benzer/{stokKodu}")]
+        public async Task<IActionResult> GetSimilarProducts(string stokKodu, CancellationToken cancellationToken = default)
+        {
+            return await productApi.GetSimilarProductsByCodeAsync(stokKodu, cancellationToken).ToActionResultAsync();
         }
     }
 }

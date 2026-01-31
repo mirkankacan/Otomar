@@ -1912,6 +1912,7 @@ body.overlay__active::before,
   font-weight: 500;
   font-family: var(--inter-fonts);
   line-height: 1.8rem;
+    padding: .375rem 0rem 0rem 0rem !important;
 }
 
 .header__info--link svg {
@@ -8254,12 +8255,12 @@ input.quickview__value--number {
   display: flex;
   align-items: center;
   position: relative;
-  padding: 2.5rem 0;
+  padding: 1rem 0;
 }
 
 @media only screen and (min-width: 768px) {
   .breadcrumb__bg {
-    padding: 3rem 0;
+    padding: 1.5rem 0;
   }
 }
 

@@ -11,9 +11,9 @@
         public string CreditCardCvv { get; set; }
 
         public decimal Amount { get; set; }
-        public string Email { get; set; }
-        public string TaxNumber { get; set; }
-        public string TaxOffice { get; set; }
+        public string? Email { get; set; }
+        public string? TaxNumber { get; set; }
+        public string? TaxOffice { get; set; }
         public string ClientName { get; set; }
     }
 }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="tr">
 
 <head>
     <meta charset="utf-8">
@@ -8,23 +8,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" type="image/x-icon" href="/assets/img/favicon.ico">
 
-   <script>
-       window.SITE_KEY = '6LcQvngqAAAAAE54QYZrbKgnK7NdsmwV3zsrfVwi';
-       window.dataLayer = window.dataLayer || [];
-       function gtag(){dataLayer.push(arguments);}
-       gtag('js', new Date());
-       gtag('config', 'G-5TKFSDZK3S');
-       gtag('config', 'GT-WFFPZK75');
-   </script>
-   <script async src="https://www.googletagmanager.com/gtag/js?id=G-5TKFSDZK3S"></script>
-   
+    <script>
+        window.SITE_KEY = '6LcQvngqAAAAAE54QYZrbKgnK7NdsmwV3zsrfVwi';
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5TKFSDZK3S');
+        gtag('config', 'GT-WFFPZK75');
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5TKFSDZK3S"></script>
+
     <!-- ======= All CSS Plugins here ======== -->
     <link rel="stylesheet" href="/assets/css/plugins/swiper-bundle.min.css">
     <link rel="stylesheet" href="/assets/css/plugins/glightbox.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha512-6S2HWzVFxruDlZxI3sXOZZ4/eJ8AcxkQH1+JjSe/ONCEqR9L4Ysq5JdT5ipqtzU7WHalNwzwBv+iE51gNHJNqQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500&display=swap"
-        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.23.0/sweetalert2.min.css" integrity="sha512-Ivy7sPrd6LPp20adiK3al16GBelPtqswhJnyXuha3kGtmQ1G2qWpjuipfVDaZUwH26b3RDe8x707asEpvxl7iA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500&display=swap"
+          rel="stylesheet">
 
     <!-- Plugin css -->
     <link rel="stylesheet" href="/assets/css/vendor/bootstrap.min.css">
@@ -32,10 +32,174 @@
     <!-- Custom Style CSS -->
     <link rel="stylesheet" href="/assets/css/style.css">
     <link rel="stylesheet" href="/assets/css/skeleton-loader.css">
-    
+
     @await RenderSectionAsync("Seo", required: false)
-    @await RenderSectionAsync("Styles", required: false)
     <style>
+        .form-check-input:checked {
+            background-color: var(--secondary-color) !important;
+            border-color: var(--secondary-color) !important;
+        }
+
+        /* Bootstrap Validation Styles */
+        .checkout__input--field.is-invalid,
+        .checkout__input--select__field.is-invalid,
+        .checkout__notes--textarea__field.is-invalid {
+            border-color: #dc3545 !important;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        .checkout__input--field.is-valid,
+        .checkout__input--select__field.is-valid,
+        .checkout__notes--textarea__field.is-valid {
+            border-color: #198754 !important;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        /* Textarea için özel pozisyon */
+        .checkout__notes--textarea__field.is-invalid,
+        .checkout__notes--textarea__field.is-valid {
+            background-position: top calc(0.375em + 0.1875rem) right calc(0.375em + 0.1875rem);
+        }
+
+        /* Select için özel pozisyon (ok ikonu ile çakışmasın) */
+        .checkout__input--select__field.is-invalid,
+        .checkout__input--select__field.is-valid {
+            background-position: right calc(2.5em + 0.1875rem) center;
+        }
+
+        /* Invalid feedback mesajı */
+        .invalid-feedback {
+            display: none;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 1.2rem;
+            color: #dc3545;
+        }
+
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+
+        /* Checkbox sözleşme: hata durumunda kırmızı ve mesaj göster */
+        .checkout__checkbox .invalid-feedback {
+            display: none;
+        }
+
+        .checkout__checkbox.is-invalid .invalid-feedback {
+            display: block;
+        }
+
+        .checkout__checkbox.is-invalid .checkout__checkbox--checkmark {
+            border-color: #dc3545;
+        }
+
+        .checkout__checkbox.is-invalid .checkout__checkbox--label {
+            color: #dc3545;
+        }
+
+        /* Valid feedback mesajı (opsiyonel) */
+        .valid-feedback {
+            display: none;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 1.2rem;
+            color: #198754;
+        }
+
+        .is-valid ~ .valid-feedback {
+            display: block;
+        }
+
+        /* Focus durumunda border rengi */
+        .checkout__input--field.is-invalid:focus,
+        .checkout__input--select__field.is-invalid:focus,
+        .checkout__notes--textarea__field.is-invalid:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        .checkout__input--field.is-valid:focus,
+        .checkout__input--select__field.is-valid:focus,
+        .checkout__notes--textarea__field.is-valid:focus {
+            border-color: #198754 !important;
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+        }
+
+        /* E-posta domain önerileri */
+        .email-input-wrapper {
+            display: block;
+        }
+
+        .email-domain-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1050;
+            max-height: 220px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            margin-top: 2px;
+            padding: 0.25rem 0;
+            display: none;
+        }
+
+            .email-domain-suggestions[aria-hidden="false"] {
+                display: block;
+            }
+
+        .email-domain-suggestions__item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-size: 1.4rem;
+            color: #212529;
+            white-space: nowrap;
+        }
+
+            .email-domain-suggestions__item:hover,
+            .email-domain-suggestions__item.is-active {
+                background: #f8f9fa;
+                color: var(--secondary-color, #0d6efd);
+            }
+
+        /* Sipariş tamamla loading: spinner + disabled butonlar */
+        .checkout-btn-spinner {
+            display: inline-block;
+            width: 1.1em;
+            height: 1.1em;
+            vertical-align: -0.2em;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: checkout-spin 0.6s linear infinite;
+        }
+
+        .checkout-btn-loading-text {
+            margin-left: 0.35em;
+        }
+
+        .checkout-btn--loading {
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+
+        @@keyframes checkout-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         .header-brand-logo {
             width: 60px;
             height: auto;
@@ -50,25 +214,33 @@
         }
 
         .toast-success {
-    background-color: #28a745 !important;
-    color: #fff;
-}
+            background-color: #28a745 !important;
+            color: #fff;
+        }
 
-.toast-error {
-    background-color: #dc3545 !important;
-    color: #fff;
-}
+        .toast-error {
+            background-color: #dc3545 !important;
+            color: #fff;
+        }
 
-.toast-warning {
-    background-color: #ffc107 !important;
-    color: #333;
-}
+        .toast-warning {
+            background-color: #ffc107 !important;
+            color: #333;
+        }
 
-.toast-info {
-    background-color: #17a2b8 !important;
-    color: #fff;
-}
+        .toast-info {
+            background-color: #17a2b8 !important;
+            color: #fff;
+        }
+       #cariIslemleriDropdown .dropdown-menu{
+        font-size:1.2rem !important;
+       }
+       #cariIslemleriDropdown .dropdown-item{
+        padding:  .50rem 1rem !important;
+       }
     </style>
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 
 <body>
@@ -131,23 +303,33 @@
                     <ul class="header__topbar--info d-none d-lg-flex">
                         <li class="header__info--list">
                             <a class="header__info--link" onclick="sendWhatsAppMessage()">
-                               <video autoplay muted loop playsinline style="height:20px; width:auto;">
-       <source src="/assets/img/other/whatsappdestek.webm" type="video/webm">
-   </video>
-                                    </a>
+                                <video autoplay muted loop playsinline style="height:20px; width:auto;">
+                                    <source src="/assets/img/other/whatsappdestek.webm" type="video/webm">
+                                </video>
+                            </a>
 
                         </li>
                         <li class="header__info--list">
-                            <a class="header__info--link" href="/iletisim">İLETİŞİM</a>
+                            <a class="btn header__info--link" href="/iletisim">İLETİŞİM</a>
                         </li>
                         <li class="header__info--list">
-                            <a class="header__info--link" href="privacy-policy.html">LİSTE SORGU</a>
+                            <a class="btn header__info--link" href="/liste-sorgu/olustur">LİSTE SORGU</a>
                         </li>
                         <li class="header__info--list">
-                            <a class="header__info--link" href="privacy-policy.html">SİPARİŞ TAKİP</a>
+                            <a class="btn header__info--link" href="#">SİPARİŞ TAKİP</a>
                         </li>
                         <li class="header__info--list">
-                            <a class="header__info--link" href="privacy-policy.html">CARİ İŞLEMLER</a>
+                            <div class="dropdown" id="cariIslemleriDropdown">
+                                <a class="btn header__info--link dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false" style="">CARİ İŞLEMLER</a>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                    <li><a class="dropdown-item" href="/odeme/sanal-pos">Sanal POS</a></li>
+                                    <li><div class="dropdown-divider"></div></li>
+                                    <li><a class="dropdown-item" href="/cari/hesap-hareketleri">Hesap Hareketleri</a></li>
+                                    <li><div class="dropdown-divider"></div></li>
+
+                                    <li><a class="dropdown-item" href="/cari/mutabakat">Mutabakat</a></li>
+                                </ul>
+                            </div>
                         </li>
                     </ul>
                     <div class="header__top--right d-flex align-items-center">
@@ -156,12 +338,11 @@
 
                             <li class="social__share--list">
                                 <a class="social__share--icon" target="_blank"
-                                    href="https://www.instagram.com/otomar.com.tr/">
+                                   href="https://www.instagram.com/otomar.com.tr/">
                                     <svg width="14" height="13" viewBox="0 0 14 13" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M7.125 3.60547C5.375 3.60547 3.98047 5.02734 3.98047 6.75C3.98047 8.5 5.375 9.89453 7.125 9.89453C8.84766 9.89453 10.2695 8.5 10.2695 6.75C10.2695 5.02734 8.84766 3.60547 7.125 3.60547ZM7.125 8.80078C6.00391 8.80078 5.07422 7.89844 5.07422 6.75C5.07422 5.62891 5.97656 4.72656 7.125 4.72656C8.24609 4.72656 9.14844 5.62891 9.14844 6.75C9.14844 7.89844 8.24609 8.80078 7.125 8.80078ZM11.1172 3.49609C11.1172 3.08594 10.7891 2.75781 10.3789 2.75781C9.96875 2.75781 9.64062 3.08594 9.64062 3.49609C9.64062 3.90625 9.96875 4.23438 10.3789 4.23438C10.7891 4.23438 11.1172 3.90625 11.1172 3.49609ZM13.1953 4.23438C13.1406 3.25 12.9219 2.375 12.2109 1.66406C11.5 0.953125 10.625 0.734375 9.64062 0.679688C8.62891 0.625 5.59375 0.625 4.58203 0.679688C3.59766 0.734375 2.75 0.953125 2.01172 1.66406C1.30078 2.375 1.08203 3.25 1.02734 4.23438C0.972656 5.24609 0.972656 8.28125 1.02734 9.29297C1.08203 10.2773 1.30078 11.125 2.01172 11.8633C2.75 12.5742 3.59766 12.793 4.58203 12.8477C5.59375 12.9023 8.62891 12.9023 9.64062 12.8477C10.625 12.793 11.5 12.5742 12.2109 11.8633C12.9219 11.125 13.1406 10.2773 13.1953 9.29297C13.25 8.28125 13.25 5.24609 13.1953 4.23438ZM11.8828 10.3594C11.6914 10.9062 11.2539 11.3164 10.7344 11.5352C9.91406 11.8633 8 11.7812 7.125 11.7812C6.22266 11.7812 4.30859 11.8633 3.51562 11.5352C2.96875 11.3164 2.55859 10.9062 2.33984 10.3594C2.01172 9.56641 2.09375 7.65234 2.09375 6.75C2.09375 5.875 2.01172 3.96094 2.33984 3.14062C2.55859 2.62109 2.96875 2.21094 3.51562 1.99219C4.30859 1.66406 6.22266 1.74609 7.125 1.74609C8 1.74609 9.91406 1.66406 10.7344 1.99219C11.2539 2.18359 11.6641 2.62109 11.8828 3.14062C12.2109 3.96094 12.1289 5.875 12.1289 6.75C12.1289 7.65234 12.2109 9.56641 11.8828 10.3594Z"
-                                            fill="currentColor" />
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M7.125 3.60547C5.375 3.60547 3.98047 5.02734 3.98047 6.75C3.98047 8.5 5.375 9.89453 7.125 9.89453C8.84766 9.89453 10.2695 8.5 10.2695 6.75C10.2695 5.02734 8.84766 3.60547 7.125 3.60547ZM7.125 8.80078C6.00391 8.80078 5.07422 7.89844 5.07422 6.75C5.07422 5.62891 5.97656 4.72656 7.125 4.72656C8.24609 4.72656 9.14844 5.62891 9.14844 6.75C9.14844 7.89844 8.24609 8.80078 7.125 8.80078ZM11.1172 3.49609C11.1172 3.08594 10.7891 2.75781 10.3789 2.75781C9.96875 2.75781 9.64062 3.08594 9.64062 3.49609C9.64062 3.90625 9.96875 4.23438 10.3789 4.23438C10.7891 4.23438 11.1172 3.90625 11.1172 3.49609ZM13.1953 4.23438C13.1406 3.25 12.9219 2.375 12.2109 1.66406C11.5 0.953125 10.625 0.734375 9.64062 0.679688C8.62891 0.625 5.59375 0.625 4.58203 0.679688C3.59766 0.734375 2.75 0.953125 2.01172 1.66406C1.30078 2.375 1.08203 3.25 1.02734 4.23438C0.972656 5.24609 0.972656 8.28125 1.02734 9.29297C1.08203 10.2773 1.30078 11.125 2.01172 11.8633C2.75 12.5742 3.59766 12.793 4.58203 12.8477C5.59375 12.9023 8.62891 12.9023 9.64062 12.8477C10.625 12.793 11.5 12.5742 12.2109 11.8633C12.9219 11.125 13.1406 10.2773 13.1953 9.29297C13.25 8.28125 13.25 5.24609 13.1953 4.23438ZM11.8828 10.3594C11.6914 10.9062 11.2539 11.3164 10.7344 11.5352C9.91406 11.8633 8 11.7812 7.125 11.7812C6.22266 11.7812 4.30859 11.8633 3.51562 11.5352C2.96875 11.3164 2.55859 10.9062 2.33984 10.3594C2.01172 9.56641 2.09375 7.65234 2.09375 6.75C2.09375 5.875 2.01172 3.96094 2.33984 3.14062C2.55859 2.62109 2.96875 2.21094 3.51562 1.99219C4.30859 1.66406 6.22266 1.74609 7.125 1.74609C8 1.74609 9.91406 1.66406 10.7344 1.99219C11.2539 2.18359 11.6641 2.62109 11.8828 3.14062C12.2109 3.96094 12.1289 5.875 12.1289 6.75C12.1289 7.65234 12.2109 9.56641 11.8828 10.3594Z"
+                                              fill="currentColor" />
                                     </svg>
                                     <span class="visually-hidden">Instagram</span>
                                 </a>
@@ -178,32 +359,34 @@
                     <div class="offcanvas__header--menu__open ">
                         <a class="offcanvas__header--menu__open--btn" href="javascript:void(0)" data-offcanvas>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ionicon offcanvas__header--menu__open--svg"
-                                viewBox="0 0 512 512">
+                                 viewBox="0 0 512 512">
                                 <path fill="currentColor" stroke="currentColor" stroke-linecap="round"
-                                    stroke-miterlimit="10" stroke-width="32" d="M80 160h352M80 256h352M80 352h352" />
+                                      stroke-miterlimit="10" stroke-width="32" d="M80 160h352M80 256h352M80 352h352" />
                             </svg>
                             <span class="visually-hidden">Offcanvas Menu Open</span>
                         </a>
                     </div>
                     <div class="main__logo">
-                        <h1 class="main__logo--title"><a class="main__logo--link" href="/ana-sayfa"><img
-                                    class="main__logo--img" src="/assets/img/logo/otomarlogo.webp" alt="OTOMAR logo-img"></a></h1>
+                        <h1 class="main__logo--title">
+                            <a class="main__logo--link" href="/ana-sayfa">
+                                <img class="main__logo--img" src="/assets/img/logo/otomarlogo.webp" alt="OTOMAR logo">
+                            </a>
+                        </h1>
                     </div>
                     <div class="header__search--widget d-none d-lg-block header__sticky--none">
-                        <div class="d-flex header__search--form border-radius-5" >
+                        <div class="d-flex header__search--form border-radius-5">
 
                             <div class="header__search--box">
                                 <label>
                                     <input id="header-search-input" class="header__search--input" placeholder="Aradığınız parçayı bulun!"
-                                        type="text">
+                                           type="text">
                                 </label>
                                 <button class="header__search--button bg__primary text-white" aria-label="search button"
-                                    type="button" onclick="window.location.href = '/magaza?searchTerm=' + document.getElementById('header-search-input').value;">
+                                        type="button" onclick="window.location.href = '/magaza?searchTerm=' + document.getElementById('header-search-input').value.trim();">
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M15.6952 14.4991L11.7663 10.5588C12.7765 9.4008 13.33 7.94381 13.33 6.42703C13.33 2.88322 10.34 0 6.66499 0C2.98997 0 0 2.88322 0 6.42703C0 9.97085 2.98997 12.8541 6.66499 12.8541C8.04464 12.8541 9.35938 12.4528 10.4834 11.6911L14.4422 15.6613C14.6076 15.827 14.8302 15.9184 15.0687 15.9184C15.2944 15.9184 15.5086 15.8354 15.6711 15.6845C16.0166 15.364 16.0276 14.8325 15.6952 14.4991ZM6.66499 1.67662C9.38141 1.67662 11.5913 3.8076 11.5913 6.42703C11.5913 9.04647 9.38141 11.1775 6.66499 11.1775C3.94857 11.1775 1.73869 9.04647 1.73869 6.42703C1.73869 3.8076 3.94857 1.67662 6.66499 1.67662Z"
-                                            fill="currentColor" />
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M15.6952 14.4991L11.7663 10.5588C12.7765 9.4008 13.33 7.94381 13.33 6.42703C13.33 2.88322 10.34 0 6.66499 0C2.98997 0 0 2.88322 0 6.42703C0 9.97085 2.98997 12.8541 6.66499 12.8541C8.04464 12.8541 9.35938 12.4528 10.4834 11.6911L14.4422 15.6613C14.6076 15.827 14.8302 15.9184 15.0687 15.9184C15.2944 15.9184 15.5086 15.8354 15.6711 15.6845C16.0166 15.364 16.0276 14.8325 15.6952 14.4991ZM6.66499 1.67662C9.38141 1.67662 11.5913 3.8076 11.5913 6.42703C11.5913 9.04647 9.38141 11.1775 6.66499 11.1775C3.94857 11.1775 1.73869 9.04647 1.73869 6.42703C1.73869 3.8076 3.94857 1.67662 6.66499 1.67662Z"
+                                              fill="currentColor" />
                                     </svg>
                                 </button>
                             </div>
@@ -214,25 +397,24 @@
                             <li class="header__account--items d-none d-lg-block">
                                 <a class="header__account--btn" href="my-account.html">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" class=" -user">
+                                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                         stroke-linejoin="round" class=" -user">
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                         <circle cx="12" cy="7" r="4"></circle>
                                     </svg>
                                     <span class="visually-hidden">My account</span>
                                 </a>
                             </li>
-                            <li
-                                class="header__account--items  header__account--search__items mobile__d--block d-sm-2-none">
+                            <li class="header__account--items  header__account--search__items mobile__d--block d-sm-2-none">
                                 <a class="header__account--btn search__open--btn" href="javascript:void(0)"
-                                    data-offcanvas>
+                                   data-offcanvas>
                                     <svg class="product__items--action__btn--svg" xmlns="http://www.w3.org/2000/svg"
-                                        width="22.51" height="20.443" viewBox="0 0 512 512">
+                                         width="22.51" height="20.443" viewBox="0 0 512 512">
                                         <path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z"
-                                            fill="none" stroke="currentColor" stroke-miterlimit="10"
-                                            stroke-width="32" />
+                                              fill="none" stroke="currentColor" stroke-miterlimit="10"
+                                              stroke-width="32" />
                                         <path fill="none" stroke="currentColor" stroke-linecap="round"
-                                            stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448" />
+                                              stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448" />
                                     </svg>
                                     <span class="visually-hidden">Search</span>
                                 </a>
@@ -240,26 +422,27 @@
 
                             <li class="header__account--items header__minicart--items">
                                 <a class="header__account--btn minicart__open--btn" href="javascript:void(0)"
-                                    data-offcanvas>
+                                   data-offcanvas>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="22.706" height="22.534"
-                                        viewBox="0 0 14.706 13.534">
+                                         viewBox="0 0 14.706 13.534">
                                         <g transform="translate(0 0)">
                                             <g>
                                                 <path data-name="Path 16787"
-                                                    d="M4.738,472.271h7.814a.434.434,0,0,0,.414-.328l1.723-6.316a.466.466,0,0,0-.071-.4.424.424,0,0,0-.344-.179H3.745L3.437,463.6a.435.435,0,0,0-.421-.353H.431a.451.451,0,0,0,0,.9h2.24c.054.257,1.474,6.946,1.555,7.33a1.36,1.36,0,0,0-.779,1.242,1.326,1.326,0,0,0,1.293,1.354h7.812a.452.452,0,0,0,0-.9H4.74a.451.451,0,0,1,0-.9Zm8.966-6.317-1.477,5.414H5.085l-1.149-5.414Z"
-                                                    transform="translate(0 -463.248)" fill="currentColor" />
+                                                      d="M4.738,472.271h7.814a.434.434,0,0,0,.414-.328l1.723-6.316a.466.466,0,0,0-.071-.4.424.424,0,0,0-.344-.179H3.745L3.437,463.6a.435.435,0,0,0-.421-.353H.431a.451.451,0,0,0,0,.9h2.24c.054.257,1.474,6.946,1.555,7.33a1.36,1.36,0,0,0-.779,1.242,1.326,1.326,0,0,0,1.293,1.354h7.812a.452.452,0,0,0,0-.9H4.74a.451.451,0,0,1,0-.9Zm8.966-6.317-1.477,5.414H5.085l-1.149-5.414Z"
+                                                      transform="translate(0 -463.248)" fill="currentColor" />
                                                 <path data-name="Path 16788"
-                                                    d="M5.5,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,5.5,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,6.793,478.352Z"
-                                                    transform="translate(-1.191 -466.622)" fill="currentColor" />
+                                                      d="M5.5,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,5.5,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,6.793,478.352Z"
+                                                      transform="translate(-1.191 -466.622)" fill="currentColor" />
                                                 <path data-name="Path 16789"
-                                                    d="M13.273,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,13.273,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,14.566,478.352Z"
-                                                    transform="translate(-2.875 -466.622)" fill="currentColor" />
+                                                      d="M13.273,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,13.273,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,14.566,478.352Z"
+                                                      transform="translate(-2.875 -466.622)" fill="currentColor" />
                                             </g>
                                         </g>
                                     </svg>
                                     <span class="items__count cart-badge">0</span>
-                                    <span class="minicart__btn--text">Sepetim <br> <span
-                                            class="minicart__btn--text__price cart-total">₺0,00</span></span>
+                                    <span class="minicart__btn--text">
+                                        Sepetim <br> <span class="minicart__btn--text__price cart-total">₺0,00</span>
+                                    </span>
                                 </a>
                             </li>
                         </ul>
@@ -268,14 +451,14 @@
                         <ul class="header__account--wrapper d-flex align-items-center">
                             <li class="header__account--items  header__account--search__items d-sm-2-none">
                                 <a class="header__account--btn search__open--btn" href="javascript:void(0)"
-                                    data-offcanvas>
+                                   data-offcanvas>
                                     <svg class="product__items--action__btn--svg" xmlns="http://www.w3.org/2000/svg"
-                                        width="22.51" height="20.443" viewBox="0 0 512 512">
+                                         width="22.51" height="20.443" viewBox="0 0 512 512">
                                         <path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z"
-                                            fill="none" stroke="currentColor" stroke-miterlimit="10"
-                                            stroke-width="32" />
+                                              fill="none" stroke="currentColor" stroke-miterlimit="10"
+                                              stroke-width="32" />
                                         <path fill="none" stroke="currentColor" stroke-linecap="round"
-                                            stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448" />
+                                              stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448" />
                                     </svg>
                                     <span class="visually-hidden">Search</span>
                                 </a>
@@ -283,8 +466,8 @@
                             <li class="header__account--items d-none d-lg-block">
                                 <a class="header__account--btn" href="my-account.html">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" class=" -user">
+                                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                         stroke-linejoin="round" class=" -user">
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                         <circle cx="12" cy="7" r="4"></circle>
                                     </svg>
@@ -294,20 +477,20 @@
 
                             <li class="header__account--items header__minicart--items">
                                 <a class="header__account--btn minicart__open--btn" href="javascript:void(0)"
-                                    data-offcanvas>
+                                   data-offcanvas>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="22.706" height="22.534"
-                                        viewBox="0 0 14.706 13.534">
+                                         viewBox="0 0 14.706 13.534">
                                         <g transform="translate(0 0)">
                                             <g>
                                                 <path data-name="Path 16787"
-                                                    d="M4.738,472.271h7.814a.434.434,0,0,0,.414-.328l1.723-6.316a.466.466,0,0,0-.071-.4.424.424,0,0,0-.344-.179H3.745L3.437,463.6a.435.435,0,0,0-.421-.353H.431a.451.451,0,0,0,0,.9h2.24c.054.257,1.474,6.946,1.555,7.33a1.36,1.36,0,0,0-.779,1.242,1.326,1.326,0,0,0,1.293,1.354h7.812a.452.452,0,0,0,0-.9H4.74a.451.451,0,0,1,0-.9Zm8.966-6.317-1.477,5.414H5.085l-1.149-5.414Z"
-                                                    transform="translate(0 -463.248)" fill="currentColor" />
+                                                      d="M4.738,472.271h7.814a.434.434,0,0,0,.414-.328l1.723-6.316a.466.466,0,0,0-.071-.4.424.424,0,0,0-.344-.179H3.745L3.437,463.6a.435.435,0,0,0-.421-.353H.431a.451.451,0,0,0,0,.9h2.24c.054.257,1.474,6.946,1.555,7.33a1.36,1.36,0,0,0-.779,1.242,1.326,1.326,0,0,0,1.293,1.354h7.812a.452.452,0,0,0,0-.9H4.74a.451.451,0,0,1,0-.9Zm8.966-6.317-1.477,5.414H5.085l-1.149-5.414Z"
+                                                      transform="translate(0 -463.248)" fill="currentColor" />
                                                 <path data-name="Path 16788"
-                                                    d="M5.5,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,5.5,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,6.793,478.352Z"
-                                                    transform="translate(-1.191 -466.622)" fill="currentColor" />
+                                                      d="M5.5,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,5.5,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,6.793,478.352Z"
+                                                      transform="translate(-1.191 -466.622)" fill="currentColor" />
                                                 <path data-name="Path 16789"
-                                                    d="M13.273,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,13.273,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,14.566,478.352Z"
-                                                    transform="translate(-2.875 -466.622)" fill="currentColor" />
+                                                      d="M13.273,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,13.273,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,14.566,478.352Z"
+                                                      transform="translate(-2.875 -466.622)" fill="currentColor" />
                                             </g>
                                         </g>
                                     </svg>
@@ -321,8 +504,7 @@
         </div>
         <div class="header__bottom d-none d-lg-block">
             <div class="container">
-                <div
-                    class="header__bottom--inner__style3 position__relative d-flex align-items-center justify-content-between">
+                <div class="header__bottom--inner__style3 position__relative d-flex align-items-center justify-content-between">
                     <div class="header__menu header__menu--style4">
                         <nav class="header__menu--navigation">
                             <ul class="header__menu--wrapper d-flex" id="dynamic-menu-wrapper">
@@ -330,28 +512,25 @@
                                     <a class="header__menu--link" href="/magaza">
                                         TÜM ÜRÜNLER
                                         <svg class="menu__arrowdown--icon" xmlns="http://www.w3.org/2000/svg" width="12"
-                                            height="7.41" viewBox="0 0 12 7.41">
+                                             height="7.41" viewBox="0 0 12 7.41">
                                             <path d="M16.59,8.59,12,13.17,7.41,8.59,6,10l6,6,6-6Z"
-                                                transform="translate(-6 -8.59)" fill="currentColor" opacity="0.7" />
+                                                  transform="translate(-6 -8.59)" fill="currentColor" opacity="0.7" />
                                         </svg>
                                     </a>
                                     <ul class="header__sub--menu" id="all-products-submenu">
-                                        <!-- Dinamik olarak doldurulacak -->
                                     </ul>
                                 </li>
-                                <!-- Dinamik markalar menüsü buraya eklenecek -->
-                                <!-- Dinamik ana grup menüleri buraya eklenecek -->
+                
                                 <li class="header__menu--items" id="other-menu-item">
                                     <a class="header__menu--link" href="/ana-sayfa">
                                         DİĞER
                                         <svg class="menu__arrowdown--icon" xmlns="http://www.w3.org/2000/svg" width="12"
-                                            height="7.41" viewBox="0 0 12 7.41">
+                                             height="7.41" viewBox="0 0 12 7.41">
                                             <path d="M16.59,8.59,12,13.17,7.41,8.59,6,10l6,6,6-6Z"
-                                                transform="translate(-6 -8.59)" fill="currentColor" opacity="0.7" />
+                                                  transform="translate(-6 -8.59)" fill="currentColor" opacity="0.7" />
                                         </svg>
                                     </a>
                                     <ul class="header__sub--menu">
-                                  
                                     </ul>
                                 </li>
                             </ul>
@@ -366,143 +545,28 @@
             <div class="offcanvas__inner">
                 <div class="offcanvas__logo">
                     <a class="offcanvas__logo_link" href="/ana-sayfa">
-                        <img src="/assets/img/logo/nav-log.webp" alt="Grocee Logo" width="158" height="36">
+                        <img class="main__logo--img" src="/assets/img/logo/otomarlogo.webp" alt="OTOMAR logo" width="158" height="36">
                     </a>
                     <button class="offcanvas__close--btn" data-offcanvas>close</button>
                 </div>
                 <nav class="offcanvas__menu">
-                    <ul class="offcanvas__menu_ul">
-                        <li class="offcanvas__menu_li">
-                            <a class="offcanvas__menu_item" href="/ana-sayfa">Home</a>
-                            <ul class="offcanvas__sub_menu">
-                                <li class="offcanvas__sub_menu_li"><a href="/ana-sayfa"
-                                        class="offcanvas__sub_menu_item">Home One</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="index-2.html"
-                                        class="offcanvas__sub_menu_item">Home Two</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="index-3.html"
-                                        class="offcanvas__sub_menu_item">Home Three</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="index-4.html"
-                                        class="offcanvas__sub_menu_item">Home Four</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="index-5.html"
-                                        class="offcanvas__sub_menu_item">Home Five</a></li>
-                            </ul>
-                        </li>
-                        <li class="offcanvas__menu_li">
-                            <a class="offcanvas__menu_item" href="shop.html">Shop</a>
-                            <ul class="offcanvas__sub_menu">
-                                <li class="offcanvas__sub_menu_li">
-                                    <a href="#" class="offcanvas__sub_menu_item">Column One</a>
-                                    <ul class="offcanvas__sub_menu">
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="shop.html">Shop Left Sidebar</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="shop-right-sidebar.html">Shop Right Sidebar</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="shop-grid.html">Shop Grid</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="shop-grid-list.html">Shop Grid List</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="shop-list.html">Shop List</a></li>
-                                    </ul>
-                                </li>
-                                <li class="offcanvas__sub_menu_li">
-                                    <a href="#" class="offcanvas__sub_menu_item">Column Two</a>
-                                    <ul class="offcanvas__sub_menu">
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="product-details.html">Product Details</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="product-video.html">Video Product</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="product-details.html">Variable Product</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="product-left-sidebar.html">Product Left Sidebar</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="product-gallery.html">Product Gallery</a></li>
-                                    </ul>
-                                </li>
-                                <li class="offcanvas__sub_menu_li">
-                                    <a href="#" class="offcanvas__sub_menu_item">Column Three</a>
-                                    <ul class="offcanvas__sub_menu">
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="my-account.html">My Account</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="my-account-2.html">My Account 2</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="404.html">404 Page</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="login.html">Login Page</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="faq.html">Faq Page</a></li>
-                                    </ul>
-                                </li>
-                                <li class="offcanvas__sub_menu_li">
-                                    <a href="#" class="offcanvas__sub_menu_item">Column Three</a>
-                                    <ul class="offcanvas__sub_menu">
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="about.html">About Us</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="contact.html">Contact Us</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="portfolio.html">Portfolio</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="compare.html">Compare Pages</a></li>
-                                        <li class="offcanvas__sub_menu_li"><a class="offcanvas__sub_menu_item"
-                                                href="checkout.html">Checkout page</a></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="offcanvas__menu_li">
-                            <a class="offcanvas__menu_item" href="blog.html">Blog</a>
-                            <ul class="offcanvas__sub_menu">
-                                <li class="offcanvas__sub_menu_li"><a href="blog.html"
-                                        class="offcanvas__sub_menu_item">Blog Grid</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="blog-details.html"
-                                        class="offcanvas__sub_menu_item">Blog Details</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="blog-left-sidebar.html"
-                                        class="offcanvas__sub_menu_item">Blog Left Sidebar</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="blog-right-sidebar.html"
-                                        class="offcanvas__sub_menu_item">Blog Right Sidebar</a></li>
-                            </ul>
-                        </li>
-                        <li class="offcanvas__menu_li">
-                            <a class="offcanvas__menu_item" href="#">Pages</a>
-                            <ul class="offcanvas__sub_menu">
-                                <li class="offcanvas__sub_menu_li"><a href="about.html"
-                                        class="offcanvas__sub_menu_item">About Us</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="contact.html"
-                                        class="offcanvas__sub_menu_item">Contact Us</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="cart.html"
-                                        class="offcanvas__sub_menu_item">Cart Page</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="portfolio.html"
-                                        class="offcanvas__sub_menu_item">Portfolio Page</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="wishlist.html"
-                                        class="offcanvas__sub_menu_item">Wishlist Page</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="login.html"
-                                        class="offcanvas__sub_menu_item">Login Page</a></li>
-                                <li class="offcanvas__sub_menu_li"><a href="404.html"
-                                        class="offcanvas__sub_menu_item">Error Page</a></li>
-                            </ul>
-                        </li>
-                        <li class="offcanvas__menu_li"><a class="offcanvas__menu_item" href="about.html">About</a></li>
-                        <li class="offcanvas__menu_li"><a class="offcanvas__menu_item" href="contact.html">Contact</a>
-                        </li>
-                    </ul>
+                <ul class="offcanvas__menu_ul" id="offcanvas-menu-ul">
+                    <li class="offcanvas__menu_li"><a class="offcanvas__menu_item" href="/ana-sayfa">ANA SAYFA</a></li>
+                    <li class="offcanvas__menu_li"><a class="offcanvas__menu_item" href="/magaza">MAĞAZA</a></li>
+                </ul>
                     <div class="offcanvas__account--items">
-                        <a class="offcanvas__account--items__btn d-flex align-items-center" href="login.html">
+                        <a class="offcanvas__account--items__btn d-flex align-items-center" href="/giris-yap">
                             <span class="offcanvas__account--items__icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20.51" height="19.443"
-                                    viewBox="0 0 512 512">
-                                    <path
-                                        d="M344 144c-3.92 52.87-44 96-88 96s-84.15-43.12-88-96c-4-55 35-96 88-96s92 42 88 96z"
-                                        fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="32" />
-                                    <path
-                                        d="M256 304c-87 0-175.3 48-191.64 138.6C62.39 453.52 68.57 464 80 464h352c11.44 0 17.62-10.48 15.65-21.4C431.3 352 343 304 256 304z"
-                                        fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32" />
+                                     viewBox="0 0 512 512">
+                                    <path d="M344 144c-3.92 52.87-44 96-88 96s-84.15-43.12-88-96c-4-55 35-96 88-96s92 42 88 96z"
+                                          fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                          stroke-width="32" />
+                                    <path d="M256 304c-87 0-175.3 48-191.64 138.6C62.39 453.52 68.57 464 80 464h352c11.44 0 17.62-10.48 15.65-21.4C431.3 352 343 304 256 304z"
+                                          fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32" />
                                 </svg>
                             </span>
-                            <span class="offcanvas__account--items__label">Login / Register</span>
+                            <span class="offcanvas__account--items__label">Giriş Yap / Kayıt Ol</span>
                         </a>
                     </div>
                 </nav>
@@ -516,65 +580,63 @@
                     <a class="offcanvas__stikcy--toolbar__btn" href="/ana-sayfa">
                         <span class="offcanvas__stikcy--toolbar__icon">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" width="21.51" height="21.443"
-                                viewBox="0 0 22 17">
+                                 viewBox="0 0 22 17">
                                 <path fill="currentColor"
-                                    d="M20.9141 7.93359c.1406.11719.2109.26953.2109.45703 0 .14063-.0469.25782-.1406.35157l-.3516.42187c-.1172.14063-.2578.21094-.4219.21094-.1406 0-.2578-.04688-.3515-.14062l-.9844-.77344V15c0 .3047-.1172.5625-.3516.7734-.2109.2344-.4687.3516-.7734.3516h-4.5c-.3047 0-.5742-.1172-.8086-.3516-.2109-.2109-.3164-.4687-.3164-.7734v-3.6562h-2.25V15c0 .3047-.11719.5625-.35156.7734-.21094.2344-.46875.3516-.77344.3516h-4.5c-.30469 0-.57422-.1172-.80859-.3516-.21094-.2109-.31641-.4687-.31641-.7734V8.46094l-.94922.77344c-.11719.09374-.24609.14062-.38672.14062-.16406 0-.30468-.07031-.42187-.21094l-.35157-.42187C.921875 8.625.875 8.50781.875 8.39062c0-.1875.070312-.33984.21094-.45703L9.73438.832031C10.1094.527344 10.5312.375 11 .375s.8906.152344 1.2656.457031l8.6485 7.101559zm-3.7266 6.50391V7.05469L11 1.99219l-6.1875 5.0625v7.38281h3.375v-3.6563c0-.3046.10547-.5624.31641-.7734.23437-.23436.5039-.35155.80859-.35155h3.375c.3047 0 .5625.11719.7734.35155.2344.211.3516.4688.3516.7734v3.6563h3.375z">
+                                      d="M20.9141 7.93359c.1406.11719.2109.26953.2109.45703 0 .14063-.0469.25782-.1406.35157l-.3516.42187c-.1172.14063-.2578.21094-.4219.21094-.1406 0-.2578-.04688-.3515-.14062l-.9844-.77344V15c0 .3047-.1172.5625-.3516.7734-.2109.2344-.4687.3516-.7734.3516h-4.5c-.3047 0-.5742-.1172-.8086-.3516-.2109-.2109-.3164-.4687-.3164-.7734v-3.6562h-2.25V15c0 .3047-.11719.5625-.35156.7734-.21094.2344-.46875.3516-.77344.3516h-4.5c-.30469 0-.57422-.1172-.80859-.3516-.21094-.2109-.31641-.4687-.31641-.7734V8.46094l-.94922.77344c-.11719.09374-.24609.14062-.38672.14062-.16406 0-.30468-.07031-.42187-.21094l-.35157-.42187C.921875 8.625.875 8.50781.875 8.39062c0-.1875.070312-.33984.21094-.45703L9.73438.832031C10.1094.527344 10.5312.375 11 .375s.8906.152344 1.2656.457031l8.6485 7.101559zm-3.7266 6.50391V7.05469L11 1.99219l-6.1875 5.0625v7.38281h3.375v-3.6563c0-.3046.10547-.5624.31641-.7734.23437-.23436.5039-.35155.80859-.35155h3.375c.3047 0 .5625.11719.7734.35155.2344.211.3516.4688.3516.7734v3.6563h3.375z">
                                 </path>
                             </svg>
                         </span>
-                        <span class="offcanvas__stikcy--toolbar__label">Home</span>
-                    </a>
+                        @*                         <span class="offcanvas__stikcy--toolbar__label">Ana</span>
+ *@                    </a>
                 </li>
                 <li class="offcanvas__stikcy--toolbar__list">
-                    <a class="offcanvas__stikcy--toolbar__btn" href="shop.html">
+                    <a class="offcanvas__stikcy--toolbar__btn" href="/magaza">
                         <span class="offcanvas__stikcy--toolbar__icon">
-                            <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="18.51" height="17.443"
-                                viewBox="0 0 448 512">
-                                <path
-                                    d="M416 32H32A32 32 0 0 0 0 64v384a32 32 0 0 0 32 32h384a32 32 0 0 0 32-32V64a32 32 0 0 0-32-32zm-16 48v152H248V80zm-200 0v152H48V80zM48 432V280h152v152zm200 0V280h152v152z">
-                                </path>
-                            </svg>
+                          <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="18.51" height="17.443"
+     viewBox="0 0 576 512">
+    <path d="M547.6 103.8L490.3 13.1C485.2 5 476.1 0 466.4 0H109.6C99.9 0 90.8 5 85.7 13.1L28.3 103.8c-29.6 46.8-3.4 111.9 51.9 119.4c4 .5 8.1 .8 12.1 .8c26.1 0 49.3-11.4 65.2-29c15.9 17.6 39.1 29 65.2 29c26.1 0 49.3-11.4 65.2-29c15.9 17.6 39.1 29 65.2 29c26.2 0 49.3-11.4 65.2-29c16 17.6 39.1 29 65.2 29c4.1 0 8.1-.3 12.1-.8c55.5-7.4 81.8-72.5 52.1-119.4zM499.7 254.9l-.1 0c-5.3 .7-10.7 1.1-16.2 1.1c-12.4 0-24.3-1.9-35.4-5.3V384H128V250.6c-11.2 3.5-23.2 5.4-35.6 5.4c-5.5 0-11-.4-16.3-1.1l-.1 0c-4.1-.6-8.1-1.3-12-2.3V384v64c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V384 252.6c-4 1-8 1.8-12.3 2.3z"/>
+</svg>
                         </span>
-                        <span class="offcanvas__stikcy--toolbar__label">Shop</span>
-                    </a>
+                        @*                         <span class="offcanvas__stikcy--toolbar__label">Mağaza</span>
+ *@                    </a>
                 </li>
                 <li class="offcanvas__stikcy--toolbar__list ">
                     <a class="offcanvas__stikcy--toolbar__btn search__open--btn" href="javascript:void(0)"
-                        data-offcanvas>
+                       data-offcanvas>
                         <span class="offcanvas__stikcy--toolbar__icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22.51" height="20.443" viewBox="0 0 512 512">
                                 <path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z"
-                                    fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32" />
+                                      fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32" />
                                 <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10"
-                                    stroke-width="32" d="M338.29 338.29L448 448" />
+                                      stroke-width="32" d="M338.29 338.29L448 448" />
                             </svg>
                         </span>
-                        <span class="offcanvas__stikcy--toolbar__label">Search</span>
-                    </a>
+                        @*                         <span class="offcanvas__stikcy--toolbar__label">Ara</span>
+ *@                    </a>
                 </li>
                 <li class="offcanvas__stikcy--toolbar__list">
                     <a class="offcanvas__stikcy--toolbar__btn minicart__open--btn" href="javascript:void(0)"
-                        data-offcanvas>
+                       data-offcanvas>
                         <span class="offcanvas__stikcy--toolbar__icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22.706" height="22.534"
-                                viewBox="0 0 14.706 13.534">
+                                 viewBox="0 0 14.706 13.534">
                                 <g transform="translate(0 0)">
                                     <g>
                                         <path data-name="Path 16787"
-                                            d="M4.738,472.271h7.814a.434.434,0,0,0,.414-.328l1.723-6.316a.466.466,0,0,0-.071-.4.424.424,0,0,0-.344-.179H3.745L3.437,463.6a.435.435,0,0,0-.421-.353H.431a.451.451,0,0,0,0,.9h2.24c.054.257,1.474,6.946,1.555,7.33a1.36,1.36,0,0,0-.779,1.242,1.326,1.326,0,0,0,1.293,1.354h7.812a.452.452,0,0,0,0-.9H4.74a.451.451,0,0,1,0-.9Zm8.966-6.317-1.477,5.414H5.085l-1.149-5.414Z"
-                                            transform="translate(0 -463.248)" fill="currentColor" />
+                                              d="M4.738,472.271h7.814a.434.434,0,0,0,.414-.328l1.723-6.316a.466.466,0,0,0-.071-.4.424.424,0,0,0-.344-.179H3.745L3.437,463.6a.435.435,0,0,0-.421-.353H.431a.451.451,0,0,0,0,.9h2.24c.054.257,1.474,6.946,1.555,7.33a1.36,1.36,0,0,0-.779,1.242,1.326,1.326,0,0,0,1.293,1.354h7.812a.452.452,0,0,0,0-.9H4.74a.451.451,0,0,1,0-.9Zm8.966-6.317-1.477,5.414H5.085l-1.149-5.414Z"
+                                              transform="translate(0 -463.248)" fill="currentColor" />
                                         <path data-name="Path 16788"
-                                            d="M5.5,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,5.5,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,6.793,478.352Z"
-                                            transform="translate(-1.191 -466.622)" fill="currentColor" />
+                                              d="M5.5,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,5.5,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,6.793,478.352Z"
+                                              transform="translate(-1.191 -466.622)" fill="currentColor" />
                                         <path data-name="Path 16789"
-                                            d="M13.273,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,13.273,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,14.566,478.352Z"
-                                            transform="translate(-2.875 -466.622)" fill="currentColor" />
+                                              d="M13.273,478.8a1.294,1.294,0,1,0,1.293-1.353A1.325,1.325,0,0,0,13.273,478.8Zm1.293-.451a.452.452,0,1,1-.431.451A.442.442,0,0,1,14.566,478.352Z"
+                                              transform="translate(-2.875 -466.622)" fill="currentColor" />
                                     </g>
                                 </g>
                             </svg>
                         </span>
-                        <span class="offcanvas__stikcy--toolbar__label">Cart</span>
-                        <span class="items__count cart-badge">0</span>
+                        @*                         <span class="offcanvas__stikcy--toolbar__label">Sepet</span>
+ *@                        <span class="items__count cart-badge">0</span>
                     </a>
                 </li>
 
@@ -589,7 +651,7 @@
                     <button class="minicart__close--btn" aria-label="minicart close btn" data-offcanvas>
                         <svg class="minicart__close--icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                             <path fill="currentColor" stroke="currentColor" stroke-linecap="round"
-                                stroke-linejoin="round" stroke-width="32" d="M368 368L144 144M368 144L144 368" />
+                                  stroke-linejoin="round" stroke-width="32" d="M368 368L144 144M368 144L144 368" />
                         </svg>
                     </button>
                 </div>
@@ -615,7 +677,6 @@
                 </div>
             </div>
             <div class="minicart__conditions text-center">
-             
             </div>
             <div class="minicart__button d-flex justify-content-center">
                 <a class="primary__btn minicart__button--link" href="/sepet">Sepeti Görüntüle</a>
@@ -626,26 +687,27 @@
         <!-- Start serch box area -->
         <div class="predictive__search--box ">
             <div class="predictive__search--box__inner">
-                <h2 class="predictive__search--title">Search Products</h2>
-                <form class="predictive__search--form" action="#">
+                <h2 class="predictive__search--title">Ürün Ara</h2>
+                <form class="predictive__search--form" action="#" onsubmit="return false;">
                     <label>
-                        <input class="predictive__search--input" placeholder="Search Here" type="text">
+                        <input class="predictive__search--input" id="header-search-input-mobile" placeholder="Aradığınız parçayı bulun!" type="text">
                     </label>
-                    <button class="predictive__search--button text-white" aria-label="search button"><svg
-                            class="product__items--action__btn--svg" xmlns="http://www.w3.org/2000/svg" width="30.51"
-                            height="25.443" viewBox="0 0 512 512">
+                    <button class="predictive__search--button text-white" type="button" aria-label="search button" onclick="window.location.href = '/magaza?searchTerm=' + document.getElementById('header-search-input-mobile').value.trim();">
+                        <svg class="product__items--action__btn--svg" xmlns="http://www.w3.org/2000/svg" width="30.51"
+                             height="25.443" viewBox="0 0 512 512">
                             <path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none"
-                                stroke="currentColor" stroke-miterlimit="10" stroke-width="32" />
+                                  stroke="currentColor" stroke-miterlimit="10" stroke-width="32" />
                             <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10"
-                                stroke-width="32" d="M338.29 338.29L448 448" />
-                        </svg> </button>
+                                  stroke-width="32" d="M338.29 338.29L448 448" />
+                        </svg>
+                    </button>
                 </form>
             </div>
             <button class="predictive__search--close__btn" aria-label="search close" data-offcanvas>
                 <svg class="predictive__search--close__icon" xmlns="http://www.w3.org/2000/svg" width="40.51"
-                    height="30.443" viewBox="0 0 512 512">
+                     height="30.443" viewBox="0 0 512 512">
                     <path fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="32" d="M368 368L144 144M368 144L144 368" />
+                          stroke-width="32" d="M368 368L144 144M368 144L144 368" />
                 </svg>
             </button>
         </div>
@@ -655,8 +717,40 @@
     <!-- End header area -->
 
     <main class="main__content_wrapper">
+        @if (ViewData["BreadcrumbItems"] is IList<BreadcrumbItem> breadcrumbItems && breadcrumbItems.Count > 0)
+        {
+            <section class="breadcrumb__section breadcrumb__bg" aria-label="Breadcrumb">
+                <div class="container">
+                    <div class="row row-cols-1">
+                        <div class="col">
+                            <nav class="breadcrumb__content">
+                                <ol class="breadcrumb__content--menu d-flex flex-wrap align-items-center list-unstyled mb-0" id="breadcrumb-list" itemscope itemtype="https://schema.org/BreadcrumbList">
+                                    @for (var i = 0; i < breadcrumbItems.Count; i++)
+                                    {
+                                        var item = breadcrumbItems[i];
+                                        <li class="breadcrumb__content--menu__items" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                                            @if (!string.IsNullOrEmpty(item.Url))
+                                            {
+                                                <a href="@item.Url" itemprop="item">
+                                                    <span itemprop="name">@item.Text</span>
+                                                </a>
+                                                <meta itemprop="position" content="@(i + 1)" />
+                                            }
+                                            else
+                                            {
+                                                <span itemprop="name" class="text-secondary">@item.Text</span>
+                                                <meta itemprop="position" content="@(i + 1)" />
+                                            }
+                                        </li>
+                                    }
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        }
         @RenderBody()
-
 
     </main>
 
@@ -669,11 +763,11 @@
                         <div class="footer__widget">
                             <h2 class="footer__widget--title">
                                 Hakkımızda <button class="footer__widget--button"
-                                    aria-label="footer widget button"></button>
+                                                   aria-label="footer widget button"></button>
                                 <svg class="footer__widget--title__arrowdown--icon" xmlns="http://www.w3.org/2000/svg"
-                                    width="12.355" height="8.394" viewBox="0 0 10.355 6.394">
+                                     width="12.355" height="8.394" viewBox="0 0 10.355 6.394">
                                     <path d="M15.138,8.59l-3.961,3.952L7.217,8.59,6,9.807l5.178,5.178,5.178-5.178Z"
-                                        transform="translate(-6 -8.59)" fill="currentColor"></path>
+                                          transform="translate(-6 -8.59)" fill="currentColor"></path>
                                 </svg>
                             </h2>
                             <div class="footer__widget--inner">
@@ -687,12 +781,11 @@
                                 <ul class="social__share footer__social d-flex">
                                     <li class="social__share--list">
                                         <a class="social__share--icon__style2" target="_blank"
-                                            href="https://www.instagram.com/otomar.com.tr/">
+                                           href="https://www.instagram.com/otomar.com.tr/">
                                             <svg width="16" height="15" viewBox="0 0 14 13" fill="none"
-                                                xmlns="http://www.w3.org/2000/svg">
-                                                <path
-                                                    d="M7.125 3.60547C5.375 3.60547 3.98047 5.02734 3.98047 6.75C3.98047 8.5 5.375 9.89453 7.125 9.89453C8.84766 9.89453 10.2695 8.5 10.2695 6.75C10.2695 5.02734 8.84766 3.60547 7.125 3.60547ZM7.125 8.80078C6.00391 8.80078 5.07422 7.89844 5.07422 6.75C5.07422 5.62891 5.97656 4.72656 7.125 4.72656C8.24609 4.72656 9.14844 5.62891 9.14844 6.75C9.14844 7.89844 8.24609 8.80078 7.125 8.80078ZM11.1172 3.49609C11.1172 3.08594 10.7891 2.75781 10.3789 2.75781C9.96875 2.75781 9.64062 3.08594 9.64062 3.49609C9.64062 3.90625 9.96875 4.23438 10.3789 4.23438C10.7891 4.23438 11.1172 3.90625 11.1172 3.49609ZM13.1953 4.23438C13.1406 3.25 12.9219 2.375 12.2109 1.66406C11.5 0.953125 10.625 0.734375 9.64062 0.679688C8.62891 0.625 5.59375 0.625 4.58203 0.679688C3.59766 0.734375 2.75 0.953125 2.01172 1.66406C1.30078 2.375 1.08203 3.25 1.02734 4.23438C0.972656 5.24609 0.972656 8.28125 1.02734 9.29297C1.08203 10.2773 1.30078 11.125 2.01172 11.8633C2.75 12.5742 3.59766 12.793 4.58203 12.8477C5.59375 12.9023 8.62891 12.9023 9.64062 12.8477C10.625 12.793 11.5 12.5742 12.2109 11.8633C12.9219 11.125 13.1406 10.2773 13.1953 9.29297C13.25 8.28125 13.25 5.24609 13.1953 4.23438ZM11.8828 10.3594C11.6914 10.9062 11.2539 11.3164 10.7344 11.5352C9.91406 11.8633 8 11.7812 7.125 11.7812C6.22266 11.7812 4.30859 11.8633 3.51562 11.5352C2.96875 11.3164 2.55859 10.9062 2.33984 10.3594C2.01172 9.56641 2.09375 7.65234 2.09375 6.75C2.09375 5.875 2.01172 3.96094 2.33984 3.14062C2.55859 2.62109 2.96875 2.21094 3.51562 1.99219C4.30859 1.66406 6.22266 1.74609 7.125 1.74609C8 1.74609 9.91406 1.66406 10.7344 1.99219C11.2539 2.18359 11.6641 2.62109 11.8828 3.14062C12.2109 3.96094 12.1289 5.875 12.1289 6.75C12.1289 7.65234 12.2109 9.56641 11.8828 10.3594Z"
-                                                    fill="currentColor" />
+                                                 xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M7.125 3.60547C5.375 3.60547 3.98047 5.02734 3.98047 6.75C3.98047 8.5 5.375 9.89453 7.125 9.89453C8.84766 9.89453 10.2695 8.5 10.2695 6.75C10.2695 5.02734 8.84766 3.60547 7.125 3.60547ZM7.125 8.80078C6.00391 8.80078 5.07422 7.89844 5.07422 6.75C5.07422 5.62891 5.97656 4.72656 7.125 4.72656C8.24609 4.72656 9.14844 5.62891 9.14844 6.75C9.14844 7.89844 8.24609 8.80078 7.125 8.80078ZM11.1172 3.49609C11.1172 3.08594 10.7891 2.75781 10.3789 2.75781C9.96875 2.75781 9.64062 3.08594 9.64062 3.49609C9.64062 3.90625 9.96875 4.23438 10.3789 4.23438C10.7891 4.23438 11.1172 3.90625 11.1172 3.49609ZM13.1953 4.23438C13.1406 3.25 12.9219 2.375 12.2109 1.66406C11.5 0.953125 10.625 0.734375 9.64062 0.679688C8.62891 0.625 5.59375 0.625 4.58203 0.679688C3.59766 0.734375 2.75 0.953125 2.01172 1.66406C1.30078 2.375 1.08203 3.25 1.02734 4.23438C0.972656 5.24609 0.972656 8.28125 1.02734 9.29297C1.08203 10.2773 1.30078 11.125 2.01172 11.8633C2.75 12.5742 3.59766 12.793 4.58203 12.8477C5.59375 12.9023 8.62891 12.9023 9.64062 12.8477C10.625 12.793 11.5 12.5742 12.2109 11.8633C12.9219 11.125 13.1406 10.2773 13.1953 9.29297C13.25 8.28125 13.25 5.24609 13.1953 4.23438ZM11.8828 10.3594C11.6914 10.9062 11.2539 11.3164 10.7344 11.5352C9.91406 11.8633 8 11.7812 7.125 11.7812C6.22266 11.7812 4.30859 11.8633 3.51562 11.5352C2.96875 11.3164 2.55859 10.9062 2.33984 10.3594C2.01172 9.56641 2.09375 7.65234 2.09375 6.75C2.09375 5.875 2.01172 3.96094 2.33984 3.14062C2.55859 2.62109 2.96875 2.21094 3.51562 1.99219C4.30859 1.66406 6.22266 1.74609 7.125 1.74609C8 1.74609 9.91406 1.66406 10.7344 1.99219C11.2539 2.18359 11.6641 2.62109 11.8828 3.14062C12.2109 3.96094 12.1289 5.875 12.1289 6.75C12.1289 7.65234 12.2109 9.56641 11.8828 10.3594Z"
+                                                      fill="currentColor" />
                                             </svg>
                                             <span class="visually-hidden">Instagram</span>
                                         </a>
@@ -706,27 +799,39 @@
                         <div class="footer__widget">
                             <h2 class="footer__widget--title ">
                                 HIZLI ERİŞİM <button class="footer__widget--button"
-                                    aria-label="footer widget button"></button>
+                                                     aria-label="footer widget button"></button>
                                 <svg class="footer__widget--title__arrowdown--icon" xmlns="http://www.w3.org/2000/svg"
-                                    width="12.355" height="8.394" viewBox="0 0 10.355 6.394">
+                                     width="12.355" height="8.394" viewBox="0 0 10.355 6.394">
                                     <path d="M15.138,8.59l-3.961,3.952L7.217,8.59,6,9.807l5.178,5.178,5.178-5.178Z"
-                                        transform="translate(-6 -8.59)" fill="currentColor"></path>
+                                          transform="translate(-6 -8.59)" fill="currentColor"></path>
                                 </svg>
                             </h2>
                             <ul class="footer__widget--menu footer__widget--inner">
 
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/iletisim">İletişim</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/hesabim">Hesabım</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/sepet">Sepetim</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/hesabim">Sipariş Takibi</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/satis-sozlesmesi">Kargo ve Teslimat</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/gizlilik-ve-guvenlik">Güvenli Alışveriş</a></li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/iletisim">İletişim</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/hesabim">Hesabım</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/sepet">Sepetim</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="#">Sipariş Takibi</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/satis-sozlesmesi">Kargo ve Teslimat</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/gizlilik-ve-guvenlik">Güvenli Alışveriş</a>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -734,26 +839,38 @@
                         <div class="footer__widget">
                             <h2 class="footer__widget--title ">
                                 KAYNAKLAR <button class="footer__widget--button"
-                                    aria-label="footer widget button"></button>
+                                                  aria-label="footer widget button"></button>
                                 <svg class="footer__widget--title__arrowdown--icon" xmlns="http://www.w3.org/2000/svg"
-                                    width="12.355" height="8.394" viewBox="0 0 10.355 6.394">
+                                     width="12.355" height="8.394" viewBox="0 0 10.355 6.394">
                                     <path d="M15.138,8.59l-3.961,3.952L7.217,8.59,6,9.807l5.178,5.178,5.178-5.178Z"
-                                        transform="translate(-6 -8.59)" fill="currentColor"></path>
+                                          transform="translate(-6 -8.59)" fill="currentColor"></path>
                                 </svg>
                             </h2>
                             <ul class="footer__widget--menu footer__widget--inner">
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/satis-sozlesmesi">Satış Sözleşmesi</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/gizlilik-ve-guvenlik">Gizlilik ve Güvenlik</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/odeme-ve-teslimat">Ödeme ve Teslimat</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/iade-ve-degisim">İade ve Değişim</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/gizlilik-politikasi">Gizlilik Politikası</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/sartlar-ve-kosullar">Şartlar ve Koşullar</a></li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/kaynaklar/satis-sozlesmesi">Satış Sözleşmesi</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/kaynaklar/gizlilik-ve-guvenlik">Gizlilik ve Güvenlik</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/kaynaklar/odeme-ve-teslimat">Ödeme ve Teslimat</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/kaynaklar/iade-ve-degisim">İade ve Değişim</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/kaynaklar/gizlilik-politikasi">Gizlilik Politikası</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/kaynaklar/sartlar-ve-kosullar">Şartlar ve Koşullar</a>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -761,38 +878,49 @@
                         <div class="footer__widget">
                             <h2 class="footer__widget--title ">
                                 KATEGORİLER <button class="footer__widget--button"
-                                    aria-label="footer widget button"></button>
+                                                    aria-label="footer widget button"></button>
                                 <svg class="footer__widget--title__arrowdown--icon" xmlns="http://www.w3.org/2000/svg"
-                                    width="12.355" height="8.394" viewBox="0 0 10.355 6.394">
+                                     width="12.355" height="8.394" viewBox="0 0 10.355 6.394">
                                     <path d="M15.138,8.59l-3.961,3.952L7.217,8.59,6,9.807l5.178,5.178,5.178-5.178Z"
-                                        transform="translate(-6 -8.59)" fill="currentColor"></path>
+                                          transform="translate(-6 -8.59)" fill="currentColor"></path>
                                 </svg>
                             </h2>
                             <ul class="footer__widget--menu footer__widget--inner">
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/magaza/fiat">FIAT Yedek Parça</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/magaza/jeep">JEEP Yedek Parça</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/magaza/peugeot">PEUGEOT Yedek Parça</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/magaza/citroen">CITROEN Yedek Parça</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/magaza/alfa-romeo">ALFA ROMEO Yedek Parça</a></li>
-                                <li class="footer__widget--menu__list"><a class="footer__widget--menu__text"
-                                        href="/magaza">Tüm Kategoriler</a></li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/magaza/marka/fiat">FIAT Yedek Parça</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/magaza/marka/jeep">JEEP Yedek Parça</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/magaza/marka/peugeot">PEUGEOT Yedek Parça</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/magaza/marka/citroen">CITROEN Yedek Parça</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/magaza/marka/alfa-romeo">ALFA ROMEO Yedek Parça</a>
+                                </li>
+                                <li class="footer__widget--menu__list">
+                                    <a class="footer__widget--menu__text"
+                                       href="/magaza">Tüm Kategoriler</a>
+                                </li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="shipping__inner d-flex">
+            <div class="shipping__inner d-flex" style="margin-bottom:0px !important">
                 <div class="shipping__items d-flex align-items-center">
                     <div class="shipping__icon text-white">
                         <svg width="38" height="35" viewBox="0 0 38 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M0 10.4315V14.4875C0 15.435 0.781458 16.2008 1.73129 16.2008H3.27884V32.3184C3.27884 33.7058 4.42779 34.8352 5.82973 34.8429H32.0509C33.4528 34.8429 34.594 33.7058 34.6018 32.3184V16.1938H36.1493C37.0991 16.1938 37.8806 15.4281 37.8806 14.4805V10.4245C37.8806 9.47692 37.0991 8.71112 36.1493 8.71112H28.42C29.3544 7.84699 29.9214 6.6871 30.021 5.42094C30.1281 4.07921 29.6994 2.77522 28.8182 1.75943C27.9373 0.736001 26.7041 0.114302 25.348 0.0159745C23.9922 -0.0900256 22.6746 0.334271 21.6481 1.20635C19.9476 2.6468 18.7067 4.8755 17.8332 6.98294C17.1361 5.40604 16.1786 3.7914 14.8995 2.70738C13.1069 1.19115 10.4028 1.39583 8.87062 3.17736C8.12764 4.03385 7.76754 5.13315 7.85957 6.2553C7.9362 7.18001 8.304 8.03689 8.90907 8.71917H1.73901C0.781536 8.71917 0.00772156 9.48492 7.87486e-05 10.4325L0 10.4315ZM1.83065 14.3888V10.5226H11.7206C11.7588 10.5302 11.8049 10.5302 11.8431 10.5302C11.889 10.5302 11.9274 10.5302 11.9733 10.5226H25.1796C25.2178 10.5302 25.2562 10.5302 25.2944 10.5302C25.3326 10.5302 25.3633 10.5302 25.4015 10.5226H36.0415V14.3888H33.6975H33.6744H4.18971H4.16663H1.83029H1.83065ZM32.7706 32.3177C32.7706 32.7118 32.4413 33.0378 32.043 33.0378H22.8732V16.1927H32.7703L32.7706 32.3177ZM16.8295 16.1931H21.0427V33.0382H16.8295V16.1931ZM14.9985 33.0382H5.82871C5.43044 33.0382 5.10111 32.7123 5.10111 32.3181V16.1936H14.9982L14.9985 33.0382ZM13.635 4.018C13.6581 4.03323 13.6809 4.05577 13.6963 4.071C15.0293 5.2004 15.9714 7.16413 16.561 8.71055H12.0185C11.4824 8.46048 10.9767 8.14187 10.5172 7.76299C9.4753 6.91376 9.32205 5.37498 10.1801 4.34391C11.0456 3.32048 12.5931 3.16882 13.635 4.018L13.635 4.018ZM19.112 8.71845C19.8322 6.73982 21.0655 4.08654 22.8272 2.58551C24.1983 1.43326 26.259 1.59256 27.4233 2.9495C28.5876 4.29886 28.4266 6.33808 27.0632 7.49797C26.4658 7.98319 25.8068 8.40015 25.102 8.72609H19.1116L19.112 8.71845Z"
-                                fill="currentColor" />
+                            <path d="M0 10.4315V14.4875C0 15.435 0.781458 16.2008 1.73129 16.2008H3.27884V32.3184C3.27884 33.7058 4.42779 34.8352 5.82973 34.8429H32.0509C33.4528 34.8429 34.594 33.7058 34.6018 32.3184V16.1938H36.1493C37.0991 16.1938 37.8806 15.4281 37.8806 14.4805V10.4245C37.8806 9.47692 37.0991 8.71112 36.1493 8.71112H28.42C29.3544 7.84699 29.9214 6.6871 30.021 5.42094C30.1281 4.07921 29.6994 2.77522 28.8182 1.75943C27.9373 0.736001 26.7041 0.114302 25.348 0.0159745C23.9922 -0.0900256 22.6746 0.334271 21.6481 1.20635C19.9476 2.6468 18.7067 4.8755 17.8332 6.98294C17.1361 5.40604 16.1786 3.7914 14.8995 2.70738C13.1069 1.19115 10.4028 1.39583 8.87062 3.17736C8.12764 4.03385 7.76754 5.13315 7.85957 6.2553C7.9362 7.18001 8.304 8.03689 8.90907 8.71917H1.73901C0.781536 8.71917 0.00772156 9.48492 7.87486e-05 10.4325L0 10.4315ZM1.83065 14.3888V10.5226H11.7206C11.7588 10.5302 11.8049 10.5302 11.8431 10.5302C11.889 10.5302 11.9274 10.5302 11.9733 10.5226H25.1796C25.2178 10.5302 25.2562 10.5302 25.2944 10.5302C25.3326 10.5302 25.3633 10.5302 25.4015 10.5226H36.0415V14.3888H33.6975H33.6744H4.18971H4.16663H1.83029H1.83065ZM32.7706 32.3177C32.7706 32.7118 32.4413 33.0378 32.043 33.0378H22.8732V16.1927H32.7703L32.7706 32.3177ZM16.8295 16.1931H21.0427V33.0382H16.8295V16.1931ZM14.9985 33.0382H5.82871C5.43044 33.0382 5.10111 32.7123 5.10111 32.3181V16.1936H14.9982L14.9985 33.0382ZM13.635 4.018C13.6581 4.03323 13.6809 4.05577 13.6963 4.071C15.0293 5.2004 15.9714 7.16413 16.561 8.71055H12.0185C11.4824 8.46048 10.9767 8.14187 10.5172 7.76299C9.4753 6.91376 9.32205 5.37498 10.1801 4.34391C11.0456 3.32048 12.5931 3.16882 13.635 4.018L13.635 4.018ZM19.112 8.71845C19.8322 6.73982 21.0655 4.08654 22.8272 2.58551C24.1983 1.43326 26.259 1.59256 27.4233 2.9495C28.5876 4.29886 28.4266 6.33808 27.0632 7.49797C26.4658 7.98319 25.8068 8.40015 25.102 8.72609H19.1116L19.112 8.71845Z"
+                                  fill="currentColor" />
                         </svg>
                     </div>
                     <div class="shipping__content">
@@ -804,38 +932,38 @@
                     <div class="shipping__icon text-white">
                         <svg width="39" height="37" viewBox="0 0 39 37" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M34.4506 19.1161C34.0912 19.1161 33.8007 18.84 33.8007 18.4995V16.6495C33.8007 10.0795 27.5195 4.93302 19.5002 4.93302C11.4809 4.93302 5.20048 10.0797 5.20048 16.6495V18.4995C5.20048 18.84 4.90993 19.1161 4.55057 19.1161C4.19093 19.1161 3.90039 18.84 3.90039 18.4995V16.6495C3.90039 9.38758 10.7529 3.69946 19.5004 3.69946C28.2482 3.69946 35.1004 9.38758 35.1004 16.6495V18.4995C35.1004 18.84 34.8098 19.1161 34.4505 19.1161"
-                                fill="currentColor" />
+                                  d="M34.4506 19.1161C34.0912 19.1161 33.8007 18.84 33.8007 18.4995V16.6495C33.8007 10.0795 27.5195 4.93302 19.5002 4.93302C11.4809 4.93302 5.20048 10.0797 5.20048 16.6495V18.4995C5.20048 18.84 4.90993 19.1161 4.55057 19.1161C4.19093 19.1161 3.90039 18.84 3.90039 18.4995V16.6495C3.90039 9.38758 10.7529 3.69946 19.5004 3.69946C28.2482 3.69946 35.1004 9.38758 35.1004 16.6495V18.4995C35.1004 18.84 34.8098 19.1161 34.4505 19.1161"
+                                  fill="currentColor" />
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M6.50032 19.1436C3.66377 19.381 1.30023 21.1391 1.30023 23.1249C1.30023 25.1104 3.66377 26.8686 6.50032 27.106V19.1436ZM7.15023 28.3665C3.27419 28.3665 0 25.9657 0 23.1249C0 20.2838 3.27405 17.8831 7.15023 17.8831C7.5096 17.8831 7.80013 18.1595 7.80013 18.4999V27.7499C7.80013 28.0904 7.50959 28.3665 7.15023 28.3665V28.3665Z"
-                                fill="currentColor" />
+                                  d="M6.50032 19.1436C3.66377 19.381 1.30023 21.1391 1.30023 23.1249C1.30023 25.1104 3.66377 26.8686 6.50032 27.106V19.1436ZM7.15023 28.3665C3.27419 28.3665 0 25.9657 0 23.1249C0 20.2838 3.27405 17.8831 7.15023 17.8831C7.5096 17.8831 7.80013 18.1595 7.80013 18.4999V27.7499C7.80013 28.0904 7.50959 28.3665 7.15023 28.3665V28.3665Z"
+                                  fill="currentColor" />
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M38.3502 23.4334C37.9908 23.4334 37.7003 23.157 37.7003 22.8166V19.1165C37.7003 7.75154 31.0662 1.23356 19.4998 1.23356C7.76363 1.23356 1.30008 7.58444 1.30008 19.1165V22.8166C1.30008 23.157 1.00954 23.4334 0.650178 23.4334C0.290536 23.4334 0 23.157 0 22.8166V19.1165C0 6.96727 7.10774 0 19.5 0C31.8922 0 39 6.96793 39 19.1165V22.8166C39 23.157 38.7094 23.4334 38.3501 23.4334"
-                                fill="currentColor" />
+                                  d="M38.3502 23.4334C37.9908 23.4334 37.7003 23.157 37.7003 22.8166V19.1165C37.7003 7.75154 31.0662 1.23356 19.4998 1.23356C7.76363 1.23356 1.30008 7.58444 1.30008 19.1165V22.8166C1.30008 23.157 1.00954 23.4334 0.650178 23.4334C0.290536 23.4334 0 23.157 0 22.8166V19.1165C0 6.96727 7.10774 0 19.5 0C31.8922 0 39 6.96793 39 19.1165V22.8166C39 23.157 38.7094 23.4334 38.3501 23.4334"
+                                  fill="currentColor" />
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M19.5016 36.9998C19.1422 36.9998 18.8517 36.7237 18.8517 36.3833C18.8517 35.0229 20.0176 33.9164 21.4516 33.9164H24.3428C26.3658 33.9164 28.2167 32.5944 28.9507 30.6278C29.0704 30.3065 29.4409 30.1369 29.7801 30.2518C30.1188 30.3659 30.2957 30.7179 30.176 31.0384C29.2595 33.4978 26.915 35.1499 24.3428 35.1499H21.4515C20.7347 35.1499 20.1517 35.703 20.1517 36.3833C20.1517 36.7237 19.8612 36.9999 19.5015 36.9999"
-                                fill="currentColor" />
+                                  d="M19.5016 36.9998C19.1422 36.9998 18.8517 36.7237 18.8517 36.3833C18.8517 35.0229 20.0176 33.9164 21.4516 33.9164H24.3428C26.3658 33.9164 28.2167 32.5944 28.9507 30.6278C29.0704 30.3065 29.4409 30.1369 29.7801 30.2518C30.1188 30.3659 30.2957 30.7179 30.176 31.0384C29.2595 33.4978 26.915 35.1499 24.3428 35.1499H21.4515C20.7347 35.1499 20.1517 35.703 20.1517 36.3833C20.1517 36.7237 19.8612 36.9999 19.5015 36.9999"
+                                  fill="currentColor" />
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M19.5001 37C19.1407 37 18.8502 36.7238 18.8502 36.3834C18.8502 35.703 18.2672 35.15 17.5501 35.15H14.6591C12.0875 35.15 9.743 33.4984 8.8265 31.0398C8.7068 30.7185 8.88363 30.3665 9.22178 30.2529C9.56292 30.1388 9.93206 30.3079 10.0518 30.6284C10.7855 32.5951 12.6367 33.9166 14.6591 33.9166H17.5501C18.984 33.9166 20.1503 35.023 20.1503 36.3834C20.1503 36.7238 19.8597 37 19.5001 37"
-                                fill="currentColor" />
+                                  d="M19.5001 37C19.1407 37 18.8502 36.7238 18.8502 36.3834C18.8502 35.703 18.2672 35.15 17.5501 35.15H14.6591C12.0875 35.15 9.743 33.4984 8.8265 31.0398C8.7068 30.7185 8.88363 30.3665 9.22178 30.2529C9.56292 30.1388 9.93206 30.3079 10.0518 30.6284C10.7855 32.5951 12.6367 33.9166 14.6591 33.9166H17.5501C18.984 33.9166 20.1503 35.023 20.1503 36.3834C20.1503 36.7238 19.8597 37 19.5001 37"
+                                  fill="currentColor" />
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M9.10186 16.6499C8.38502 16.6499 7.80177 17.203 7.80177 17.8834V28.9834C7.80177 29.6635 8.38502 30.2166 9.10186 30.2166C9.81869 30.2166 10.4019 29.6635 10.4019 28.9834V17.8834C10.4019 17.203 9.81869 16.6499 9.10186 16.6499ZM9.10186 31.45C7.66791 31.45 6.50195 30.3438 6.50195 28.9834V17.8834C6.50195 16.5229 7.66791 15.4165 9.10186 15.4165C10.5358 15.4165 11.7018 16.5229 11.7018 17.8834V28.9834C11.7018 30.3438 10.5358 31.45 9.10186 31.45Z"
-                                fill="currentColor" />
+                                  d="M9.10186 16.6499C8.38502 16.6499 7.80177 17.203 7.80177 17.8834V28.9834C7.80177 29.6635 8.38502 30.2166 9.10186 30.2166C9.81869 30.2166 10.4019 29.6635 10.4019 28.9834V17.8834C10.4019 17.203 9.81869 16.6499 9.10186 16.6499ZM9.10186 31.45C7.66791 31.45 6.50195 30.3438 6.50195 28.9834V17.8834C6.50195 16.5229 7.66791 15.4165 9.10186 15.4165C10.5358 15.4165 11.7018 16.5229 11.7018 17.8834V28.9834C11.7018 30.3438 10.5358 31.45 9.10186 31.45Z"
+                                  fill="currentColor" />
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M32.5013 19.1435V27.1058C35.3378 26.8683 37.7013 25.1102 37.7013 23.1247C37.7013 21.1389 35.3378 19.3808 32.5013 19.1433V19.1435ZM31.8513 28.3663C31.4917 28.3663 31.2012 28.0901 31.2012 27.7497V18.4997C31.2012 18.1592 31.4917 17.8828 31.8513 17.8828C35.7271 17.8828 39.0009 20.2836 39.0009 23.1247C39.0009 25.9655 35.7268 28.3663 31.8513 28.3663"
-                                fill="currentColor" />
+                                  d="M32.5013 19.1435V27.1058C35.3378 26.8683 37.7013 25.1102 37.7013 23.1247C37.7013 21.1389 35.3378 19.3808 32.5013 19.1433V19.1435ZM31.8513 28.3663C31.4917 28.3663 31.2012 28.0901 31.2012 27.7497V18.4997C31.2012 18.1592 31.4917 17.8828 31.8513 17.8828C35.7271 17.8828 39.0009 20.2836 39.0009 23.1247C39.0009 25.9655 35.7268 28.3663 31.8513 28.3663"
+                                  fill="currentColor" />
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M29.901 16.6499C29.1839 16.6499 28.6009 17.203 28.6009 17.8834V28.9834C28.6009 29.6635 29.1839 30.2166 29.901 30.2166C30.6178 30.2166 31.2008 29.6635 31.2008 28.9834V17.8834C31.2008 17.203 30.6178 16.6499 29.901 16.6499ZM29.901 31.45C28.467 31.45 27.3008 30.3438 27.3008 28.9834V17.8834C27.3008 16.5229 28.467 15.4165 29.901 15.4165C31.3346 15.4165 32.5009 16.5229 32.5009 17.8834V28.9834C32.5009 30.3438 31.3346 31.45 29.901 31.45Z"
-                                fill="currentColor" />
+                                  d="M29.901 16.6499C29.1839 16.6499 28.6009 17.203 28.6009 17.8834V28.9834C28.6009 29.6635 29.1839 30.2166 29.901 30.2166C30.6178 30.2166 31.2008 29.6635 31.2008 28.9834V17.8834C31.2008 17.203 30.6178 16.6499 29.901 16.6499ZM29.901 31.45C28.467 31.45 27.3008 30.3438 27.3008 28.9834V17.8834C27.3008 16.5229 28.467 15.4165 29.901 15.4165C31.3346 15.4165 32.5009 16.5229 32.5009 17.8834V28.9834C32.5009 30.3438 31.3346 31.45 29.901 31.45Z"
+                                  fill="currentColor" />
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M19.4979 18.4998C16.6309 18.4998 14.2981 20.7129 14.2981 23.4332C14.2981 26.1533 16.6309 28.3664 19.4979 28.3664C22.3653 28.3664 24.698 26.1533 24.698 23.4332C24.698 20.7129 22.3653 18.4998 19.4979 18.4998ZM19.4979 29.5998C15.9138 29.5998 12.998 26.8333 12.998 23.4332C12.998 20.0328 15.9138 17.2664 19.4979 17.2664C23.0821 17.2664 25.9981 20.0328 25.9981 23.4332C25.9981 26.8333 23.0821 29.5998 19.4979 29.5998Z"
-                                fill="currentColor" />
+                                  d="M19.4979 18.4998C16.6309 18.4998 14.2981 20.7129 14.2981 23.4332C14.2981 26.1533 16.6309 28.3664 19.4979 28.3664C22.3653 28.3664 24.698 26.1533 24.698 23.4332C24.698 20.7129 22.3653 18.4998 19.4979 18.4998ZM19.4979 29.5998C15.9138 29.5998 12.998 26.8333 12.998 23.4332C12.998 20.0328 15.9138 17.2664 19.4979 17.2664C23.0821 17.2664 25.9981 20.0328 25.9981 23.4332C25.9981 26.8333 23.0821 29.5998 19.4979 29.5998Z"
+                                  fill="currentColor" />
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M19.5018 18.4998C18.7063 18.4998 17.5518 20.4221 17.5518 23.4332C17.5518 26.4444 18.7063 28.3664 19.5018 28.3664C20.2975 28.3664 21.4518 26.4444 21.4518 23.4332C21.4518 20.4221 20.2975 18.4998 19.5018 18.4998ZM19.5018 29.5998C17.6486 29.5998 16.252 26.9487 16.252 23.4332C16.252 19.9175 17.6486 17.2664 19.5018 17.2664C21.3549 17.2664 22.7519 19.9175 22.7519 23.4332C22.7519 26.9487 21.3549 29.5998 19.5018 29.5998Z"
-                                fill="currentColor" />
+                                  d="M19.5018 18.4998C18.7063 18.4998 17.5518 20.4221 17.5518 23.4332C17.5518 26.4444 18.7063 28.3664 19.5018 28.3664C20.2975 28.3664 21.4518 26.4444 21.4518 23.4332C21.4518 20.4221 20.2975 18.4998 19.5018 18.4998ZM19.5018 29.5998C17.6486 29.5998 16.252 26.9487 16.252 23.4332C16.252 19.9175 17.6486 17.2664 19.5018 17.2664C21.3549 17.2664 22.7519 19.9175 22.7519 23.4332C22.7519 26.9487 21.3549 29.5998 19.5018 29.5998Z"
+                                  fill="currentColor" />
                             <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M25.3479 24.0498H13.648C13.2886 24.0498 12.998 23.7737 12.998 23.4332C12.998 23.0928 13.2886 22.8164 13.648 22.8164H25.3479C25.7076 22.8164 25.9981 23.0928 25.9981 23.4332C25.9981 23.7737 25.7076 24.0498 25.3479 24.0498Z"
-                                fill="currentColor" />
+                                  d="M25.3479 24.0498H13.648C13.2886 24.0498 12.998 23.7737 12.998 23.4332C12.998 23.0928 13.2886 22.8164 13.648 22.8164H25.3479C25.7076 22.8164 25.9981 23.0928 25.9981 23.4332C25.9981 23.7737 25.7076 24.0498 25.3479 24.0498Z"
+                                  fill="currentColor" />
                         </svg>
                     </div>
                     <div class="shipping__content">
@@ -846,24 +974,18 @@
                 <div class="shipping__items d-flex align-items-center">
                     <div class="shipping__icon text-white">
                         <svg width="43" height="36" viewBox="0 0 43 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M4.53678 0.000286987C2.45745 0.000286987 0.753906 1.5443 0.753906 3.42892V25.7142C0.753906 27.5988 2.45745 29.1428 4.53678 29.1428H17.1318C17.3825 29.1428 17.6229 29.0524 17.8002 28.8917C17.9778 28.731 18.0772 28.5129 18.0772 28.2856C18.0772 28.0583 17.9778 27.8402 17.8002 27.6795C17.6229 27.5187 17.3825 27.4283 17.1318 27.4283H4.53678C3.47255 27.4283 2.6455 26.6787 2.6455 25.7142V6.00033H12.1027V13.7145H12.1024C12.1027 14.0609 12.3332 14.3735 12.6862 14.506C13.0396 14.6386 13.4462 14.5654 13.7169 14.3203L16.831 11.4978L19.9452 14.3203C20.2156 14.5654 20.6222 14.6386 20.9755 14.506C21.3289 14.3734 21.5594 14.0609 21.5594 13.7145V6.00033H31.0166V12.9446V12.9443C31.0166 13.1716 31.116 13.3897 31.2933 13.5504C31.471 13.7111 31.7113 13.8015 31.9621 13.8015C32.2128 13.8015 32.4535 13.7111 32.6308 13.5504C32.8081 13.3897 32.9079 13.1716 32.9079 12.9443V3.42864C32.9079 1.54402 31.2043 0 29.125 0L4.53678 0.000286987ZM4.53678 1.71446H12.1022V4.28586H2.64583V3.42892C2.64583 2.46435 3.47288 1.71475 4.5371 1.71475L4.53678 1.71446ZM13.994 1.71446H19.6681V11.6452L17.4998 9.67993H17.4995C17.1303 9.3453 16.5315 9.3453 16.1623 9.67993L13.994 11.6455L13.994 1.71446ZM21.5594 1.71446H29.1248C30.189 1.71446 31.0161 2.46406 31.0161 3.42863V4.28586H21.5589L21.5594 1.71446Z"
-                                fill="currentColor" />
-                            <path
-                                d="M6.42781 19.7144C5.90568 19.7144 5.48234 20.0983 5.48234 20.5716C5.48234 20.7989 5.58176 21.017 5.75908 21.1777C5.93671 21.3384 6.17704 21.4288 6.42782 21.4288H12.102C12.3527 21.4288 12.5934 21.3384 12.7707 21.1777C12.948 21.017 13.0478 20.7989 13.0478 20.5716C13.0478 20.3443 12.948 20.1262 12.7707 19.9655C12.5934 19.8048 12.3527 19.7144 12.102 19.7144H6.42781Z"
-                                fill="currentColor" />
-                            <path
-                                d="M6.42781 23.1431C5.90568 23.1431 5.48234 23.5268 5.48234 24.0003C5.48234 24.2276 5.58176 24.4454 5.75908 24.6064C5.93671 24.7671 6.17704 24.8572 6.42782 24.8572H14.939C15.1898 24.8572 15.4305 24.7671 15.6078 24.6064C15.7851 24.4454 15.8848 24.2276 15.8848 24.0003C15.8848 23.773 15.7851 23.5549 15.6078 23.3942C15.4305 23.2335 15.1898 23.1431 14.939 23.1431H6.42781Z"
-                                fill="currentColor" />
-                            <path
-                                d="M15.8854 20.5716C15.8854 20.7989 15.7857 21.017 15.6084 21.1777C15.431 21.3384 15.1904 21.4288 14.9396 21.4288C14.4175 21.4288 13.9941 21.0448 13.9941 20.5716C13.9941 20.0983 14.4175 19.7144 14.9396 19.7144C15.1904 19.7144 15.431 19.8048 15.6084 19.9655C15.7857 20.1262 15.8854 20.3443 15.8854 20.5716Z"
-                                fill="currentColor" />
-                            <path
-                                d="M31.0182 15.4287C24.7617 15.4287 19.6699 20.0437 19.6699 25.7143C19.6699 31.3849 24.7617 35.9999 31.0182 35.9999C37.2747 35.9999 42.3665 31.3849 42.3665 25.7143C42.3665 20.0437 37.2747 15.4287 31.0182 15.4287ZM31.0182 17.1429C36.2522 17.1429 40.4754 20.9702 40.4754 25.7145C40.4754 30.4583 36.2527 34.2861 31.0182 34.2861C25.7842 34.2861 21.561 30.4588 21.561 25.7145C21.561 20.9706 25.7837 17.1429 31.0182 17.1429Z"
-                                fill="currentColor" />
-                            <path
-                                d="M28.3654 20.8229L25.7886 23.1616C25.4194 23.4962 25.4194 24.0389 25.7886 24.3735L28.3654 26.7122C28.7346 27.0468 29.3333 27.0468 29.7026 26.7122C30.0724 26.3778 30.073 25.8354 29.7045 25.5003L28.816 24.695H33.3319C34.6855 24.695 35.7459 25.6573 35.7459 26.8864C35.7459 28.1155 34.6855 29.0778 33.3319 29.0778H27.235C26.7129 29.0778 26.2892 29.4615 26.2892 29.935C26.2892 30.4083 26.7125 30.7923 27.235 30.7923H33.3322C35.7019 30.7923 37.6375 29.035 37.6375 26.8867C37.6375 24.7383 35.7016 22.9811 33.3322 22.9811H28.6608L29.7045 22.0352C30.073 21.7 30.0724 21.1573 29.7026 20.8232C29.2805 20.4576 28.728 20.5021 28.3654 20.8232V20.8229Z"
-                                fill="currentColor" />
+                            <path d="M4.53678 0.000286987C2.45745 0.000286987 0.753906 1.5443 0.753906 3.42892V25.7142C0.753906 27.5988 2.45745 29.1428 4.53678 29.1428H17.1318C17.3825 29.1428 17.6229 29.0524 17.8002 28.8917C17.9778 28.731 18.0772 28.5129 18.0772 28.2856C18.0772 28.0583 17.9778 27.8402 17.8002 27.6795C17.6229 27.5187 17.3825 27.4283 17.1318 27.4283H4.53678C3.47255 27.4283 2.6455 26.6787 2.6455 25.7142V6.00033H12.1027V13.7145H12.1024C12.1027 14.0609 12.3332 14.3735 12.6862 14.506C13.0396 14.6386 13.4462 14.5654 13.7169 14.3203L16.831 11.4978L19.9452 14.3203C20.2156 14.5654 20.6222 14.6386 20.9755 14.506C21.3289 14.3734 21.5594 14.0609 21.5594 13.7145V6.00033H31.0166V12.9446V12.9443C31.0166 13.1716 31.116 13.3897 31.2933 13.5504C31.471 13.7111 31.7113 13.8015 31.9621 13.8015C32.2128 13.8015 32.4535 13.7111 32.6308 13.5504C32.8081 13.3897 32.9079 13.1716 32.9079 12.9443V3.42864C32.9079 1.54402 31.2043 0 29.125 0L4.53678 0.000286987ZM4.53678 1.71446H12.1022V4.28586H2.64583V3.42892C2.64583 2.46435 3.47288 1.71475 4.5371 1.71475L4.53678 1.71446ZM13.994 1.71446H19.6681V11.6452L17.4998 9.67993H17.4995C17.1303 9.3453 16.5315 9.3453 16.1623 9.67993L13.994 11.6455L13.994 1.71446ZM21.5594 1.71446H29.1248C30.189 1.71446 31.0161 2.46406 31.0161 3.42863V4.28586H21.5589L21.5594 1.71446Z"
+                                  fill="currentColor" />
+                            <path d="M6.42781 19.7144C5.90568 19.7144 5.48234 20.0983 5.48234 20.5716C5.48234 20.7989 5.58176 21.017 5.75908 21.1777C5.93671 21.3384 6.17704 21.4288 6.42782 21.4288H12.102C12.3527 21.4288 12.5934 21.3384 12.7707 21.1777C12.948 21.017 13.0478 20.7989 13.0478 20.5716C13.0478 20.3443 12.948 20.1262 12.7707 19.9655C12.5934 19.8048 12.3527 19.7144 12.102 19.7144H6.42781Z"
+                                  fill="currentColor" />
+                            <path d="M6.42781 23.1431C5.90568 23.1431 5.48234 23.5268 5.48234 24.0003C5.48234 24.2276 5.58176 24.4454 5.75908 24.6064C5.93671 24.7671 6.17704 24.8572 6.42782 24.8572H14.939C15.1898 24.8572 15.4305 24.7671 15.6078 24.6064C15.7851 24.4454 15.8848 24.2276 15.8848 24.0003C15.8848 23.773 15.7851 23.5549 15.6078 23.3942C15.4305 23.2335 15.1898 23.1431 14.939 23.1431H6.42781Z"
+                                  fill="currentColor" />
+                            <path d="M15.8854 20.5716C15.8854 20.7989 15.7857 21.017 15.6084 21.1777C15.431 21.3384 15.1904 21.4288 14.9396 21.4288C14.4175 21.4288 13.9941 21.0448 13.9941 20.5716C13.9941 20.0983 14.4175 19.7144 14.9396 19.7144C15.1904 19.7144 15.431 19.8048 15.6084 19.9655C15.7857 20.1262 15.8854 20.3443 15.8854 20.5716Z"
+                                  fill="currentColor" />
+                            <path d="M31.0182 15.4287C24.7617 15.4287 19.6699 20.0437 19.6699 25.7143C19.6699 31.3849 24.7617 35.9999 31.0182 35.9999C37.2747 35.9999 42.3665 31.3849 42.3665 25.7143C42.3665 20.0437 37.2747 15.4287 31.0182 15.4287ZM31.0182 17.1429C36.2522 17.1429 40.4754 20.9702 40.4754 25.7145C40.4754 30.4583 36.2527 34.2861 31.0182 34.2861C25.7842 34.2861 21.561 30.4588 21.561 25.7145C21.561 20.9706 25.7837 17.1429 31.0182 17.1429Z"
+                                  fill="currentColor" />
+                            <path d="M28.3654 20.8229L25.7886 23.1616C25.4194 23.4962 25.4194 24.0389 25.7886 24.3735L28.3654 26.7122C28.7346 27.0468 29.3333 27.0468 29.7026 26.7122C30.0724 26.3778 30.073 25.8354 29.7045 25.5003L28.816 24.695H33.3319C34.6855 24.695 35.7459 25.6573 35.7459 26.8864C35.7459 28.1155 34.6855 29.0778 33.3319 29.0778H27.235C26.7129 29.0778 26.2892 29.4615 26.2892 29.935C26.2892 30.4083 26.7125 30.7923 27.235 30.7923H33.3322C35.7019 30.7923 37.6375 29.035 37.6375 26.8867C37.6375 24.7383 35.7016 22.9811 33.3322 22.9811H28.6608L29.7045 22.0352C30.073 21.7 30.0724 21.1573 29.7026 20.8232C29.2805 20.4576 28.728 20.5021 28.3654 20.8232V20.8229Z"
+                                  fill="currentColor" />
                         </svg>
                     </div>
                     <div class="shipping__content">
@@ -874,12 +996,10 @@
                 <div class="shipping__items d-flex align-items-center">
                     <div class="shipping__icon text-white">
                         <svg width="28" height="33" viewBox="0 0 28 33" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M13.9418 19.3345C12.9838 19.3466 12.0694 19.6922 11.3955 20.2974C10.7218 20.9024 10.3429 21.7181 10.3399 22.569C10.3371 23.4196 10.7108 24.2376 11.3807 24.8459V26.2996C11.3807 27.1301 11.8795 27.8975 12.6895 28.3128C13.4998 28.7278 14.4977 28.7278 15.3078 28.3128C16.1178 27.8975 16.6169 27.1301 16.6169 26.2996V24.8459C17.292 24.2291 17.6632 23.3993 17.6496 22.5392C17.6356 21.6793 17.2379 20.8592 16.5435 20.2596C15.8488 19.66 14.9145 19.3296 13.946 19.3416L13.9418 19.3345ZM14.7526 23.5072C14.445 23.7034 14.2626 24.0192 14.2631 24.3557V26.2857C14.2631 26.4172 14.1429 26.5239 13.9948 26.5239C13.8465 26.5239 13.7266 26.4172 13.7266 26.2857V24.3695C13.7268 24.0333 13.5446 23.7173 13.237 23.521C12.957 23.3234 12.7797 23.033 12.7453 22.7167C12.7109 22.4004 12.8229 22.0853 13.0551 21.8437C13.2873 21.6021 13.62 21.4544 13.9771 21.4348H13.9968C14.3618 21.4406 14.7073 21.5818 14.9497 21.8246C15.1917 22.0671 15.3083 22.3888 15.2709 22.7111C15.2335 23.0337 15.0455 23.3274 14.7527 23.521L14.7526 23.5072Z"
-                                fill="currentColor" />
-                            <path
-                                d="M13.9961 0.000558845C11.1916 0.000558845 8.50207 0.989734 6.51933 2.75044C4.53631 4.51115 3.42224 6.89914 3.42224 9.38902V13.2348C2.56092 13.3204 1.76512 13.6848 1.18731 14.2581C0.609256 14.8316 0.289622 15.574 0.289062 16.3437V29.8705C0.289062 30.7005 0.660322 31.4966 1.32145 32.0834C1.98256 32.6703 2.87891 33 3.81374 33H24.1398C25.0746 33 25.9713 32.6704 26.6324 32.0834C27.2932 31.4966 27.6647 30.7005 27.6647 29.8705V16.3437C27.6642 15.574 27.3446 14.8315 26.7665 14.2581C26.1884 13.6848 25.3929 13.3204 24.5316 13.2348V9.37158C24.5264 6.89069 23.4153 4.51214 21.4413 2.75597C19.4672 0.999855 16.7908 0.00925217 13.9966 0L13.9961 0.000558845ZM13.9961 2.08708V2.08684C16.174 2.09144 18.2608 2.86278 19.7992 4.23179C21.3372 5.6008 22.201 7.45564 22.201 9.38934V13.2145L5.77179 13.2143V9.3891V9.38934C5.77179 7.45253 6.63836 5.59521 8.18072 4.22576C9.72315 2.85626 11.8149 2.0869 13.9963 2.0869L13.9961 2.08708ZM25.3341 16.3441V29.8709V29.8707C25.3341 30.1474 25.2103 30.4125 24.9899 30.6083C24.7694 30.804 24.4708 30.9139 24.1591 30.9139H3.81347C3.50204 30.9139 3.20317 30.804 2.9827 30.6083C2.76252 30.4125 2.63876 30.1474 2.63876 29.8707V16.3439C2.63876 16.0671 2.76251 15.8017 2.9827 15.6062C3.20316 15.4105 3.50203 15.3006 3.81347 15.3006H24.1395C24.4545 15.296 24.7585 15.4037 24.9831 15.5999C25.2076 15.7962 25.3341 16.0642 25.3341 16.3438L25.3341 16.3441Z"
-                                fill="currentColor" />
+                            <path d="M13.9418 19.3345C12.9838 19.3466 12.0694 19.6922 11.3955 20.2974C10.7218 20.9024 10.3429 21.7181 10.3399 22.569C10.3371 23.4196 10.7108 24.2376 11.3807 24.8459V26.2996C11.3807 27.1301 11.8795 27.8975 12.6895 28.3128C13.4998 28.7278 14.4977 28.7278 15.3078 28.3128C16.1178 27.8975 16.6169 27.1301 16.6169 26.2996V24.8459C17.292 24.2291 17.6632 23.3993 17.6496 22.5392C17.6356 21.6793 17.2379 20.8592 16.5435 20.2596C15.8488 19.66 14.9145 19.3296 13.946 19.3416L13.9418 19.3345ZM14.7526 23.5072C14.445 23.7034 14.2626 24.0192 14.2631 24.3557V26.2857C14.2631 26.4172 14.1429 26.5239 13.9948 26.5239C13.8465 26.5239 13.7266 26.4172 13.7266 26.2857V24.3695C13.7268 24.0333 13.5446 23.7173 13.237 23.521C12.957 23.3234 12.7797 23.033 12.7453 22.7167C12.7109 22.4004 12.8229 22.0853 13.0551 21.8437C13.2873 21.6021 13.62 21.4544 13.9771 21.4348H13.9968C14.3618 21.4406 14.7073 21.5818 14.9497 21.8246C15.1917 22.0671 15.3083 22.3888 15.2709 22.7111C15.2335 23.0337 15.0455 23.3274 14.7527 23.521L14.7526 23.5072Z"
+                                  fill="currentColor" />
+                            <path d="M13.9961 0.000558845C11.1916 0.000558845 8.50207 0.989734 6.51933 2.75044C4.53631 4.51115 3.42224 6.89914 3.42224 9.38902V13.2348C2.56092 13.3204 1.76512 13.6848 1.18731 14.2581C0.609256 14.8316 0.289622 15.574 0.289062 16.3437V29.8705C0.289062 30.7005 0.660322 31.4966 1.32145 32.0834C1.98256 32.6703 2.87891 33 3.81374 33H24.1398C25.0746 33 25.9713 32.6704 26.6324 32.0834C27.2932 31.4966 27.6647 30.7005 27.6647 29.8705V16.3437C27.6642 15.574 27.3446 14.8315 26.7665 14.2581C26.1884 13.6848 25.3929 13.3204 24.5316 13.2348V9.37158C24.5264 6.89069 23.4153 4.51214 21.4413 2.75597C19.4672 0.999855 16.7908 0.00925217 13.9966 0L13.9961 0.000558845ZM13.9961 2.08708V2.08684C16.174 2.09144 18.2608 2.86278 19.7992 4.23179C21.3372 5.6008 22.201 7.45564 22.201 9.38934V13.2145L5.77179 13.2143V9.3891V9.38934C5.77179 7.45253 6.63836 5.59521 8.18072 4.22576C9.72315 2.85626 11.8149 2.0869 13.9963 2.0869L13.9961 2.08708ZM25.3341 16.3441V29.8709V29.8707C25.3341 30.1474 25.2103 30.4125 24.9899 30.6083C24.7694 30.804 24.4708 30.9139 24.1591 30.9139H3.81347C3.50204 30.9139 3.20317 30.804 2.9827 30.6083C2.76252 30.4125 2.63876 30.1474 2.63876 29.8707V16.3439C2.63876 16.0671 2.76251 15.8017 2.9827 15.6062C3.20316 15.4105 3.50203 15.3006 3.81347 15.3006H24.1395C24.4545 15.296 24.7585 15.4037 24.9831 15.5999C25.2076 15.7962 25.3341 16.0642 25.3341 16.3438L25.3341 16.3441Z"
+                                  fill="currentColor" />
                         </svg>
                     </div>
                     <div class="shipping__content">
@@ -888,44 +1008,80 @@
                     </div>
                 </div>
             </div>
+            <div class="shipping__inner d-flex">
+                <div class="shipping__items d-flex align-items-center">
+                    <div class="shipping__icon text-white">
+                    </div>
+                    <div class="shipping__content">
+                        <p class="shipping__content--desc" style="font-size:0.9rem">* Kaporta ürünleri hariç</p>
+                    </div>
+                </div>
+                <div class="shipping__items d-flex align-items-center">
+                    <div class="shipping__icon text-white">
+                    </div>
+                    <div class="shipping__content">
+                    </div>
+                </div>
+                <div class="shipping__items d-flex align-items-center">
+                    <div class="shipping__icon text-white">
+                    </div>
+                    <div class="shipping__content">
+                        <p class="shipping__content--desc" style="font-size:0.9rem">** Sipariş saati ve stok durumuna göre istisna durumlar olabilir</p>
+                    </div>
+                </div>
+                <div class="shipping__items d-flex align-items-center">
+                    <div class="shipping__icon text-white">
+                    </div>
+                    <div class="shipping__content">
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="footer__bottom">
             <div class="container">
                 <div class="footer__bottom--inenr d-flex justify-content-between align-items-center">
                     <div class="footer__logo">
-                        <a class="footer__logo--link" href="/ana-sayfa"><img src="~/assets/img/logo/otomar.png" alt="OTOMAR logo-img" loading="lazy" style="width:178px"></a>
+                        <a class="footer__logo--link" href="/ana-sayfa"><img src="~/assets/img/logo/otomar.png" alt="OTOMAR logo" loading="lazy" style="width:178px"></a>
                     </div>
-                    <p class="copyright__content">
+                    <p class="copyright__content" style="font-size:1.2rem">
                         <span class="text__secondary">2025 - @DateTime.Now.Year © </span> İdeaktif
                         Danışmanlık ve Yazılım Ltd.
                     </p>
                     <div class="footer__payment">
-                        <img src="/assets/img/icon/payment-img.webp" alt="Kabul edilen ödeme yöntemleri" style="width:285px" loading="lazy">
+                        <div class="row align-items-center">
+                            <div class="col-md-8 col-12 mb-3 mb-md-0">
+                                <img src="/assets/img/icon/payment-img.webp" class="img-fluid" alt="Kabul edilen ödeme yöntemleri" style="max-width:285px" loading="lazy">
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <img src="/assets/img/icon/ssl.webp" class="img-fluid" alt="SSL sertifikası" style="max-width:90px" loading="lazy">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </footer>
     <!-- End footer section -->
-
     <!-- Scroll top bar converted to WhatsApp button -->
     <button id="scroll__top" onclick="sendWhatsAppMessage()" class="active">
         <svg class="whatsapp-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
         </svg>
         <svg class="send-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
         </svg>
     </button>
 
     <!-- All Script JS Plugins here  -->
     <script src="https://code.jquery.com/jquery-4.0.0.min.js"
-        integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script>
+            integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script>
     <script src="/assets/js/vendor/popper.js" defer="defer"></script>
     <script src="/assets/js/vendor/bootstrap.min.js" defer="defer"></script>
     <script src="/assets/js/plugins/swiper-bundle.min.js"></script>
     <script src="/assets/js/plugins/glightbox.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha512-lbwH47l/tPXJYG9AcFNoJaTMhGvYWhVM9YI43CT+uteTRRaiLCui8snIgyAN8XWgNjNhCqlAUdzZptso6OCoFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.23.0/sweetalert2.min.js" integrity="sha512-pnPZhx5S+z5FSVwy62gcyG2Mun8h6R+PG01MidzU+NGF06/ytcm2r6+AaWMBXAnDHsdHWtsxS0dH8FBKA84FlQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/7.6.1/imask.min.js" integrity="sha512-+3RJc0aLDkj0plGNnrqlTwCCyMmDCV1fSYqXw4m+OczX09Pas5A/U+V3pFwrSyoC1svzDy40Q9RU/85yb/7D2A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="/assets/js/validation.js"></script>
     <script src="/assets/js/http-client.js"></script>
     <script src="/assets/js/skeleton-loader.js"></script>
@@ -935,650 +1091,683 @@
     <script src="/assets/js/cart.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     <script>
-             toastr.options = {
-          "closeButton": false,
-          "debug": false,
-          "newestOnTop": true,
-          "progressBar": true,
-          "positionClass": "toast-top-right",
-          "preventDuplicates": false,
-          "onclick": null,
-          "showDuration": "300",
-          "hideDuration": "1000",
-          "timeOut": "5000",
-          "extendedTimeOut": "1000",
-          "showEasing": "swing",
-          "hideEasing": "linear",
-          "showMethod": "fadeIn",
-          "hideMethod": "fadeOut"
+                     toastr.options = {
+                  "closeButton": false,
+                  "debug": false,
+                  "newestOnTop": true,
+                  "progressBar": true,
+                  "positionClass": "toast-top-right",
+                  "preventDuplicates": false,
+                  "onclick": null,
+                  "showDuration": "300",
+                  "hideDuration": "1000",
+                  "timeOut": "5000",
+                  "extendedTimeOut": "1000",
+                  "showEasing": "swing",
+                  "hideEasing": "linear",
+                  "showMethod": "fadeIn",
+                  "hideMethod": "fadeOut"
+                }
+            function sendWhatsAppMessage() {
+             const phoneNumber = '905432686627';
+             const webUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}`;
+             window.open(webUrl, '_blank');
+         }
+                function generateSlug(text) {
+            const turkishMap = {
+                'ç': 'c', 'Ç': 'c',
+                'ğ': 'g', 'Ğ': 'g',
+                'ı': 'i', 'İ': 'i',
+                'ö': 'o', 'Ö': 'o',
+                'ş': 's', 'Ş': 's',
+                'ü': 'u', 'Ü': 'u'
+            };
+
+            return text
+                .toString()
+                .split('')
+                .map(char => turkishMap[char] || char)
+                .join('')
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '');
         }
-    function sendWhatsAppMessage() {
-     const phoneNumber = '905432686627';
-     const webUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}`;
-     window.open(webUrl, '_blank');
- }
-        function generateSlug(text) {
-    const turkishMap = {
-        'ç': 'c', 'Ç': 'c',
-        'ğ': 'g', 'Ğ': 'g',
-        'ı': 'i', 'İ': 'i',
-        'ö': 'o', 'Ö': 'o',
-        'ş': 's', 'Ş': 's',
-        'ü': 'u', 'Ü': 'u'
-    };
-    
-    return text
-        .toString()
-        .split('')
-        .map(char => turkishMap[char] || char)
-        .join('')
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-')
-        .replace(/^-+/, '')
-        .replace(/-+$/, '');
-}
-         // Türk Lirası formatına çevirme fonksiyonu
-        function formatTurkishLira(amount) {
-            if (!amount && amount !== 0) return '₺0,00';
+                 // Türk Lirası formatına çevirme fonksiyonu
+                function formatTurkishLira(amount) {
+                    if (!amount && amount !== 0) return '₺0,00';
 
-            // Sayıyı string'e çevir ve ondalık kısmı ayır
-            const numStr = amount.toFixed(2);
-            const parts = numStr.split('.');
-            const integerPart = parts[0];
-            const decimalPart = parts[1] || '00';
+                    // Sayıyı string'e çevir ve ondalık kısmı ayır
+                    const numStr = amount.toFixed(2);
+                    const parts = numStr.split('.');
+                    const integerPart = parts[0];
+                    const decimalPart = parts[1] || '00';
 
-            // Binlik ayırıcı ekle (nokta)
-            let formattedInteger = '';
-            for (let i = integerPart.length - 1, j = 0; i >= 0; i--, j++) {
-                if (j > 0 && j % 3 === 0) {
-                    formattedInteger = '.' + formattedInteger;
+                    // Binlik ayırıcı ekle (nokta)
+                    let formattedInteger = '';
+                    for (let i = integerPart.length - 1, j = 0; i >= 0; i--, j++) {
+                        if (j > 0 && j % 3 === 0) {
+                            formattedInteger = '.' + formattedInteger;
+                        }
+                        formattedInteger = integerPart[i] + formattedInteger;
+                    }
+
+                    // Türk Lirası formatı: ₺1.234,56
+                    return `₺${formattedInteger},${decimalPart}`;
                 }
-                formattedInteger = integerPart[i] + formattedInteger;
-            }
-
-            // Türk Lirası formatı: ₺1.234,56
-            return `₺${formattedInteger},${decimalPart}`;
-        }
-        async function getShippingThreshold() {
-            try {
-                const response = await makeRequest('/kargo-sinir', 'GET');
-                if (response && response.threshold) {
-                    const thresholdElement = document.querySelector('.shipping__content--desc');
-                    if (thresholdElement) {
-                        thresholdElement.textContent = `₺${response.threshold.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} üzeri ücretsiz kargo`;
+                async function getShippingThreshold() {
+                    try {
+                        const response = await makeRequest('/kargo-sinir', 'GET');
+                        if (response && response.threshold) {
+                            const thresholdElement = document.querySelector('.shipping__content--desc');
+                            if (thresholdElement) {
+                                thresholdElement.textContent = `₺${response.threshold.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} üzeri ücretsiz kargo`;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Kargo sınırı alınamadı:', error);
                     }
                 }
-            } catch (error) {
-                console.error('Kargo sınırı alınamadı:', error);
-            }
-        }
 
-        // Dinamik menü oluşturma fonksiyonu
-        async function loadDynamicMenu() {
-            try {
-                const response = await makeRequest('/kategori/listele', 'GET');
-                if (!response || !Array.isArray(response)) {
-                    console.error('Kategori verisi beklenen formatta değil:', response);
-                    return;
-                }
-                
-                // Kategori verisini global olarak kaydet (Shop sayfasında kullanmak için)
-                window.categoriesData = response;
-                const menuWrapper = document.getElementById('dynamic-menu-wrapper');
-                const allProductsSubmenu = document.getElementById('all-products-submenu');
-                const allProductsMenuItem = document.getElementById('all-products-menu-item');
+                // Dinamik menü oluşturma fonksiyonu
+                async function loadDynamicMenu() {
+                    try {
+                        const response = await makeRequest('/kategori/listele', 'GET');
+                        if (!response || !Array.isArray(response)) {
+                            console.error('Kategori verisi beklenen formatta değil:', response);
+                            return;
+                        }
 
-                if (!menuWrapper || !allProductsSubmenu || !allProductsMenuItem) {
-                    console.error('Menü elementleri bulunamadı');
-                    return;
-                }
+                        // Kategori verisini global olarak kaydet (Shop sayfasında kullanmak için)
+                        window.categoriesData = response;
+                        const menuWrapper = document.getElementById('dynamic-menu-wrapper');
+                        const allProductsSubmenu = document.getElementById('all-products-submenu');
+                        const allProductsMenuItem = document.getElementById('all-products-menu-item');
 
-                // Alt menü container'ına position relative ekle
-                allProductsMenuItem.style.position = 'relative';
-                
-                // Tüm mega menu'leri saklamak için bir obje (tüm menüler için ortak)
-                const allMegaMenus = {};
-                
-                // "Tüm Ürünler" menüsünün hover yönetimi - alt menüye geçildiğinde kapanmaması için
-                let allProductsHoverTimeout;
-                
-                allProductsMenuItem.addEventListener('mouseenter', function() {
-                    clearTimeout(allProductsHoverTimeout);
-                    // CSS animasyonunu korumak için visibility ve opacity kullan
-                    allProductsSubmenu.style.visibility = 'visible';
-                    allProductsSubmenu.style.opacity = '1';
-                    allProductsSubmenu.style.marginTop = '1.4rem';
-                });
-                
-                allProductsMenuItem.addEventListener('mouseleave', function(e) {
-                    const relatedTarget = e.relatedTarget;
-                    // Eğer alt menüye geçiliyorsa kapatma
-                    if (relatedTarget && (allProductsSubmenu.contains(relatedTarget) || relatedTarget === allProductsSubmenu || (relatedTarget.closest && relatedTarget.closest('#all-products-submenu')))) {
-                        return;
-                    }
-                    // Başka bir menü öğesine geçiliyorsa hemen kapat
-                    if (relatedTarget && relatedTarget.closest && relatedTarget.closest('.header__menu--items')) {
-                        allProductsSubmenu.style.visibility = 'hidden';
-                        allProductsSubmenu.style.opacity = '0';
-                        allProductsSubmenu.style.marginTop = '25px';
-                        // Tüm mega menu'leri de kapat
-                        Object.keys(allMegaMenus).forEach(key => {
-                            if (allMegaMenus[key]) {
-                                allMegaMenus[key].style.display = 'none';
-                            }
-                        });
-                        return;
-                    }
-                    // Diğer durumlarda hemen kapat
-                    allProductsSubmenu.style.visibility = 'hidden';
-                    allProductsSubmenu.style.opacity = '0';
-                    allProductsSubmenu.style.marginTop = '25px';
-                });
-                
-                allProductsSubmenu.addEventListener('mouseenter', function() {
-                    clearTimeout(allProductsHoverTimeout);
-                    // CSS animasyonunu korumak için visibility ve opacity kullan
-                    allProductsSubmenu.style.visibility = 'visible';
-                    allProductsSubmenu.style.opacity = '1';
-                    allProductsSubmenu.style.marginTop = '1.4rem';
-                });
-                
-                allProductsSubmenu.addEventListener('mouseleave', function(e) {
-                    const relatedTarget = e.relatedTarget;
-                    // Eğer ana menü öğesine geri dönülüyorsa kapatma
-                    if (relatedTarget && (allProductsMenuItem.contains(relatedTarget) || relatedTarget === allProductsMenuItem || (relatedTarget.closest && relatedTarget.closest('#all-products-menu-item')))) {
-                        return;
-                    }
-                    // Başka bir menü öğesine geçiliyorsa hemen kapat
-                    if (relatedTarget && relatedTarget.closest && relatedTarget.closest('.header__menu--items')) {
-                        allProductsSubmenu.style.visibility = 'hidden';
-                        allProductsSubmenu.style.opacity = '0';
-                        allProductsSubmenu.style.marginTop = '25px';
-                        // Tüm mega menu'leri de kapat
-                        Object.keys(allMegaMenus).forEach(key => {
-                            if (allMegaMenus[key]) {
-                                allMegaMenus[key].style.display = 'none';
-                            }
-                        });
-                        return;
-                    }
-                    // Diğer durumlarda hemen kapat
-                    allProductsSubmenu.style.visibility = 'hidden';
-                    allProductsSubmenu.style.opacity = '0';
-                    allProductsSubmenu.style.marginTop = '25px';
-                });
+                        if (!menuWrapper || !allProductsSubmenu || !allProductsMenuItem) {
+                            console.error('Menü elementleri bulunamadı');
+                            return;
+                        }
 
-                // Tüm Ürünler alt menüsünü doldur (tüm ana gruplar)
-                allProductsSubmenu.innerHTML = '';
-                response.forEach(category => {
-                    const menuItem = document.createElement('li');
-                    menuItem.className = 'header__sub--menu__items';
-                    menuItem.id = `submenu-item-${category.anA_ID}`;
-                    menuItem.style.position = 'relative';
-                    
-                    // Ana grup linki - ikon ile birlikte
-                    const menuLink = document.createElement('a');
-                    const mainCategorySlug = generateSlug(category.anA_GRUP_ADI);
-                    menuLink.href = `/magaza/kategori/${mainCategorySlug}`;
-                    menuLink.className = 'header__sub--menu__link';
-                    menuLink.style.display = 'flex';
-                    menuLink.style.alignItems = 'center';
-                    menuLink.style.gap = '10px';
-                    menuLink.style.width = '100%';
-                    
-                    // Ana grup ikonu
-                    if (category.gruP_IKON) {
-                        const icon = document.createElement('img');
-                        icon.src = `/${category.gruP_IKON}`;
-                        icon.loading = 'lazy';
-                        icon.style.width = '20px';
-                        icon.style.height = '20px';
-                        icon.style.objectFit = 'contain';
-                        icon.style.flexShrink = '0';
-                        menuLink.appendChild(icon);
-                    }
-                    
-                    const linkText = document.createElement('span');
-                    linkText.textContent = category.anA_GRUP_ADI.toLocaleUpperCase("TR");;
-                    menuLink.appendChild(linkText);
-                    
-                    // Eğer alt kategoriler varsa sağa dönük ok ikonu ekle
-                    if (category.subCategories && category.subCategories.length > 0) {
-                        const rightArrowIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                        rightArrowIcon.setAttribute('class', 'menu__arrowdown--icon');
-                        rightArrowIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                        rightArrowIcon.setAttribute('width', '12');
-                        rightArrowIcon.setAttribute('height', '7.41');
-                        rightArrowIcon.setAttribute('viewBox', '0 0 12 7.41');
-                        rightArrowIcon.style.transform = 'rotate(270deg)';
-                        rightArrowIcon.style.marginLeft = 'auto';
-                        rightArrowIcon.style.flexShrink = '0';
-                        const rightPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                        rightPath.setAttribute('d', 'M16.59,8.59,12,13.17,7.41,8.59,6,10l6,6,6-6Z');
-                        rightPath.setAttribute('transform', 'translate(-6 -8.59)');
-                        rightPath.setAttribute('fill', 'currentColor');
-                        rightPath.setAttribute('opacity', '0.7');
-                        rightArrowIcon.appendChild(rightPath);
-                        menuLink.appendChild(rightArrowIcon);
-                    }
-                    
-                    menuItem.appendChild(menuLink);
+                        // Alt menü container'ına position relative ekle
+                        allProductsMenuItem.style.position = 'relative';
 
-                    // Eğer alt kategoriler varsa mega menu oluştur
-                    if (category.subCategories && category.subCategories.length > 0) {
-                        const megaMenu = document.createElement('div');
-                        megaMenu.id = `mega-menu-${category.anA_ID}`;
-                        // Tüm mega menu'leri sakla
-                        allMegaMenus[category.anA_ID] = megaMenu;
-                        megaMenu.style.position = 'absolute';
-                        megaMenu.style.left = '100%';
-                        megaMenu.style.top = '0';
-                        megaMenu.style.marginLeft = '0';
-                        megaMenu.style.display = 'none';
-                        megaMenu.style.zIndex = '1000';
-                        megaMenu.style.backgroundColor = '#fff';
-                        megaMenu.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-                        megaMenu.style.padding = '15px 15px 15px 25px';
-                        megaMenu.style.minWidth = '300px';
-                        megaMenu.style.borderRadius = '5px';
+                        // Tüm mega menu'leri saklamak için bir obje (tüm menüler için ortak)
+                        const allMegaMenus = {};
 
-                        // Alt kategorileri alt alta listele
-                        const subCategories = category.subCategories || [];
-                        
-                        subCategories.forEach((subCategory, index) => {
-                            // Alt kategori öğesi
-                            const subCategoryItem = document.createElement('div');
-                            subCategoryItem.style.display = 'flex';
-                            subCategoryItem.style.alignItems = 'center';
-                            subCategoryItem.style.gap = '10px';
-                            subCategoryItem.style.padding = '8px 0';
-                            
-                            // Alt kategori ikonu (ana kategorinin ikonunu kullan)
-                            if (category.gruP_IKON) {
-                                const subIcon = document.createElement('img');
-                                subIcon.src = `/${category.gruP_IKON}`;
-                                subIcon.style.width = '20px';
-                                subIcon.style.height = '20px';
-                                subIcon.style.objectFit = 'contain';
-                                subIcon.style.flexShrink = '0';
-                                subCategoryItem.appendChild(subIcon);
-                            }
-                            
-                            // Alt kategori linki
-                            const subLink = document.createElement('a');
-                            const subCategorySlug = generateSlug(subCategory.alT_GRUP_ADI);
-                            subLink.href = `/magaza/kategori/${mainCategorySlug}/${subCategorySlug}`;
-                            subLink.textContent = subCategory.alT_GRUP_ADI.toLocaleUpperCase("TR");
-                            subLink.style.textDecoration = 'none';
-                            subLink.style.color = 'inherit';
-                            subLink.style.flex = '1';
-                            subLink.addEventListener('mouseenter', function() {
-                                subLink.style.color = 'var(--secondary-color, #007bff)';
-                            });
-                            subLink.addEventListener('mouseleave', function() {
-                                subLink.style.color = 'inherit';
-                            });
-                            subCategoryItem.appendChild(subLink);
-                            
-                            megaMenu.appendChild(subCategoryItem);
-                            
-                            // Son öğe değilse hr ekle
-                            if (index < subCategories.length - 1) {
-                                const hr = document.createElement('hr');
-                                hr.style.margin = '5px 0';
-                                hr.style.padding = '0';
-                                hr.style.border = 'none';
-                                hr.style.borderTop = '1px solid #e0e0e0';
-                                hr.style.width = '100%';
-                                hr.style.opacity = '1';
-                                hr.style.height = '1px';
-                                hr.style.backgroundColor = 'transparent';
-                                megaMenu.appendChild(hr);
-                            }
+                        // "Tüm Ürünler" menüsünün hover yönetimi - alt menüye geçildiğinde kapanmaması için
+                        let allProductsHoverTimeout;
+
+                        allProductsMenuItem.addEventListener('mouseenter', function() {
+                            clearTimeout(allProductsHoverTimeout);
+                            // CSS animasyonunu korumak için visibility ve opacity kullan
+                            allProductsSubmenu.style.visibility = 'visible';
+                            allProductsSubmenu.style.opacity = '1';
+                            allProductsSubmenu.style.marginTop = '1.4rem';
                         });
 
-                        menuItem.appendChild(megaMenu);
-
-                        // Hover yönetimi için timeout
-                        let hoverTimeout;
-
-                        // Ana menü öğesine hover
-                        menuItem.addEventListener('mouseenter', function () {
-                            clearTimeout(hoverTimeout);
-                            // Diğer tüm mega menu'leri hemen kapat
-                            Object.keys(allMegaMenus).forEach(key => {
-                                if (allMegaMenus[key] && allMegaMenus[key] !== megaMenu) {
-                                    allMegaMenus[key].style.display = 'none';
-                                }
-                            });
-                            // Bu mega menu'yu göster
-                            megaMenu.style.display = 'block';
-                        });
-
-                        // Ana menü öğesinden ayrılma - hemen kapat (delay yok)
-                        menuItem.addEventListener('mouseleave', function (e) {
-                            // Eğer mega menu'ye geçiliyorsa kapatma
+                        allProductsMenuItem.addEventListener('mouseleave', function(e) {
                             const relatedTarget = e.relatedTarget;
-                            if (!relatedTarget) {
-                                megaMenu.style.display = 'none';
-                                return;
-                            }
-                            // Mega menu veya içindeki bir öğeye geçiliyorsa kapatma
-                            if (megaMenu.contains(relatedTarget) || relatedTarget === megaMenu || (relatedTarget.closest && relatedTarget.closest(`#mega-menu-${category.anA_ID}`))) {
+                            // Eğer alt menüye geçiliyorsa kapatma
+                            if (relatedTarget && (allProductsSubmenu.contains(relatedTarget) || relatedTarget === allProductsSubmenu || (relatedTarget.closest && relatedTarget.closest('#all-products-submenu')))) {
                                 return;
                             }
                             // Başka bir menü öğesine geçiliyorsa hemen kapat
-                            if (relatedTarget.closest && relatedTarget.closest('.header__sub--menu__items')) {
-                                megaMenu.style.display = 'none';
+                            if (relatedTarget && relatedTarget.closest && relatedTarget.closest('.header__menu--items')) {
+                                allProductsSubmenu.style.visibility = 'hidden';
+                                allProductsSubmenu.style.opacity = '0';
+                                allProductsSubmenu.style.marginTop = '25px';
+                                // Tüm mega menu'leri de kapat
+                                Object.keys(allMegaMenus).forEach(key => {
+                                    if (allMegaMenus[key]) {
+                                        allMegaMenus[key].style.display = 'none';
+                                    }
+                                });
                                 return;
                             }
                             // Diğer durumlarda hemen kapat
-                            megaMenu.style.display = 'none';
+                            allProductsSubmenu.style.visibility = 'hidden';
+                            allProductsSubmenu.style.opacity = '0';
+                            allProductsSubmenu.style.marginTop = '25px';
                         });
 
-                        // Mega menu'ye hover
-                        megaMenu.addEventListener('mouseenter', function () {
-                            clearTimeout(hoverTimeout);
-                            // Diğer tüm mega menu'leri hemen kapat
-                            Object.keys(allMegaMenus).forEach(key => {
-                                if (allMegaMenus[key] && allMegaMenus[key] !== megaMenu) {
-                                    allMegaMenus[key].style.display = 'none';
-                                }
-                            });
-                            // Bu mega menu'yu göster
-                            megaMenu.style.display = 'block';
+                        allProductsSubmenu.addEventListener('mouseenter', function() {
+                            clearTimeout(allProductsHoverTimeout);
+                            // CSS animasyonunu korumak için visibility ve opacity kullan
+                            allProductsSubmenu.style.visibility = 'visible';
+                            allProductsSubmenu.style.opacity = '1';
+                            allProductsSubmenu.style.marginTop = '1.4rem';
                         });
 
-                        // Mega menu'den ayrılma - hemen kapat (delay yok)
-                        megaMenu.addEventListener('mouseleave', function (e) {
+                        allProductsSubmenu.addEventListener('mouseleave', function(e) {
+                            const relatedTarget = e.relatedTarget;
                             // Eğer ana menü öğesine geri dönülüyorsa kapatma
-                            const relatedTarget = e.relatedTarget;
-                            if (!relatedTarget) {
-                                megaMenu.style.display = 'none';
-                                return;
-                            }
-                            // Ana menü öğesine veya link'e geri dönülüyorsa kapatma
-                            if (menuItem.contains(relatedTarget) || relatedTarget === menuItem || relatedTarget === menuLink || (relatedTarget.closest && relatedTarget.closest(`#submenu-item-${category.anA_ID}`))) {
+                            if (relatedTarget && (allProductsMenuItem.contains(relatedTarget) || relatedTarget === allProductsMenuItem || (relatedTarget.closest && relatedTarget.closest('#all-products-menu-item')))) {
                                 return;
                             }
                             // Başka bir menü öğesine geçiliyorsa hemen kapat
-                            if (relatedTarget.closest && relatedTarget.closest('.header__sub--menu__items')) {
-                                megaMenu.style.display = 'none';
+                            if (relatedTarget && relatedTarget.closest && relatedTarget.closest('.header__menu--items')) {
+                                allProductsSubmenu.style.visibility = 'hidden';
+                                allProductsSubmenu.style.opacity = '0';
+                                allProductsSubmenu.style.marginTop = '25px';
+                                // Tüm mega menu'leri de kapat
+                                Object.keys(allMegaMenus).forEach(key => {
+                                    if (allMegaMenus[key]) {
+                                        allMegaMenus[key].style.display = 'none';
+                                    }
+                                });
                                 return;
                             }
                             // Diğer durumlarda hemen kapat
-                            megaMenu.style.display = 'none';
+                            allProductsSubmenu.style.visibility = 'hidden';
+                            allProductsSubmenu.style.opacity = '0';
+                            allProductsSubmenu.style.marginTop = '25px';
                         });
+
+                        // Tüm Ürünler alt menüsünü doldur (tüm ana gruplar)
+                        allProductsSubmenu.innerHTML = '';
+                        response.forEach(category => {
+                            const menuItem = document.createElement('li');
+                            menuItem.className = 'header__sub--menu__items';
+                            menuItem.id = `submenu-item-${category.anA_ID}`;
+                            menuItem.style.position = 'relative';
+
+                            // Ana grup linki - ikon ile birlikte
+                            const menuLink = document.createElement('a');
+                            const mainCategorySlug = generateSlug(category.anA_GRUP_ADI);
+                            menuLink.href = `/magaza/kategori/${mainCategorySlug}`;
+                            menuLink.className = 'header__sub--menu__link';
+                            menuLink.style.display = 'flex';
+                            menuLink.style.alignItems = 'center';
+                            menuLink.style.gap = '10px';
+                            menuLink.style.width = '100%';
+
+                            // Ana grup ikonu
+                            if (category.gruP_IKON) {
+                                const icon = document.createElement('img');
+                                icon.src = `/${category.gruP_IKON}`;
+                                icon.loading = 'lazy';
+                                icon.style.width = '20px';
+                                icon.style.height = '20px';
+                                icon.style.objectFit = 'contain';
+                                icon.style.flexShrink = '0';
+                                menuLink.appendChild(icon);
+                            }
+
+                            const linkText = document.createElement('span');
+                            linkText.textContent = category.anA_GRUP_ADI.toLocaleUpperCase("TR");;
+                            menuLink.appendChild(linkText);
+
+                            // Eğer alt kategoriler varsa sağa dönük ok ikonu ekle
+                            if (category.subCategories && category.subCategories.length > 0) {
+                                const rightArrowIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                                rightArrowIcon.setAttribute('class', 'menu__arrowdown--icon');
+                                rightArrowIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                                rightArrowIcon.setAttribute('width', '12');
+                                rightArrowIcon.setAttribute('height', '7.41');
+                                rightArrowIcon.setAttribute('viewBox', '0 0 12 7.41');
+                                rightArrowIcon.style.transform = 'rotate(270deg)';
+                                rightArrowIcon.style.marginLeft = 'auto';
+                                rightArrowIcon.style.flexShrink = '0';
+                                const rightPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                                rightPath.setAttribute('d', 'M16.59,8.59,12,13.17,7.41,8.59,6,10l6,6,6-6Z');
+                                rightPath.setAttribute('transform', 'translate(-6 -8.59)');
+                                rightPath.setAttribute('fill', 'currentColor');
+                                rightPath.setAttribute('opacity', '0.7');
+                                rightArrowIcon.appendChild(rightPath);
+                                menuLink.appendChild(rightArrowIcon);
+                            }
+
+                            menuItem.appendChild(menuLink);
+
+                            // Eğer alt kategoriler varsa mega menu oluştur
+                            if (category.subCategories && category.subCategories.length > 0) {
+                                const megaMenu = document.createElement('div');
+                                megaMenu.id = `mega-menu-${category.anA_ID}`;
+                                // Tüm mega menu'leri sakla
+                                allMegaMenus[category.anA_ID] = megaMenu;
+                                megaMenu.style.position = 'absolute';
+                                megaMenu.style.left = '100%';
+                                megaMenu.style.top = '0';
+                                megaMenu.style.marginLeft = '0';
+                                megaMenu.style.display = 'none';
+                                megaMenu.style.zIndex = '1000';
+                                megaMenu.style.backgroundColor = '#fff';
+                                megaMenu.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+                                megaMenu.style.padding = '15px 15px 15px 25px';
+                                megaMenu.style.minWidth = '300px';
+                                megaMenu.style.borderRadius = '5px';
+
+                                // Alt kategorileri alt alta listele
+                                const subCategories = category.subCategories || [];
+
+                                subCategories.forEach((subCategory, index) => {
+                                    // Alt kategori öğesi
+                                    const subCategoryItem = document.createElement('div');
+                                    subCategoryItem.style.display = 'flex';
+                                    subCategoryItem.style.alignItems = 'center';
+                                    subCategoryItem.style.gap = '10px';
+                                    subCategoryItem.style.padding = '8px 0';
+
+                                    // Alt kategori ikonu (ana kategorinin ikonunu kullan)
+                                    if (category.gruP_IKON) {
+                                        const subIcon = document.createElement('img');
+                                        subIcon.src = `/${category.gruP_IKON}`;
+                                        subIcon.style.width = '20px';
+                                        subIcon.style.height = '20px';
+                                        subIcon.style.objectFit = 'contain';
+                                        subIcon.style.flexShrink = '0';
+                                        subCategoryItem.appendChild(subIcon);
+                                    }
+
+                                    // Alt kategori linki
+                                    const subLink = document.createElement('a');
+                                    const subCategorySlug = generateSlug(subCategory.alT_GRUP_ADI);
+                                    subLink.href = `/magaza/kategori/${mainCategorySlug}/${subCategorySlug}`;
+                                    subLink.textContent = subCategory.alT_GRUP_ADI.toLocaleUpperCase("TR");
+                                    subLink.style.textDecoration = 'none';
+                                    subLink.style.color = 'inherit';
+                                    subLink.style.flex = '1';
+                                    subLink.addEventListener('mouseenter', function() {
+                                        subLink.style.color = 'var(--secondary-color, #007bff)';
+                                    });
+                                    subLink.addEventListener('mouseleave', function() {
+                                        subLink.style.color = 'inherit';
+                                    });
+                                    subCategoryItem.appendChild(subLink);
+
+                                    megaMenu.appendChild(subCategoryItem);
+
+                                    // Son öğe değilse hr ekle
+                                    if (index < subCategories.length - 1) {
+                                        const hr = document.createElement('hr');
+                                        hr.style.margin = '5px 0';
+                                        hr.style.padding = '0';
+                                        hr.style.border = 'none';
+                                        hr.style.borderTop = '1px solid #e0e0e0';
+                                        hr.style.width = '100%';
+                                        hr.style.opacity = '1';
+                                        hr.style.height = '1px';
+                                        hr.style.backgroundColor = 'transparent';
+                                        megaMenu.appendChild(hr);
+                                    }
+                                });
+
+                                menuItem.appendChild(megaMenu);
+
+                                // Hover yönetimi için timeout
+                                let hoverTimeout;
+
+                                // Ana menü öğesine hover
+                                menuItem.addEventListener('mouseenter', function () {
+                                    clearTimeout(hoverTimeout);
+                                    // Diğer tüm mega menu'leri hemen kapat
+                                    Object.keys(allMegaMenus).forEach(key => {
+                                        if (allMegaMenus[key] && allMegaMenus[key] !== megaMenu) {
+                                            allMegaMenus[key].style.display = 'none';
+                                        }
+                                    });
+                                    // Bu mega menu'yu göster
+                                    megaMenu.style.display = 'block';
+                                });
+
+                                // Ana menü öğesinden ayrılma - hemen kapat (delay yok)
+                                menuItem.addEventListener('mouseleave', function (e) {
+                                    // Eğer mega menu'ye geçiliyorsa kapatma
+                                    const relatedTarget = e.relatedTarget;
+                                    if (!relatedTarget) {
+                                        megaMenu.style.display = 'none';
+                                        return;
+                                    }
+                                    // Mega menu veya içindeki bir öğeye geçiliyorsa kapatma
+                                    if (megaMenu.contains(relatedTarget) || relatedTarget === megaMenu || (relatedTarget.closest && relatedTarget.closest(`#mega-menu-${category.anA_ID}`))) {
+                                        return;
+                                    }
+                                    // Başka bir menü öğesine geçiliyorsa hemen kapat
+                                    if (relatedTarget.closest && relatedTarget.closest('.header__sub--menu__items')) {
+                                        megaMenu.style.display = 'none';
+                                        return;
+                                    }
+                                    // Diğer durumlarda hemen kapat
+                                    megaMenu.style.display = 'none';
+                                });
+
+                                // Mega menu'ye hover
+                                megaMenu.addEventListener('mouseenter', function () {
+                                    clearTimeout(hoverTimeout);
+                                    // Diğer tüm mega menu'leri hemen kapat
+                                    Object.keys(allMegaMenus).forEach(key => {
+                                        if (allMegaMenus[key] && allMegaMenus[key] !== megaMenu) {
+                                            allMegaMenus[key].style.display = 'none';
+                                        }
+                                    });
+                                    // Bu mega menu'yu göster
+                                    megaMenu.style.display = 'block';
+                                });
+
+                                // Mega menu'den ayrılma - hemen kapat (delay yok)
+                                megaMenu.addEventListener('mouseleave', function (e) {
+                                    // Eğer ana menü öğesine geri dönülüyorsa kapatma
+                                    const relatedTarget = e.relatedTarget;
+                                    if (!relatedTarget) {
+                                        megaMenu.style.display = 'none';
+                                        return;
+                                    }
+                                    // Ana menü öğesine veya link'e geri dönülüyorsa kapatma
+                                    if (menuItem.contains(relatedTarget) || relatedTarget === menuItem || relatedTarget === menuLink || (relatedTarget.closest && relatedTarget.closest(`#submenu-item-${category.anA_ID}`))) {
+                                        return;
+                                    }
+                                    // Başka bir menü öğesine geçiliyorsa hemen kapat
+                                    if (relatedTarget.closest && relatedTarget.closest('.header__sub--menu__items')) {
+                                        megaMenu.style.display = 'none';
+                                        return;
+                                    }
+                                    // Diğer durumlarda hemen kapat
+                                    megaMenu.style.display = 'none';
+                                });
+                            }
+
+                            allProductsSubmenu.appendChild(menuItem);
+                        });
+
+                    } catch (error) {
+                        console.error('Menü yüklenirken hata oluştu:', error);
                     }
-
-                    allProductsSubmenu.appendChild(menuItem);
-                });
-
-            } catch (error) {
-                console.error('Menü yüklenirken hata oluştu:', error);
-            }
-        }
-
-        async function loadBrandsMenu() {
-            try {
-                const response = await makeRequest('/kategori/marka-model-yil', 'GET');
-                if (!response || !Array.isArray(response)) {
-                    console.error('Marka verisi beklenen formatta değil:', response);
-                    return;
-                }
-                // Veriyi global olarak kaydet (Shop sayfasında kullanmak için)
-                window.brandsModelsYearsData = response;
-                const menuWrapper = document.getElementById('dynamic-menu-wrapper');
-                if (!menuWrapper) {
-                    console.error('Menü wrapper bulunamadı');
-                    return;
-                }
-                
-                // "Tüm Ürünler" menüsünden sonra ve "Diğer" menüsünden önce eklemek için referans al
-                const allProductsMenuItem = document.getElementById('all-products-menu-item');
-                const otherMenuItem = document.getElementById('other-menu-item');
-                
-                if (!allProductsMenuItem || !otherMenuItem) {
-                    console.error('Referans menü öğeleri bulunamadı');
-                    return;
                 }
 
-                // İzin verilen markalar
-                const allowedBrands = ['Alfa Romeo', 'Citroen', 'Fiat', 'Jeep', 'Peugeot'];
-                
-                // Markaları filtrele ve sırala
-                // Property adları: markA_KODU, markA_ADI, aktif, modelsYears
-                const filteredBrands = response
-                    .filter(brand => {
-                        const aktif = brand.aktif !== undefined ? brand.aktif : brand.AKTIF;
-                        const markaAdi = brand.markA_ADI || brand.MARKA_ADI;
-                        return aktif && allowedBrands.includes(markaAdi);
-                    })
-                    .sort((a, b) => {
-                        const markaAdiA = a.markA_ADI || a.MARKA_ADI;
-                        const markaAdiB = b.markA_ADI || b.MARKA_ADI;
-                        const indexA = allowedBrands.indexOf(markaAdiA);
-                        const indexB = allowedBrands.indexOf(markaAdiB);
-                        return indexA - indexB;
-                    });
+                async function loadBrandsMenu() {
+                    try {
+                        const response = await makeRequest('/kategori/marka-model-yil', 'GET');
+                        if (!response || !Array.isArray(response)) {
+                            console.error('Marka verisi beklenen formatta değil:', response);
+                            return;
+                        }
+                        // Veriyi global olarak kaydet (Shop sayfasında kullanmak için)
+                        window.brandsModelsYearsData = response;
+                        const menuWrapper = document.getElementById('dynamic-menu-wrapper');
+                        if (!menuWrapper) {
+                            console.error('Menü wrapper bulunamadı');
+                            return;
+                        }
 
-                // Mevcut dinamik marka menülerini kaldır (yeniden yükleme durumunda)
-                const existingBrandMenus = menuWrapper.querySelectorAll('[id^="brand-menu-item-"]');
-                existingBrandMenus.forEach(menu => menu.remove());
+                        // "Tüm Ürünler" menüsünden sonra ve "Diğer" menüsünden önce eklemek için referans al
+                        const allProductsMenuItem = document.getElementById('all-products-menu-item');
+                        const otherMenuItem = document.getElementById('other-menu-item');
 
-                filteredBrands.forEach(brand => {
-                    // Property adları: markA_KODU, markA_ADI, aktif, modelsYears
-                    const markaAdi = brand.markA_ADI || brand.MARKA_ADI;
-                    const markaKodu = brand.markA_KODU || brand.MARKA_KODU;
-                    
-                    // Marka adını URL formatına çevir (generateSlug ile)
-                    const brandSlug = generateSlug(markaAdi);
-                    
-                    // Marka menü öğesi
-                    const brandMenuItem = document.createElement('li');
-                    brandMenuItem.className = 'header__menu--items mega__menu--items';
-                    brandMenuItem.id = `brand-menu-item-${markaKodu}`;
-                    
-                    // Marka linki
-                    const brandLink = document.createElement('a');
-                    brandLink.className = 'header__menu--link d-flex align-items-center';
-                    brandLink.href = `/magaza/marka/${brandSlug}`;
-                    
-                    // Marka logosu (lowercase, boşluklar korunur: "alfa romeo.webp")
-                    const brandLogo = document.createElement('img');
-                    const brandLogoPath = markaAdi.toLowerCase();
-                    brandLogo.src = `/assets/img/logo/${brandLogoPath}.webp`;
-                    brandLogo.style.width = '60px';
-                    brandLogo.style.height = 'auto';
-                    brandLogo.alt = `${markaAdi} logo`;
-                    brandLogo.onerror = function() {
-                        // Alternatif olarak slug formatını dene
-                        this.src =`/assets/img/logo/${brandSlug}.webp`;
-                    };
-                    brandLink.appendChild(brandLogo);
-                    
-                    // Ok ikonu
-                    const arrowIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    arrowIcon.setAttribute('class', 'menu__arrowdown--icon');
-                    arrowIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                    arrowIcon.setAttribute('width', '12');
-                    arrowIcon.setAttribute('height', '7.41');
-                    arrowIcon.setAttribute('viewBox', '0 0 12 7.41');
-                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    path.setAttribute('d', 'M16.59,8.59,12,13.17,7.41,8.59,6,10l6,6,6-6Z');
-                    path.setAttribute('transform', 'translate(-6 -8.59)');
-                    path.setAttribute('fill', 'currentColor');
-                    path.setAttribute('opacity', '0.7');
-                    arrowIcon.appendChild(path);
-                    brandLink.appendChild(arrowIcon);
-                    
-                    brandMenuItem.appendChild(brandLink);
-                    
-                    // Mega menu (modeller için) - Grid layout (10 sütun)
-                    const megaMenu = document.createElement('ul');
-                    megaMenu.className = 'header__mega--menu';
-                    megaMenu.style.display = 'grid';
-                    megaMenu.style.gridTemplateColumns = 'repeat(10, 1fr)';
-                    megaMenu.style.gap = '8px';
-                    megaMenu.style.padding = '20px';
-                    megaMenu.style.width = '100%';
-                    megaMenu.style.maxWidth = '1400px';
-                    
-                    // Modelleri filtrele
-                    const modelsYears = brand.modelsYears || brand.ModelsYears || [];
-                    const models = modelsYears.filter(model => {
-                        const aktif = model.aktif !== undefined ? model.aktif : model.AKTIF;
-                        return aktif;
-                    });
-                    
-                    // Her modeli grid item olarak ekle
-                    models.forEach(model => {
-                        const modelLi = document.createElement('li');
-                        modelLi.style.listStyle = 'none';
-                        modelLi.style.display = 'flex';
-                        modelLi.style.flexDirection = 'column';
-                        modelLi.style.alignItems = 'center';
-                        modelLi.style.textAlign = 'center';
-                        
-                        const modelAdi = model.modeL_ADI || model.MODEL_ADI;
-                        const modelSlug = generateSlug(modelAdi);
-                        
-                        const modelLink = document.createElement('a');
-                        modelLink.href = `/magaza/marka/${brandSlug}/model/${modelSlug}`;
-                        modelLink.style.display = 'flex';
-                        modelLink.style.flexDirection = 'column';
-                        modelLink.style.alignItems = 'center';
-                        modelLink.style.textDecoration = 'none';
-                        modelLink.style.width = '100%';
-                        
-                        // Model logosu
-                        const modelImg = document.createElement('img');
-                        modelImg.className = 'img-thumbnail';
-                        modelImg.src = `/assets/img/cars/${markaAdi.toUpperCase()}/${modelAdi.toUpperCase()}.webp`;
-                        modelImg.loading = 'lazy';
-                        modelImg.style.width = '100%';
-                        modelImg.style.height = '80px';
-                        modelImg.style.objectFit = 'contain';
-                        modelImg.style.marginBottom = '8px';
-                        modelImg.style.transition = 'border-color 0.3s ease';
-                        modelImg.alt = `${markaAdi} ${modelAdi}`;
-                        modelImg.onerror = function() {
-                            this.style.display = 'none';
-                        };
-                        modelLink.appendChild(modelImg);
-                        
-                        // Model adı
-                        const modelName = document.createElement('span');
-                        modelName.className = 'model-name';
-                        modelName.textContent = modelAdi.toUpperCase();
-                        modelName.style.fontSize = '1.2rem';
-                        modelName.style.fontWeight = '500';
-                        modelName.style.color = '#333';
-                        modelName.style.wordBreak = 'break-word';
-                        modelName.style.transition = 'color 0.3s ease';
-                        modelLink.appendChild(modelName);
-                        
-                        modelLi.appendChild(modelLink);
-                        megaMenu.appendChild(modelLi);
-                    });
-                    
-                    brandMenuItem.appendChild(megaMenu);
-                    // "Tüm Ürünler" menüsünden sonra, "Diğer" menüsünden önce ekle
-                    menuWrapper.insertBefore(brandMenuItem, otherMenuItem);
-                });
+                        if (!allProductsMenuItem || !otherMenuItem) {
+                            console.error('Referans menü öğeleri bulunamadı');
+                            return;
+                        }
 
-                // Kalan markaları "Diğer" menüsü altına ekle
-                const otherSubmenu = otherMenuItem.querySelector('.header__sub--menu');
-                if (otherSubmenu) {
-                    // Mevcut statik içeriği temizle
-                    otherSubmenu.innerHTML = '';
-                    
-                    // İzin verilen markalar dışındaki tüm aktif markaları al
-                    const remainingBrands = response
-                        .filter(brand => {
-                            const aktif = brand.aktif !== undefined ? brand.aktif : brand.AKTIF;
+                        // İzin verilen markalar
+                        const allowedBrands = ['Alfa Romeo', 'Citroen', 'Fiat', 'Jeep', 'Peugeot'];
+
+                        // Markaları filtrele ve sırala
+                        // Property adları: markA_KODU, markA_ADI, aktif, modelsYears
+                        const filteredBrands = response
+                            .filter(brand => {
+                                const aktif = brand.aktif !== undefined ? brand.aktif : brand.AKTIF;
+                                const markaAdi = brand.markA_ADI || brand.MARKA_ADI;
+                                return aktif && allowedBrands.includes(markaAdi);
+                            })
+                            .sort((a, b) => {
+                                const markaAdiA = a.markA_ADI || a.MARKA_ADI;
+                                const markaAdiB = b.markA_ADI || b.MARKA_ADI;
+                                const indexA = allowedBrands.indexOf(markaAdiA);
+                                const indexB = allowedBrands.indexOf(markaAdiB);
+                                return indexA - indexB;
+                            });
+
+                        const remainingBrands = response
+                            .filter(brand => {
+                                const aktif = brand.aktif !== undefined ? brand.aktif : brand.AKTIF;
+                                const markaAdi = brand.markA_ADI || brand.MARKA_ADI;
+                                return aktif && !allowedBrands.includes(markaAdi);
+                            })
+                            .sort((a, b) => {
+                                const markaAdiA = a.markA_ADI || a.MARKA_ADI;
+                                const markaAdiB = b.markA_ADI || b.MARKA_ADI;
+                                return markaAdiA.localeCompare(markaAdiB, 'tr');
+                            });
+
+                        // Mevcut dinamik marka menülerini kaldır (yeniden yükleme durumunda)
+                        const existingBrandMenus = menuWrapper.querySelectorAll('[id^="brand-menu-item-"]');
+                        existingBrandMenus.forEach(menu => menu.remove());
+
+                        filteredBrands.forEach(brand => {
+                            // Property adları: markA_KODU, markA_ADI, aktif, modelsYears
                             const markaAdi = brand.markA_ADI || brand.MARKA_ADI;
-                            return aktif && !allowedBrands.includes(markaAdi);
-                        })
-                        .sort((a, b) => {
-                            const markaAdiA = a.markA_ADI || a.MARKA_ADI;
-                            const markaAdiB = b.markA_ADI || b.MARKA_ADI;
-                            return markaAdiA.localeCompare(markaAdiB, 'tr');
+                            const markaKodu = brand.markA_KODU || brand.MARKA_KODU;
+
+                            // Marka adını URL formatına çevir (generateSlug ile)
+                            const brandSlug = generateSlug(markaAdi);
+
+                            // Marka menü öğesi
+                            const brandMenuItem = document.createElement('li');
+                            brandMenuItem.className = 'header__menu--items mega__menu--items';
+                            brandMenuItem.id = `brand-menu-item-${markaKodu}`;
+
+                            // Marka linki
+                            const brandLink = document.createElement('a');
+                            brandLink.className = 'header__menu--link d-flex align-items-center';
+                            brandLink.href = `/magaza/marka/${brandSlug}`;
+
+                            // Marka logosu (lowercase, boşluklar korunur: "alfa romeo.webp")
+                            const brandLogo = document.createElement('img');
+                            const brandLogoPath = markaAdi.toLowerCase();
+                            brandLogo.src = `/assets/img/logo/${brandLogoPath}.webp`;
+                            brandLogo.style.width = '60px';
+                            brandLogo.style.height = 'auto';
+                            brandLogo.alt = `${markaAdi} logo`;
+                            brandLogo.onerror = function() {
+                                // Alternatif olarak slug formatını dene
+                                this.src =`/assets/img/logo/${brandSlug}.webp`;
+                            };
+                            brandLink.appendChild(brandLogo);
+
+                            // Ok ikonu
+                            const arrowIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                            arrowIcon.setAttribute('class', 'menu__arrowdown--icon');
+                            arrowIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                            arrowIcon.setAttribute('width', '12');
+                            arrowIcon.setAttribute('height', '7.41');
+                            arrowIcon.setAttribute('viewBox', '0 0 12 7.41');
+                            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                            path.setAttribute('d', 'M16.59,8.59,12,13.17,7.41,8.59,6,10l6,6,6-6Z');
+                            path.setAttribute('transform', 'translate(-6 -8.59)');
+                            path.setAttribute('fill', 'currentColor');
+                            path.setAttribute('opacity', '0.7');
+                            arrowIcon.appendChild(path);
+                            brandLink.appendChild(arrowIcon);
+
+                            brandMenuItem.appendChild(brandLink);
+
+                            // Mega menu (modeller için) - Grid layout (10 sütun)
+                            const megaMenu = document.createElement('ul');
+                            megaMenu.className = 'header__mega--menu';
+                            megaMenu.style.display = 'grid';
+                            megaMenu.style.gridTemplateColumns = 'repeat(10, 1fr)';
+                            megaMenu.style.gap = '8px';
+                            megaMenu.style.padding = '20px';
+                            megaMenu.style.width = '100%';
+                            megaMenu.style.maxWidth = '1400px';
+
+                            // Modelleri filtrele
+                            const modelsYears = brand.modelsYears || brand.ModelsYears || [];
+                            const models = modelsYears.filter(model => {
+                                const aktif = model.aktif !== undefined ? model.aktif : model.AKTIF;
+                                return aktif;
+                            });
+
+                            // Her modeli grid item olarak ekle
+                            models.forEach(model => {
+                                const modelLi = document.createElement('li');
+                                modelLi.style.listStyle = 'none';
+                                modelLi.style.display = 'flex';
+                                modelLi.style.flexDirection = 'column';
+                                modelLi.style.alignItems = 'center';
+                                modelLi.style.textAlign = 'center';
+
+                                const modelAdi = model.modeL_ADI || model.MODEL_ADI;
+                                const modelSlug = generateSlug(modelAdi);
+
+                                const modelLink = document.createElement('a');
+                                modelLink.href = `/magaza/marka/${brandSlug}/model/${modelSlug}`;
+                                modelLink.style.display = 'flex';
+                                modelLink.style.flexDirection = 'column';
+                                modelLink.style.alignItems = 'center';
+                                modelLink.style.textDecoration = 'none';
+                                modelLink.style.width = '100%';
+
+                                // Model logosu
+                                const modelImg = document.createElement('img');
+                                modelImg.className = 'img-thumbnail';
+                                modelImg.src = `/assets/img/cars/${markaAdi.toUpperCase()}/${modelAdi.toUpperCase()}.webp`;
+                                modelImg.loading = 'lazy';
+                                modelImg.style.width = '100%';
+                                modelImg.style.height = '80px';
+                                modelImg.style.objectFit = 'contain';
+                                modelImg.style.marginBottom = '8px';
+                                modelImg.style.transition = 'border-color 0.3s ease';
+                                modelImg.alt = `${markaAdi} ${modelAdi}`;
+                                modelImg.onerror = function() {
+                                    this.style.display = 'none';
+                                };
+                                modelLink.appendChild(modelImg);
+
+                                // Model adı
+                                const modelName = document.createElement('span');
+                                modelName.className = 'model-name';
+                                modelName.textContent = modelAdi.toUpperCase();
+                                modelName.style.fontSize = '1.2rem';
+                                modelName.style.fontWeight = '500';
+                                modelName.style.color = '#333';
+                                modelName.style.wordBreak = 'break-word';
+                                modelName.style.transition = 'color 0.3s ease';
+                                modelLink.appendChild(modelName);
+
+                                modelLi.appendChild(modelLink);
+                                megaMenu.appendChild(modelLi);
+                            });
+
+                            brandMenuItem.appendChild(megaMenu);
+                            // "Tüm Ürünler" menüsünden sonra, "Diğer" menüsünden önce ekle
+                            menuWrapper.insertBefore(brandMenuItem, otherMenuItem);
                         });
-                    
-                    remainingBrands.forEach(brand => {
-                        const markaAdi = brand.markA_ADI || brand.MARKA_ADI;
-                        const brandSlugForOther = generateSlug(markaAdi);
-                        
-                        // Marka menü öğesi
-                        const brandMenuItem = document.createElement('li');
-                        brandMenuItem.className = 'header__sub--menu__items';
-                        
-                        // Marka linki - "Tüm Ürünler" menüsündeki gibi logo ve metin
-                        const brandLink = document.createElement('a');
-                        brandLink.className = 'header__sub--menu__link';
-                        brandLink.href = `/magaza/marka/${brandSlugForOther}`;
-                        brandLink.style.display = 'flex';
-                        brandLink.style.alignItems = 'center';
-                        brandLink.style.gap = '10px';
-                        
-                        // Marka logosu (lowercase, boşluklar korunur: "alfa romeo.webp")
-                        const brandLogo = document.createElement('img');
-                        const brandLogoPath = markaAdi.toLowerCase();
-                        brandLogo.src = `/assets/img/logo/${brandLogoPath}.webp`;
-                        brandLogo.style.width = '50px';
-                        brandLogo.style.height = 'auto';
-                        brandLogo.style.objectFit = 'contain';
-                        brandLogo.style.flexShrink = '0';
-                        brandLogo.alt = `${markaAdi} logo`;
-                        brandLogo.onerror = function() {
-                            // Alternatif olarak slug formatını dene
-                            this.src = `/assets/img/logo/${markaAdi}.webp`;
-                        };
-                        brandLink.appendChild(brandLogo);
-                        
-                        // Marka adı
-                        const brandName = document.createElement('span');
-                        brandName.textContent = markaAdi.toUpperCase();
-                        brandLink.appendChild(brandName);
-                        
-                        brandMenuItem.appendChild(brandLink);
-                        otherSubmenu.appendChild(brandMenuItem);
+
+                        // Kalan markaları "Diğer" menüsü altına ekle
+                        const otherSubmenu = otherMenuItem.querySelector('.header__sub--menu');
+                        if (otherSubmenu) {
+                            // Mevcut statik içeriği temizle
+                            otherSubmenu.innerHTML = '';
+
+                            remainingBrands.forEach(brand => {
+                                const markaAdi = brand.markA_ADI || brand.MARKA_ADI;
+                                const brandSlugForOther = generateSlug(markaAdi);
+
+                                // Marka menü öğesi
+                                const brandMenuItem = document.createElement('li');
+                                brandMenuItem.className = 'header__sub--menu__items';
+
+                                // Marka linki - "Tüm Ürünler" menüsündeki gibi logo ve metin
+                                const brandLink = document.createElement('a');
+                                brandLink.className = 'header__sub--menu__link';
+                                brandLink.href = `/magaza/marka/${brandSlugForOther}`;
+                                brandLink.style.display = 'flex';
+                                brandLink.style.alignItems = 'center';
+                                brandLink.style.gap = '10px';
+
+                                // Marka logosu (lowercase, boşluklar korunur: "alfa romeo.webp")
+                                const brandLogo = document.createElement('img');
+                                const brandLogoPath = markaAdi.toLowerCase();
+                                brandLogo.src = `/assets/img/logo/${brandLogoPath}.webp`;
+                                brandLogo.style.width = '50px';
+                                brandLogo.style.height = 'auto';
+                                brandLogo.style.objectFit = 'contain';
+                                brandLogo.style.flexShrink = '0';
+                                brandLogo.alt = `${markaAdi} logo`;
+                                brandLogo.onerror = function() {
+                                    // Alternatif olarak slug formatını dene
+                                    this.src = `/assets/img/logo/${markaAdi}.webp`;
+                                };
+                                brandLink.appendChild(brandLogo);
+
+                                // Marka adı
+                                const brandName = document.createElement('span');
+                                brandName.textContent = markaAdi.toUpperCase();
+                                brandLink.appendChild(brandName);
+
+                                brandMenuItem.appendChild(brandLink);
+                                otherSubmenu.appendChild(brandMenuItem);
+                            });
+                        }
+
+                        // Offcanvas (mobil) menüyü aynı markalarla doldur – tüm markalar logo + ad ile görünür
+                        const offcanvasUl = document.getElementById('offcanvas-menu-ul');
+                        if (offcanvasUl) {
+                            const existingOffcanvasBrands = offcanvasUl.querySelectorAll('li.offcanvas__menu_li--brand');
+                            existingOffcanvasBrands.forEach(el => el.remove());
+                            const allBrandsForOffcanvas = [...filteredBrands, ...remainingBrands];
+                            allBrandsForOffcanvas.forEach(brand => {
+                                const markaAdi = brand.markA_ADI || brand.MARKA_ADI;
+                                const brandSlug = generateSlug(markaAdi);
+                                const brandLogoPath = markaAdi.toLowerCase();
+                                const li = document.createElement('li');
+                                li.className = 'offcanvas__menu_li offcanvas__menu_li--brand';
+                                const a = document.createElement('a');
+                                a.className = 'offcanvas__menu_item';
+                                a.href = `/magaza/marka/${brandSlug}`;
+                                const div = document.createElement('div');
+                                div.className = 'menu-item-content d-flex align-items-center gap-2';
+                                const img = document.createElement('img');
+                                img.src = `/assets/img/logo/${brandLogoPath}.webp`;
+                                img.alt = markaAdi.toUpperCase();
+                                img.width = 60;
+                                img.height = 'auto';
+                                img.loading = 'lazy';
+                                img.onerror = function() { this.src = `/assets/img/logo/${brandSlug}.webp`; };
+                                const span = document.createElement('span');
+                                span.textContent = markaAdi.toUpperCase();
+                                div.appendChild(img);
+                                div.appendChild(span);
+                                a.appendChild(div);
+                                li.appendChild(a);
+                                offcanvasUl.appendChild(li);
+                            });
+                        }
+
+                    } catch (error) {
+                        console.error('Markalar menüsü yüklenirken hata oluştu:', error);
+                    }
+                }
+
+                $(document).ready(async function () {
+                    await getShippingThreshold();
+                    await loadDynamicMenu();
+                    await loadBrandsMenu();
+                             // Decrease butonuna ek kontrol
+                    $('.decrease').on('click', function() {
+                        let input = $(this).siblings('label').find('[data-counter]');
+                        let currentValue = parseInt(input.val()) || 1;
+
+                        // Eğer 1 ise, 1'de kal
+                        if (currentValue <= 1) {
+                            input.val(1);
+                            return false; // Butonu durdur
+                        }
                     });
-                }
 
-            } catch (error) {
-                console.error('Markalar menüsü yüklenirken hata oluştu:', error);
-            }
-        }
-
-        $(document).ready(async function () {
-            await getShippingThreshold();
-            await loadDynamicMenu();
-            await loadBrandsMenu();
-                     // Decrease butonuna ek kontrol
-            $('.decrease').on('click', function() {
-                let input = $(this).siblings('label').find('[data-counter]');
-                let currentValue = parseInt(input.val()) || 1;
-
-                // Eğer 1 ise, 1'de kal
-                if (currentValue <= 1) {
-                    input.val(1);
-                    return false; // Butonu durdur
-                }
-            });
-
-            // Input'a manuel 0 veya negatif değer girilmesini engelle
-            $('[data-counter]').on('input change blur', function() {
-                let value = parseInt($(this).val());
-                if (isNaN(value) || value < 1) {
-                    $(this).val(1);
-                }
-            });
-        });
+                    // Input'a manuel 0 veya negatif değer girilmesini engelle
+                    $('[data-counter]').on('input change blur', function() {
+                        let value = parseInt($(this).val());
+                        if (isNaN(value) || value < 1) {
+                            $(this).val(1);
+                        }
+                    });
+                });
     </script>
 </body>
 

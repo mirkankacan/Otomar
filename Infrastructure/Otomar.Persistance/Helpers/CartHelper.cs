@@ -10,9 +10,11 @@ namespace Otomar.Persistance.Helpers
     public static class CartHelper
     {
         private const string CartCookieName = "CartSessionId";
+        private const string CartSessionHeader = "X-Cart-Session-Id";
 
         /// <summary>
         /// Kullanıcı için cart key'i döndürür (user veya session bazlı)
+        /// Öncelik: 1) User ID, 2) Header, 3) Cookie
         /// </summary>
         public static string GetCartKey(HttpContext context, RedisOptions redisOptions)
         {
@@ -28,23 +30,30 @@ namespace Otomar.Persistance.Helpers
         }
 
         /// <summary>
-        /// Session ID'yi cookie'den alır veya yeni oluşturur
+        /// Session ID'yi header'dan veya cookie'den alır, yoksa yeni oluşturur
+        /// Öncelik: 1) Header (WebApp'tan), 2) Cookie (doğrudan API erişimi)
         /// </summary>
         private static string GetOrCreateSessionId(HttpContext context, RedisOptions redisOptions)
         {
-            var sessionId = context.Request.Cookies[CartCookieName];
+            // 1. Önce header'dan bak (WebApp'tan geliyor)
+            var sessionId = context.Request.Headers[CartSessionHeader].FirstOrDefault();
 
-            Console.WriteLine($"========== CART DEBUG ==========");
-            Console.WriteLine($"Incoming SessionId: {sessionId ?? "NULL"}");
-            Console.WriteLine($"Response.HasStarted: {context.Response.HasStarted}");
-            Console.WriteLine($"ExpirationDays: {redisOptions.CartExpirationDays}");
-
-            if (string.IsNullOrEmpty(sessionId))
+            if (!string.IsNullOrEmpty(sessionId))
             {
-                sessionId = Guid.NewGuid().ToString("N");
-                Console.WriteLine($"Created new: {sessionId}");
+                return sessionId;
             }
 
+            // 2. Cookie'den bak (doğrudan API erişimi için fallback)
+            sessionId = context.Request.Cookies[CartCookieName];
+
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                RefreshCookie(context, sessionId, redisOptions.CartExpirationDays);
+                return sessionId;
+            }
+
+            // 3. Yeni oluştur
+            sessionId = Guid.NewGuid().ToString("N");
             RefreshCookie(context, sessionId, redisOptions.CartExpirationDays);
             return sessionId;
         }
@@ -53,14 +62,13 @@ namespace Otomar.Persistance.Helpers
         {
             if (context.Response.HasStarted)
             {
-                Console.WriteLine("[CartHelper] ⚠️ Response already started, cookie NOT written!");
                 return;
             }
 
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = context.Request.IsHttps, // HTTP'de (localhost) cookie kaydedilsin; yoksa tarayıcı kaydetmez, her istekte yeni CartSessionId = boş sepet
+                Secure = true,
                 SameSite = SameSiteMode.Lax,
                 IsEssential = true,
                 Expires = DateTimeOffset.UtcNow.AddDays(expirationDays),
@@ -83,7 +91,10 @@ namespace Otomar.Persistance.Helpers
             if (string.IsNullOrEmpty(userId))
                 return;
 
-            var sessionId = context.Request.Cookies[CartCookieName];
+            // Header'dan veya cookie'den session ID al
+            var sessionId = context.Request.Headers[CartSessionHeader].FirstOrDefault()
+                         ?? context.Request.Cookies[CartCookieName];
+
             if (string.IsNullOrEmpty(sessionId))
                 return;
 
@@ -139,11 +150,12 @@ namespace Otomar.Persistance.Helpers
         }
 
         /// <summary>
-        /// Session ID'yi döndürür (varsa)
+        /// Session ID'yi döndürür (header veya cookie'den)
         /// </summary>
         public static string? GetSessionId(HttpContext context)
         {
-            return context.Request.Cookies[CartCookieName];
+            return context.Request.Headers[CartSessionHeader].FirstOrDefault()
+                ?? context.Request.Cookies[CartCookieName];
         }
     }
 }

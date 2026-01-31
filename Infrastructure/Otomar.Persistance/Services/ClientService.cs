@@ -20,7 +20,7 @@ namespace Otomar.Persistance.Services
                 }
                 var parameters = new DynamicParameters();
                 parameters.Add("clientCode", clientCode.Trim());
-                var query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S FROM IdvSanalPos WITH (NOLOCK) WHERE CARI_KOD = @clientCode";
+                var query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S FROM IdvSanalPosCari WITH (NOLOCK) WHERE CARI_KOD = @clientCode";
 
                 var result = await context.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, parameters);
                 if (result == null)
@@ -37,7 +37,7 @@ namespace Otomar.Persistance.Services
             }
         }
 
-        public async Task<ServiceResult<ClientDto>> GetClientByTaxNumberAsync(string taxNumber)
+        public async Task<ServiceResult<ClientDto>> GetClientByTaxTcNumberAsync(string taxNumber)
         {
             try
             {
@@ -50,11 +50,11 @@ namespace Otomar.Persistance.Services
                 var query = string.Empty;
                 if (taxNumber.Length == 10)
                 {
-                    query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S  FROM IdvSanalPos WITH (NOLOCK) WHERE VERGI_NUMARASI = @clientCode";
+                    query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S  FROM IdvSanalPosCari WITH (NOLOCK) WHERE VERGI_NUMARASI = @taxNumber";
                 }
                 else if (taxNumber.Length == 11)
                 {
-                    query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S FROM IdvSanalPos WITH (NOLOCK) WHERE TCKIMLIKNO = @clientCode";
+                    query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S FROM IdvSanalPosCari WITH (NOLOCK) WHERE TCKIMLIKNO = @taxNumber";
                 }
 
                 var result = await context.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, parameters);

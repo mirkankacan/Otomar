@@ -4,6 +4,7 @@ using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
 using Otomar.Application.Dtos.Product;
 using Otomar.Persistance.Data;
+using System.Data;
 using System.Net;
 using System.Web;
 
@@ -132,7 +133,7 @@ namespace Otomar.Persistance.Services
             }
         }
 
-        public async Task<ServiceResult<ProductDto?>> GetProductByIdAsync(int id)
+        public async Task<ServiceResult<ProductDto?>> GetProductByIdAsync(int id, IDbTransaction transaction = null)
         {
             try
             {
@@ -164,7 +165,7 @@ namespace Otomar.Persistance.Services
                  FROM IdvStock WITH (NOLOCK)
                  WHERE ID = @id";
 
-                var result = await context.Connection.QueryFirstOrDefaultAsync<ProductDto>(query, parameters);
+                var result = await context.Connection.QueryFirstOrDefaultAsync<ProductDto>(query, parameters, transaction);
                 if (result == null)
                 {
                     logger.LogWarning($"'{id}' ID'li ürün bulunamadı");
@@ -204,22 +205,23 @@ namespace Otomar.Persistance.Services
                      (STOK_KODU = @{paramName}
                      OR URETICI_KODU = @{paramName}
                      OR OEM_KODU = @{paramName}
-                     OR STOK_ADI LIKE '%' + @{paramName} + '%'
-                     OR URETICI_MARKA_ADI LIKE '%' + @{paramName} + '%'
-                     OR HASHTAG LIKE '%' + @{paramName} + '%'
-                     OR KASA_ADI LIKE '%' + @{paramName} + '%'
-                     OR MARKA_ADI LIKE '%' + @{paramName} + '%'
-                     OR MODEL_ADI LIKE '%' + @{paramName} + '%')");
+                     OR STOK_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
+                     OR FATURA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
+                     OR URETICI_MARKA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
+                     OR HASHTAG COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
+                     OR KASA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
+                     OR MARKA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
+                     OR MODEL_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%')");
                         }
                         else
                         {
                             // Multiple terms - focused search
                             searchConditions.Add($@"
-                     (STOK_ADI LIKE '%' + @{paramName} + '%'
-                     OR URETICI_MARKA_ADI LIKE '%' + @{paramName} + '%'
-                     OR HASHTAG LIKE '%' + @{paramName} + '%'
-                     OR KASA_ADI LIKE '%' + @{paramName} + '%'
-                     OR MARKA_ADI LIKE '%' + @{paramName} + '%')");
+                     (STOK_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
+                     OR FATURA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
+                     OR URETICI_MARKA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
+                     OR HASHTAG COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
+                     OR KASA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%')");
                         }
                     }
                     whereConditions.Add($"({string.Join(" AND ", searchConditions)})");
@@ -415,7 +417,7 @@ namespace Otomar.Persistance.Services
                   )
             )
             SELECT TOP 10
-                STOK_KODU, STOK_ADI, SATIS_FIYAT, DOSYA_KONUM,URETICI_MARKA_LOGO
+                ID, STOK_KODU, STOK_ADI, URETICI_KODU, SATIS_FIYAT, DOSYA_KONUM, URETICI_MARKA_LOGO
             FROM SimilarProducts
             ORDER BY Priority";
                 var result = await context.Connection.QueryAsync<SimilarProductDto?>(query, parameters);

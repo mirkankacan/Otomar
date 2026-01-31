@@ -1,0 +1,101 @@
+@{
+    ViewData["Title"] = "Sepet";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+{
+new("Ana Sayfa", "/ana-sayfa"),
+new("Sepet", null)
+};
+}
+
+<!-- cart section start -->
+<section class="cart__section section--padding">
+    <div class="container-fluid">
+        <div class="cart__section--inner">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="cart__table">
+                        <table class="cart__table--inner">
+                            <thead class="cart__table--header">
+                                <tr class="cart__table--header__items">
+                                    <th class="cart__table--header__list">ÜRÜN ADI</th>
+                                    <th class="cart__table--header__list">BİRİM FİYAT</th>
+                                    <th class="cart__table--header__list">MİKTAR</th>
+                                    <th class="cart__table--header__list">TOPLAM</th>
+                                </tr>
+                            </thead>
+                            <tbody class="cart__table--body" id="cart-page-tbody">
+                                <tr id="cart-page-empty-row" class="cart__table--body__items">
+                                    <td colspan="4" class="text-center py-5">
+                                        <p class="mb-2">Sepetiniz boş.</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="continue__shopping d-flex justify-content-between">
+                            <a class="continue__shopping--link" href="/magaza">Alışverişe Devam Et</a>
+                            <button class="continue__shopping--clear" type="button" id="cart-page-clear-btn">Sepeti
+                                Temizle</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="cart__summary border-radius-10">
+                        @*  <div class="coupon__code mb-30">
+                                <h3 class="coupon__code--title">Coupon</h3>
+                                <p class="coupon__code--desc">Enter your coupon code if you have one.</p>
+                                <div class="coupon__code--field d-flex">
+                                    <label>
+                                        <input class="coupon__code--field__input border-radius-5" placeholder="Coupon code" type="text">
+                                    </label>
+                                    <button class="coupon__code--field__btn primary__btn" type="submit">Apply Coupon</button>
+                                </div>
+                            </div> *@
+                        @*   <div class="cart__note mb-20">
+                                <h3 class="cart__note--title">Note</h3>
+                                <p class="cart__note--desc">Add special instructions for your seller...</p>
+                                <textarea class="cart__note--textarea border-radius-5"></textarea>
+                            </div> *@
+                        <div class="cart__summary--total mb-20">
+                            <table class="cart__summary--total__table">
+                                <tbody>
+                                    <tr class="cart__summary--total__list">
+                                        <td class="cart__summary--total__title text-left">Alt Toplam</td>
+                                        <td class="cart__summary--amount text-right" id="cart-page-subtotal">₺0,00</td>
+                                    </tr>
+                                    <tr class="cart__summary--total__list">
+                                        <td class="cart__summary--total__title text-left">Kargo</td>
+                                        <td class="cart__summary--amount text-right" id="cart-page-shipping">₺0,00</td>
+                                    </tr>
+                                    <tr class="cart__summary--total__list">
+                                        <td class="cart__summary--total__title text-left">Toplam</td>
+                                        <td class="cart__summary--amount text-right" id="cart-page-total">₺0,00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="cart__summary--footer">
+                            <ul class="d-flex justify-content-center w-100">
+                                <li class="w-100">
+                                <a class="cart__summary--footer__btn primary__btn checkout w-100 text-center"
+                                        href="/odeme">Ödeme Yap</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- cart section end -->
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var clearBtn = document.getElementById('cart-page-clear-btn');
+            if (clearBtn && typeof CartManager !== 'undefined') {
+                clearBtn.addEventListener('click', function () { CartManager.clearCart(); });
+            }
+        });
+    </script>
+}

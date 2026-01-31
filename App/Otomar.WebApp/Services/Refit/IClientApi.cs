@@ -9,7 +9,7 @@ namespace Otomar.WebApp.Services.Refit
         Task<ClientDto> GetClientByCodeAsync(string clientCode, CancellationToken cancellationToken = default);
 
         [Get("/api/clients/taxNumber/{taxNumber}")]
-        Task<ClientDto> GetClientByTaxNumberAsync(string taxNumber, CancellationToken cancellationToken = default);
+        Task<ClientDto> GetClientByTaxTcNumberAsync(string taxNumber, CancellationToken cancellationToken = default);
 
         [Get("/api/clients/{clientCode}/transactions")]
         Task<IEnumerable<TransactionDto>> GetClientTransactionsByCodeAsync(string clientCode, CancellationToken cancellationToken = default);

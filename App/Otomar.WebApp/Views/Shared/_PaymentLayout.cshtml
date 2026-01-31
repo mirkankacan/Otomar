@@ -1,0 +1,316 @@
+﻿<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"] • OTOMAR Yedek Parça</title>
+    <meta name="description" content="OTOMAR Yedek Parça E-Ticaret Sitesi">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/img/favicon.ico">
+
+    <script>
+        window.SITE_KEY = '6LcQvngqAAAAAE54QYZrbKgnK7NdsmwV3zsrfVwi';
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5TKFSDZK3S');
+        gtag('config', 'GT-WFFPZK75');
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5TKFSDZK3S"></script>
+
+    <!-- ======= All CSS Plugins here ======== -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha512-6S2HWzVFxruDlZxI3sXOZZ4/eJ8AcxkQH1+JjSe/ONCEqR9L4Ysq5JdT5ipqtzU7WHalNwzwBv+iE51gNHJNqQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.23.0/sweetalert2.min.css" integrity="sha512-Ivy7sPrd6LPp20adiK3al16GBelPtqswhJnyXuha3kGtmQ1G2qWpjuipfVDaZUwH26b3RDe8x707asEpvxl7iA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500&display=swap"
+          rel="stylesheet">
+
+    <!-- Plugin css -->
+    <link rel="stylesheet" href="/assets/css/vendor/bootstrap.min.css">
+
+    <!-- Custom Style CSS -->
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/skeleton-loader.css">
+    <link rel="stylesheet" href="/assets/css/credit-card.css" />
+    <style>
+        .form-check-input:checked {
+            background-color: var(--secondary-color) !important;
+            border-color: var(--secondary-color) !important;
+        }
+
+        /* Bootstrap Validation Styles */
+        .checkout__input--field.is-invalid,
+        .checkout__input--select__field.is-invalid,
+        .checkout__notes--textarea__field.is-invalid {
+            border-color: #dc3545 !important;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        .checkout__input--field.is-valid,
+        .checkout__input--select__field.is-valid,
+        .checkout__notes--textarea__field.is-valid {
+            border-color: #198754 !important;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        /* Textarea için özel pozisyon */
+        .checkout__notes--textarea__field.is-invalid,
+        .checkout__notes--textarea__field.is-valid {
+            background-position: top calc(0.375em + 0.1875rem) right calc(0.375em + 0.1875rem);
+        }
+
+        /* Select için özel pozisyon (ok ikonu ile çakışmasın) */
+        .checkout__input--select__field.is-invalid,
+        .checkout__input--select__field.is-valid {
+            background-position: right calc(2.5em + 0.1875rem) center;
+        }
+
+        /* Invalid feedback mesajı */
+        .invalid-feedback {
+            display: none;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 1.2rem;
+            color: #dc3545;
+        }
+
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+
+        /* Checkbox sözleşme: hata durumunda kırmızı ve mesaj göster */
+        .checkout__checkbox .invalid-feedback {
+            display: none;
+        }
+
+        .checkout__checkbox.is-invalid .invalid-feedback {
+            display: block;
+        }
+
+        .checkout__checkbox.is-invalid .checkout__checkbox--checkmark {
+            border-color: #dc3545;
+        }
+
+        .checkout__checkbox.is-invalid .checkout__checkbox--label {
+            color: #dc3545;
+        }
+
+        /* Valid feedback mesajı (opsiyonel) */
+        .valid-feedback {
+            display: none;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 1.2rem;
+            color: #198754;
+        }
+
+        .is-valid ~ .valid-feedback {
+            display: block;
+        }
+
+        /* Focus durumunda border rengi */
+        .checkout__input--field.is-invalid:focus,
+        .checkout__input--select__field.is-invalid:focus,
+        .checkout__notes--textarea__field.is-invalid:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        .checkout__input--field.is-valid:focus,
+        .checkout__input--select__field.is-valid:focus,
+        .checkout__notes--textarea__field.is-valid:focus {
+            border-color: #198754 !important;
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+        }
+
+        /* E-posta domain önerileri */
+        .email-input-wrapper {
+            display: block;
+        }
+
+        .email-domain-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1050;
+            max-height: 220px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+            margin-top: 2px;
+            padding: 0.25rem 0;
+            display: none;
+        }
+
+            .email-domain-suggestions[aria-hidden="false"] {
+                display: block;
+            }
+
+        .email-domain-suggestions__item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-size: 1.4rem;
+            color: #212529;
+            white-space: nowrap;
+        }
+
+            .email-domain-suggestions__item:hover,
+            .email-domain-suggestions__item.is-active {
+                background: #f8f9fa;
+                color: var(--secondary-color, #0d6efd);
+            }
+
+        /* Sipariş tamamla loading: spinner + disabled butonlar */
+        .checkout-btn-spinner {
+            display: inline-block;
+            width: 1.1em;
+            height: 1.1em;
+            vertical-align: -0.2em;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: checkout-spin 0.6s linear infinite;
+        }
+
+        .checkout-btn-loading-text {
+            margin-left: 0.35em;
+        }
+
+        .checkout-btn--loading {
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+
+        @@keyframes checkout-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        <style >
+        .header-brand-logo {
+            width: 60px;
+            height: auto;
+        }
+
+        .toast {
+            background-color: #333;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 15px;
+            padding: 15px;
+        }
+
+        .toast-success {
+            background-color: #28a745 !important;
+            color: #fff;
+        }
+
+        .toast-error {
+            background-color: #dc3545 !important;
+            color: #fff;
+        }
+
+        .toast-warning {
+            background-color: #ffc107 !important;
+            color: #333;
+        }
+
+        .toast-info {
+            background-color: #17a2b8 !important;
+            color: #fff;
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    @RenderBody()
+    <!-- All Script JS Plugins here  -->
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"
+            integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script>
+    <script src="/assets/js/vendor/popper.js" defer="defer"></script>
+    <script src="/assets/js/vendor/bootstrap.min.js" defer="defer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha512-lbwH47l/tPXJYG9AcFNoJaTMhGvYWhVM9YI43CT+uteTRRaiLCui8snIgyAN8XWgNjNhCqlAUdzZptso6OCoFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.23.0/sweetalert2.min.js" integrity="sha512-pnPZhx5S+z5FSVwy62gcyG2Mun8h6R+PG01MidzU+NGF06/ytcm2r6+AaWMBXAnDHsdHWtsxS0dH8FBKA84FlQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/7.6.1/imask.min.js" integrity="sha512-+3RJc0aLDkj0plGNnrqlTwCCyMmDCV1fSYqXw4m+OczX09Pas5A/U+V3pFwrSyoC1svzDy40Q9RU/85yb/7D2A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/assets/js/validation.js"></script>
+    <script src="/assets/js/http-client.js"></script>
+    <script src="/assets/js/skeleton-loader.js"></script>
+
+    <!-- Customscript js -->
+    <script src="/assets/js/cart.js"></script>
+    <script>
+                      toastr.options = {
+          "closeButton": false,
+          "debug": false,
+          "newestOnTop": true,
+          "progressBar": true,
+          "positionClass": "toast-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        }
+           function generateSlug(text) {
+            const turkishMap = {
+                'ç': 'c', 'Ç': 'c',
+                'ğ': 'g', 'Ğ': 'g',
+                'ı': 'i', 'İ': 'i',
+                'ö': 'o', 'Ö': 'o',
+                'ş': 's', 'Ş': 's',
+                'ü': 'u', 'Ü': 'u'
+            };
+
+            return text
+                .toString()
+                .split('')
+                .map(char => turkishMap[char] || char)
+                .join('')
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '');
+        }
+           function formatTurkishLira(amount) {
+                    if (!amount && amount !== 0) return '₺0,00';
+
+                    // Sayıyı string'e çevir ve ondalık kısmı ayır
+                    const numStr = amount.toFixed(2);
+                    const parts = numStr.split('.');
+                    const integerPart = parts[0];
+                    const decimalPart = parts[1] || '00';
+
+                    // Binlik ayırıcı ekle (nokta)
+                    let formattedInteger = '';
+                    for (let i = integerPart.length - 1, j = 0; i >= 0; i--, j++) {
+                        if (j > 0 && j % 3 === 0) {
+                            formattedInteger = '.' + formattedInteger;
+                        }
+                        formattedInteger = integerPart[i] + formattedInteger;
+                    }
+
+                    // Türk Lirası formatı: ₺1.234,56
+                    return `₺${formattedInteger},${decimalPart}`;
+                }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

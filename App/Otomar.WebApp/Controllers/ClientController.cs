@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Otomar.WebApp.Dtos.Client;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Services.Refit;
 
@@ -20,10 +19,10 @@ namespace Otomar.WebApp.Controllers
             return await clientApi.GetClientByCodeAsync(clientCode, cancellationToken).ToActionResultAsync();
         }
 
-        [HttpGet("vergi-no/{taxNumber}")]
+        [HttpGet("vergi-tc-no/{taxNumber}")]
         public async Task<IActionResult> GetClientByTaxNumber(string taxNumber, CancellationToken cancellationToken = default)
         {
-            return await clientApi.GetClientByTaxNumberAsync(taxNumber, cancellationToken).ToActionResultAsync();
+            return await clientApi.GetClientByTaxTcNumberAsync(taxNumber, cancellationToken).ToActionResultAsync();
         }
 
         [HttpGet("{clientCode}/hareketler")]

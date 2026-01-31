@@ -1,6 +1,11 @@
 @{
     ViewData["Title"] = "İletişim";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    {
+        new("Ana Sayfa", "/ana-sayfa"),
+        new(ViewData["Title"] as string, null)
+    };
 }
 
 <!-- Start contact section -->

@@ -1,7 +1,22 @@
+
 @model ProductDto
 @{
     ViewData["Title"] = Model.STOK_ADI;
     Layout = "~/Views/Shared/_Layout.cshtml";
+     var firstMainCat = Model.ANA_GRUP_ADI?.Split(';')[0].Trim() ?? "";
+     var firstSubCat = Model.ALT_GRUP_ADI?.Split(';')[0].Trim() ?? "";
+     var firstBrand = Model.MARKA_ADI?.Split(';')[0].Trim() ?? "";
+     var firstModel = Model.MODEL_ADI?.Split(';')[0].Trim() ?? "";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    {
+        new("Ana Sayfa", "/ana-sayfa"),
+        new("Mağaza", "/magaza"),
+        new(firstBrand, $"/magaza/marka/{firstBrand}"),
+        new(firstModel, $"/magaza/marka/{firstBrand}/model/{firstModel}"),
+        new(firstMainCat, $"/magaza/kategori/{firstMainCat}"),
+        new(firstSubCat, $"/magaza/kategori/{firstMainCat}/{firstSubCat}"),
+        new(Model.STOK_ADI ?? "Ürün", null)
+    };
     var images = new List<string>();
 
     // Vitrin fotoğrafı varsa ilk sıraya ekle
@@ -10,7 +25,6 @@
         images.Add(Model.VITRIN_FOTO);
     }
 
-    // DOSYA_KONUM'daki fotoğrafları ekle
     if (!string.IsNullOrEmpty(Model.DOSYA_KONUM))
     {
         var dosyaFotolar = Model.DOSYA_KONUM.Split(';')
@@ -19,8 +33,97 @@
         images.AddRange(dosyaFotolar);
     }
     var imageIndex = 0;
-}
+    var brandNames = Model.MARKA_ADI?.Split(';') ?? Array.Empty<string>();
+    var versionNames = Model.KASA_ADI?.Split(';') ?? Array.Empty<string>();
+    var compatibles = new List<string>();
 
+    for (int i = 0; i < Math.Min(brandNames.Length, versionNames.Length); i++)
+    {
+        compatibles.Add($"{brandNames[i].Trim()} {versionNames[i].Trim()}");
+    }
+    var compatiblesAsString = string.Join(", ", compatibles);
+}
+@section Styles{
+    <style>
+        .whatsapp__btn {
+            background-color: #25D366 !important;
+            border-color: #25D366 !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            white-space: nowrap;
+        }
+
+            .whatsapp__btn:hover {
+                background-color: #128C7E !important;
+                border-color: #128C7E !important;
+            }
+
+        .whatsapp__btn-content {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .whatsapp__btn svg {
+            fill: white;
+            transition: opacity 0.3s ease;
+            line-height: 1;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .whatsapp__btn .whatsapp-icon {
+            opacity: 1;
+        }
+
+        .whatsapp__btn .send-icon {
+            opacity: 0;
+        }
+
+        .whatsapp__btn:hover .whatsapp-icon {
+            opacity: 0;
+        }
+
+        .whatsapp__btn:hover .send-icon {
+            opacity: 1;
+        }
+
+    
+         #similar-products-section .similar-products-swiper .swiper-wrapper {
+            display: flex;
+            align-items: stretch;
+        }
+        #similar-products-section .similar-products-swiper .swiper-slide {
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            align-self: stretch;
+        }
+        #similar-products-section .similar-products-swiper .swiper-slide .product__card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        #similar-products-section .similar-products-swiper .swiper-slide .product__card--thumbnail {
+            flex-shrink: 0;
+        }
+        #similar-products-section .similar-products-swiper .swiper-slide .product__card--content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 0;
+        }
+    </style>
+}
 <!-- Start product details section -->
 <section class="product__details--section section--padding">
     <div class="container">
@@ -98,12 +201,32 @@
                             <div class="product__variant--list mb-15">
                                 <div class="product__details--info__meta">
                                     <p class="product__details--info__meta--list"><strong>Kod:</strong> <span>@Model.URETICI_KODU.Replace(";", ",")</span></p>
-                                    <p class="product__details--info__meta--list"><strong>Uyumlu Araçlar:</strong> <span style="display:unset !important">@Model.KASA_ADI.Replace(";",",")</span></p>
+                                    <p class="product__details--info__meta--list"><strong>Uyumlu Araçlar:</strong> 
+                                        <span style="display:unset !important">
+                                            @compatiblesAsString
+                                        </span></p>
                                     <p class="product__details--info__meta--list d-flex align-items-center">
                                         <strong>Marka:</strong>
                                         <span class="d-flex align-items-center ms-2">
-                                            @Model.URETICI_MARKA_ADI
-                                            <img class="img-fluid ms-2" src="@($"/assets/img/logo/{Model.URETICI_MARKA_ADI.ToLower(new System.Globalization.CultureInfo("en-EN"))}.webp")" style="width: 100px; max-width: 100px; height: auto; object-fit: contain;" />
+
+                                            <span>@Model.URETICI_MARKA_ADI</span>
+                                            <span><img class="img-fluid ms-2" src="@($"{Model.URETICI_MARKA_LOGO}")" style="width: 100px; max-width: 100px; height: auto; object-fit: contain;" /></span>
+
+                                        </span>
+                                    </p>
+                                    <p class="product__details--info__meta--list d-flex align-items-center">
+                                        <strong>Stok Durumu:</strong>
+                                        <span class="d-flex align-items-center ms-2">
+                                            @if (Model.HasStock)
+                                            {
+                                                <span class="stock-indicator" style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #28a745; margin-right: 8px;"></span>
+                                                <span>Stokta var</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="stock-indicator" style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #ffc107; margin-right: 8px;"></span>
+                                                <span>Kritik Stok</span>
+                                            }
                                         </span>
                                     </p>
                                 </div>
@@ -118,14 +241,34 @@
                                     <button type="button" class="quantity__value quickview__value--quantity increase" aria-label="quantity value" value="Increase Value">+</button>
                                 </div>
                                 <button class="primary__btn quickview__cart--btn" type="button" id="btn-sepete-ekle" data-product-id="@Model.ID">Sepete Ekle</button>
+                                <button class="primary__btn quickview__cart--btn whatsapp__btn" type="button" id="btn-whatsapp" onclick="sendWhatsAppMessage()">
+                                    <span class="whatsapp__btn-content">
+                                        <svg class="whatsapp-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
+                                        </svg>
+                                        <svg class="send-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="whatsapp__btn-text">Bilgi Al</span>
+                                </button>
                             </div>
                             <div class="product__variant--list mb-15">
                                 <button class="variant__buy--now__btn primary__btn" type="button" id="btn-satin-al" data-product-id="@Model.ID">Satın Al</button>
+
                             </div>
                         </div>
                         <div class="guarantee__safe--checkout">
                             <h5 class="guarantee__safe--checkout__title">Garantili Güvenli Ödeme</h5>
-                            <img class="guarantee__safe--checkout__img" src="/assets/img/icon/payment-img.webp" alt="Kabul edilen ödeme yöntemleri" loading="lazy" style="width:285px">
+                            <div class="row mt-4 align-items-center">
+                                <div class="col-md-8 col-12 mb-3 mb-md-0">
+                                    <img src="/assets/img/icon/payment-img.webp" class="img-fluid" alt="Kabul edilen ödeme yöntemleri" style="max-width:285px" loading="lazy">
+                                </div>
+                                <div class="col-md-4 col-12">
+                                    <img src="/assets/img/icon/ssl.webp" class="img-fluid" alt="SSL sertifikası" style="max-width:90px" loading="lazy">
+                                </div>
+                            </div>
+
                         </div>
                     </form>
                 </div>
@@ -149,10 +292,11 @@
                             <div class="product__tab--content">
                                 <div class="product__tab--content__step mb-30">
                                     <h2 class="product__tab--content__title h4 mb-10">@Model.STOK_ADI</h2>
-                                    <p class="product__tab--content__desc">  @(string.IsNullOrEmpty(Model.ACIKLAMA) ?
+                                    <p class="product__tab--content__desc">
+                                        @(string.IsNullOrEmpty(Model.ACIKLAMA) ?
                                                                                 $"{Model.STOK_ADI}, {Model.STOK_KODU} stok kodlu, {Model.URETICI_MARKA_ADI} marka, {Model.URETICI_KODU} üretici kodlu {(Model.URETICI_MARKA_ADI?.ToUpper() != "ITHAL" ? "orijinal " : "")}yedek parça. Bu ürün hakkında daha detaylı bilgi için WhatsApp ikonuna tıklayıp bizimle iletişime geçin…"
                                                                                 : Model.ACIKLAMA)
-                                                                            </p>
+                                    </p>
                                 </div>
 
                             </div>
@@ -171,11 +315,11 @@
                                         </li>
                                         <li class="additional__info_list--item">
                                             <span class="info__list--item-head"><strong>Uyumlu Araçlar</strong></span>
-                                            <span class="info__list--item-content ms-2">@Model.KASA_ADI.Replace(";", ",")</span>
+                                            <span class="info__list--item-content ms-2">@compatiblesAsString</span>
                                         </li>
                                         <li class="additional__info_list--item">
                                             <span class="info__list--item-head"><strong>Marka</strong></span>
-                                            <span class="info__list--item-content d-flex align-items-center ms-2">OPAR  <img class="img-fluid ms-2" src="@($"/assets/img/logo/{Model.URETICI_MARKA_ADI.ToLower(new System.Globalization.CultureInfo("en-EN"))}.webp")" style="width: 100px; max-width: 100px; height: auto; object-fit: contain;" /></span>
+                                            <span class="info__list--item-content d-flex align-items-center ms-2">@Model.URETICI_MARKA_ADI  <img class="img-fluid ms-2" src="@($"{Model.URETICI_MARKA_LOGO}")" style="width: 100px; max-width: 100px; height: auto; object-fit: contain;" /></span>
                                         </li>
                                         <li class="additional__info_list--item">
                                             <span class="info__list--item-head"><strong>Ana Grup</strong></span>
@@ -216,75 +360,171 @@
     </div>
 </section>
 <!-- End product details tab section -->
-<!-- Start product section -->
-<section class="product__section section--padding ">
+<!-- Start product section - benzer ürünler dinamik (lazy load: alan görününce istek atılır) -->
+<section class="product__section section--padding" id="similar-products-section">
     <div class="container">
         <div class="section__heading border-bottom mb-30">
             <h2 class="section__heading--maintitle">ŞUNLAR <span>DA İLGİNİZİ ÇEKEBİLİR</span></h2>
         </div>
-        <div class="product__section--inner pb-15 product__swiper--activation swiper">
-            <div class="swiper-wrapper">
-
-                <div class="swiper-slide">
-                    <article class="product__card">
-                        <div class="product__card--thumbnail">
-                            <a class="product__card--thumbnail__link display-block" href="product-details.html">
-                                <img class="product__card--thumbnail__img product__primary--img" src="/assets/img/product/main-product/product1.webp" alt="product-img" loading="lazy">
-                                <img class="product__card--thumbnail__img product__secondary--img" src="/assets/img/product/main-product/product3.webp" alt="product-img" loading="lazy">
-                            </a>
-
-                        </div>
-                        <div class="product__card--content">
-                            <h3 class="product__card--title">
-                                <a href="product-details.html">
-                                    Ürün Adı Gelecek
-                                </a>
-                            </h3>
-                            <div class="product__card--price">
-                                <span class="current__price">₺0,00</span>
-                            </div>
-                            <div class="product__card--footer">
-                                <a class="product__card--btn primary__btn" href="cart.html">
-                                    <svg width="14" height="11" viewBox="0 0 14 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.2371 4H11.5261L8.5027 0.460938C8.29176 0.226562 7.9402 0.203125 7.70582 0.390625C7.47145 0.601562 7.44801 0.953125 7.63551 1.1875L10.0496 4H3.46364L5.8777 1.1875C6.0652 0.953125 6.04176 0.601562 5.80739 0.390625C5.57301 0.203125 5.22145 0.226562 5.01051 0.460938L1.98707 4H0.299574C0.135511 4 0.0183239 4.14062 0.0183239 4.28125V4.84375C0.0183239 5.00781 0.135511 5.125 0.299574 5.125H0.721449L1.3777 9.78906C1.44801 10.3516 1.91676 10.75 2.47926 10.75H11.0339C11.5964 10.75 12.0652 10.3516 12.1355 9.78906L12.7918 5.125H13.2371C13.3777 5.125 13.5183 5.00781 13.5183 4.84375V4.28125C13.5183 4.14062 13.3777 4 13.2371 4ZM11.0339 9.625H2.47926L1.86989 5.125H11.6433L11.0339 9.625ZM7.33082 6.4375C7.33082 6.13281 7.07301 5.875 6.76832 5.875C6.4402 5.875 6.20582 6.13281 6.20582 6.4375V8.3125C6.20582 8.64062 6.4402 8.875 6.76832 8.875C7.07301 8.875 7.33082 8.64062 7.33082 8.3125V6.4375ZM9.95582 6.4375C9.95582 6.13281 9.69801 5.875 9.39332 5.875C9.0652 5.875 8.83082 6.13281 8.83082 6.4375V8.3125C8.83082 8.64062 9.0652 8.875 9.39332 8.875C9.69801 8.875 9.95582 8.64062 9.95582 8.3125V6.4375ZM4.70582 6.4375C4.70582 6.13281 4.44801 5.875 4.14332 5.875C3.8152 5.875 3.58082 6.13281 3.58082 6.4375V8.3125C3.58082 8.64062 3.8152 8.875 4.14332 8.875C4.44801 8.875 4.70582 8.64062 4.70582 8.3125V6.4375Z" fill="currentColor" />
-                                    </svg>
-                                    Sepete Ekle
-                                </a>
-                            </div>
-                        </div>
-                    </article>
+        <div class="product__section--inner pb-15">
+            <div id="similar-products-skeleton" class="row mb--n30" style="display: flex; flex-wrap: wrap;"></div>
+            <div class="similar-products-swiper swiper" id="similar-products-swiper-container" style="display: none;">
+                <div class="swiper-wrapper" id="similar-products-swiper-wrapper"></div>
+                <div class="swiper__nav--btn swiper-button-next">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </div>
-            </div>
-            <div class="swiper__nav--btn swiper-button-next">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class=" -chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </div>
-            <div class="swiper__nav--btn swiper-button-prev">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class=" -chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <div class="swiper__nav--btn swiper-button-prev">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="-chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
             </div>
         </div>
     </div>
 </section>
 <!-- End product section -->
+
 @section Scripts {
-<script>
-    $(document).ready(function () {
-        $('#btn-sepete-ekle').on('click', function (e) {
-            e.preventDefault();
-            if (typeof CartManager === 'undefined') return;
-            var productId = $(this).data('product-id');
-            var qty = parseInt($('.quickview__value--number').val(), 10) || 1;
-            console.log(productId, qty);
-            CartManager.addToCart(productId, qty);
+    <script>
+        $(document).ready(function () {
+            $('#btn-sepete-ekle').on('click', function (e) {
+                e.preventDefault();
+                if (typeof CartManager === 'undefined') return;
+                var productId = $(this).data('product-id');
+                var qty = parseInt($('.quickview__value--number').val(), 10) || 1;
+
+                CartManager.addToCart(productId, qty);
+            });
+
+            $('#btn-satin-al').on('click', function (e) {
+                e.preventDefault();
+                if (typeof CartManager === 'undefined') return;
+                var productId = $(this).data('product-id');
+                CartManager.addToCart(productId, 1).then(function (cart) {
+                    if (cart) window.location.href = '/odeme';
+                });
+            });
+
+            var stokKodu = '@(Model?.STOK_KODU ?? "")';
+            if (stokKodu) {
+                var similarSection = document.getElementById('similar-products-section');
+                if (similarSection && typeof IntersectionObserver !== 'undefined') {
+                    var similarLoaded = false;
+                    var observer = new IntersectionObserver(function (entries) {
+                        if (similarLoaded) return;
+                        var ent = entries[0];
+                        if (!ent || !ent.isIntersecting) return;
+                        similarLoaded = true;
+                        observer.disconnect();
+                        if (typeof SkeletonLoader !== 'undefined') SkeletonLoader.showProductSkeleton('similar-products-skeleton', 8);
+                        loadSimilarProducts(stokKodu);
+                    }, { root: null, rootMargin: '100px', threshold: 0.01 });
+                    observer.observe(similarSection);
+                } else if (stokKodu) {
+                    if (typeof SkeletonLoader !== 'undefined') SkeletonLoader.showProductSkeleton('similar-products-skeleton', 8);
+                    loadSimilarProducts(stokKodu);
+                }
+            }
         });
 
-        $('#btn-satin-al').on('click', function (e) {
-            e.preventDefault();
-            if (typeof CartManager === 'undefined') return;
-            var productId = $(this).data('product-id');
-            CartManager.addToCart(productId, 1).then(function (cart) {
-                if (cart) window.location.href = '/odeme';
-            });
-        });
-    });
-</script>
+        function createSimilarProductSlide(product) {
+            var productId = product.id != null ? product.id : (product.Id != null ? product.Id : 0);
+            var productName = (product.stoK_ADI || product.STOK_ADI || 'Ürün').trim();
+            var productCode = product.stoK_KODU || product.STOK_KODU || '';
+            var ureticiKodu = (product.ureticI_KODU || product.URETICI_KODU || '').trim();
+            var slug = typeof generateSlug === 'function' ? generateSlug(productName) : productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\u00C0-\u024F\-]/gi, '');
+            var productUrl = '/urun/' + slug + '/' + encodeURIComponent(productCode);
+            var dosyaKonum = product.dosyA_KONUM || product.DOSYA_KONUM || '';
+            var imagePath = dosyaKonum ? dosyaKonum.split(';')[0].trim() : '';
+            if (!imagePath) imagePath = '/assets/img/product/placeholder.webp';
+            if (imagePath && !imagePath.startsWith('/')) imagePath = '/' + imagePath;
+            var secondaryPath = imagePath;
+            if (dosyaKonum && dosyaKonum.indexOf(';') !== -1) {
+                var paths = dosyaKonum.split(';');
+                if (paths.length > 1) secondaryPath = paths[1].trim();
+                if (secondaryPath && !secondaryPath.startsWith('/')) secondaryPath = '/' + secondaryPath;
+            }
+            var fiyat = product.satiS_FIYAT != null ? product.satiS_FIYAT : (product.SATIS_FIYAT != null ? product.SATIS_FIYAT : 0);
+            var formattedPrice = typeof formatTurkishLira === 'function' ? formatTurkishLira(fiyat) : '₺' + fiyat.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+            var brandLogo = product.ureticI_MARKA_LOGO || product.URETICI_MARKA_LOGO || '';
+
+            var contentStyle = 'flex:1;display:flex;flex-direction:column;justify-content:space-between;';
+            var titleStyle = 'flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;';
+            var oemStyle = 'height:24px;display:flex;align-items:center;justify-content:center;margin:8px 0;';
+            var brandStyle = 'height:100px;display:flex;align-items:center;justify-content:center;margin:8px 0;';
+            var priceStyle = 'height:30px;display:flex;align-items:center;justify-content:center;margin-top:auto;';
+            var articleStyle = 'height:100%;display:flex;flex-direction:column;';
+
+            var slide = document.createElement('div');
+            slide.className = 'swiper-slide';
+            slide.style.display = 'flex';
+            slide.style.flexDirection = 'column';
+            slide.innerHTML =
+                '<article class="product__card" style="' + articleStyle + '">' +
+                '  <div class="product__card--thumbnail">' +
+                '    <a class="product__card--thumbnail__link display-block" href="' + productUrl + '">' +
+                '      <img class="product__card--thumbnail__img product__primary--img" src="' + imagePath + '" alt="' + productName.replace(/"/g, '&quot;') + '" loading="lazy">' +
+                '      <img class="product__card--thumbnail__img product__secondary--img" src="' + secondaryPath + '" alt="' + productName.replace(/"/g, '&quot;') + '" loading="lazy">' +
+                '    </a>' +
+                '  </div>' +
+                '  <div class="product__card--content d-flex flex-column align-items-center justify-content-center text-center" style="' + contentStyle + '">' +
+                '    <h3 class="product__card--title" style="' + titleStyle + '"><a href="' + productUrl + '">' + productName.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</a></h3>' +
+                '    <h4 class="product__card--title text-muted" style="' + oemStyle + '">' + (ureticiKodu ? ureticiKodu.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') + '</h4>' +
+                (brandLogo ? ('<div class="product__card--title" style="' + brandStyle + '">' +
+                    '<img src="' + (brandLogo.startsWith('/') ? brandLogo : '/' + brandLogo) + '" alt="" style="width:100px;max-width:100px;height:auto;object-fit:contain"></div>') : ('<div style="' + brandStyle + ';min-height:100px"></div>')) +
+                '    <div class="product__card--price" style="' + priceStyle + '"><span class="current__price">' + formattedPrice + '</span></div>' +
+                '    <div class="product__card--footer" style="margin-top:8px">' +
+                '      <a class="product__card--btn primary__btn" href="#" data-product-id="' + productId + '" onclick="event.preventDefault();CartManager.addToCart(' + productId + ',1);">' +
+                '        <svg width="14" height="11" viewBox="0 0 14 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.2371 4H11.5261L8.5027 0.460938C8.29176 0.226562 7.9402 0.203125 7.70582 0.390625C7.47145 0.601562 7.44801 0.953125 7.63551 1.1875L10.0496 4H3.46364L5.8777 1.1875C6.0652 0.953125 6.04176 0.601562 5.80739 0.390625C5.57301 0.203125 5.22145 0.226562 5.01051 0.460938L1.98707 4H0.299574C0.135511 4 0.0183239 4.14062 0.0183239 4.28125V4.84375C0.0183239 5.00781 0.135511 5.125 0.299574 5.125H0.721449L1.3777 9.78906C1.44801 10.3516 1.91676 10.75 2.47926 10.75H11.0339C11.5964 10.75 12.0652 10.3516 12.1355 9.78906L12.7918 5.125H13.2371C13.3777 5.125 13.5183 5.00781 13.5183 4.84375V4.28125C13.5183 4.14062 13.3777 4 13.2371 4ZM11.0339 9.625H2.47926L1.86989 5.125H11.6433L11.0339 9.625ZM7.33082 6.4375C7.33082 6.13281 7.07301 5.875 6.76832 5.875C6.4402 5.875 6.20582 6.13281 6.20582 6.4375V8.3125C6.20582 8.64062 6.4402 8.875 6.76832 8.875C7.07301 8.875 7.33082 8.64062 7.33082 8.3125V6.4375ZM9.95582 6.4375C9.95582 6.13281 9.69801 5.875 9.39332 5.875C9.0652 5.875 8.83082 6.13281 8.83082 6.4375V8.3125C8.83082 8.64062 9.0652 8.875 9.39332 8.875C9.69801 8.875 9.95582 8.64062 9.95582 8.3125V6.4375ZM4.70582 6.4375C4.70582 6.13281 4.44801 5.875 4.14332 5.875C3.8152 5.875 3.58082 6.13281 3.58082 6.4375V8.3125C3.58082 8.64062 3.8152 8.875 4.14332 8.875C4.44801 8.875 4.70582 8.64062 4.70582 8.3125V6.4375Z" fill="currentColor"/></svg>' +
+                '        Sepete Ekle</a>' +
+                '    </div>' +
+                '  </div>' +
+                '</article>';
+            return slide;
+        }
+
+        function hideSkeletonShowSwiper() {
+            var skel = document.getElementById('similar-products-skeleton');
+            var swiper = document.getElementById('similar-products-swiper-container');
+            if (skel) { if (typeof SkeletonLoader !== 'undefined') SkeletonLoader.clear('similar-products-skeleton'); skel.style.display = 'none'; }
+            if (swiper) swiper.style.display = 'block';
+        }
+
+        async function loadSimilarProducts(stokKodu) {
+            var wrapper = document.getElementById('similar-products-swiper-wrapper');
+            if (!wrapper) return;
+            try {
+                var response = await makeRequest('/urun/benzer/' + encodeURIComponent(stokKodu), 'GET');
+                var products = Array.isArray(response) ? response : (response && response.data && Array.isArray(response.data) ? response.data : []);
+                hideSkeletonShowSwiper();
+                wrapper.innerHTML = '';
+                if (!products || products.length === 0) {
+                    wrapper.innerHTML = '<div class="swiper-slide" style="width:100%"><p class="text-center text-muted py-4">Henüz benzer ürün bulunmamaktadır.</p></div>';
+                } else {
+                    products.forEach(function (p) {
+                        wrapper.appendChild(createSimilarProductSlide(p));
+                    });
+                }
+                if (typeof Swiper !== 'undefined') {
+                    new Swiper('.similar-products-swiper', {
+                        slidesPerView: 4,
+                        loop: false,
+                        spaceBetween: 30,
+                        breakpoints: {
+                            992: { slidesPerView: 4 },
+                            768: { slidesPerView: 3, spaceBetween: 30 },
+                            480: { slidesPerView: 2, spaceBetween: 20 },
+                            0: { slidesPerView: 1 }
+                        },
+                        navigation: {
+                            nextEl: '#similar-products-section .swiper-button-next',
+                            prevEl: '#similar-products-section .swiper-button-prev'
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Benzer ürünler yüklenirken hata:', err);
+                hideSkeletonShowSwiper();
+                wrapper.innerHTML = '<div class="swiper-slide" style="width:100%"><p class="text-center text-muted py-4">Benzer ürünler yüklenemedi.</p></div>';
+            }
+        }
+    </script>
 }

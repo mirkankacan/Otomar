@@ -48,5 +48,31 @@ namespace Otomar.WebApp.Helpers
 
             return result;
         }
+        public static string ToTitle(string slug)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+                return string.Empty;
+
+            // Tireleri boşluğa çevir
+            var text = slug.Replace("-", " ");
+
+            // Her kelimenin ilk harfini büyük yap
+            var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var result = new StringBuilder();
+
+            foreach (var word in words)
+            {
+                if (word.Length > 0)
+                {
+                    // İlk harfi büyük, geri kalanı küçük
+                    result.Append(char.ToUpper(word[0]));
+                    if (word.Length > 1)
+                        result.Append(word.Substring(1).ToLower());
+                    result.Append(" ");
+                }
+            }
+
+            return result.ToString().Trim();
+        }
     }
 }

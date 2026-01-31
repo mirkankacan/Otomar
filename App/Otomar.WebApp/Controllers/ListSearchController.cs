@@ -5,10 +5,10 @@ using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers
 {
-    [Route("liste-arama")]
+    [Route("liste-sorgu")]
     public class ListSearchController(IListSearchApi listSearchApi) : Controller
     {
-        [HttpGet]
+        [HttpGet("olustur")]
         public IActionResult Index()
         {
             return View();
