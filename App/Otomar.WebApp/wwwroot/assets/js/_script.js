@@ -141,9 +141,9 @@ var swiper = new Swiper(".hero__slider--activation", {
     speed: 500,
     spaceBetween: 30,
     autoplay: {
-        delay: 4000,  // 4 saniyede bir geçiþ
-        disableOnInteraction: false,  // Kullanýcý týkladýðýnda durmasýn
-        pauseOnMouseEnter: true,  // Mouse üzerine gelince dursun
+        delay: 4000,  // 4 saniyede bir ge?i?
+        disableOnInteraction: false,  // Kullan?c? t?klad???nda durmas?n
+        pauseOnMouseEnter: true,  // Mouse ?zerine gelince dursun
     },
     navigation: {
         nextEl: ".swiper-button-next",
@@ -544,6 +544,9 @@ function offcanvsSidebar(openTrigger, closeTrigger, wrapper) {
     let eventTarget = evt.target;
     if (!eventTarget.closest(wrapper) && !eventTarget.closest(openTrigger)) {
       WrapperSidebar.classList.remove("active");
+      if (WrapperSidebar.classList.contains("offcanvas__filter--sidebar")) {
+        WrapperSidebar.classList.add("d-lg-none");
+      }
       document
         .querySelector("body")
         .classList.remove(`${wrapperOverlay}_active`);
@@ -554,6 +557,9 @@ function offcanvsSidebar(openTrigger, closeTrigger, wrapper) {
       singleItem.addEventListener("click", function (e) {
         if (e.target.dataset.offcanvas != undefined) {
           WrapperSidebar.classList.add("active");
+          if (WrapperSidebar.classList.contains("offcanvas__filter--sidebar")) {
+            WrapperSidebar.classList.remove("d-lg-none");
+          }
           document
             .querySelector("body")
             .classList.add(`${wrapperOverlay}_active`);
@@ -567,6 +573,9 @@ function offcanvsSidebar(openTrigger, closeTrigger, wrapper) {
     closeTriggerprimary__btn.addEventListener("click", function (e) {
       if (e.target.dataset.offcanvas != undefined) {
         WrapperSidebar.classList.remove("active");
+        if (WrapperSidebar.classList.contains("offcanvas__filter--sidebar")) {
+          WrapperSidebar.classList.add("d-lg-none");
+        }
         document
           .querySelector("body")
           .classList.remove(`${wrapperOverlay}_active`);

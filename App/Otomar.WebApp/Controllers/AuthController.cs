@@ -1,10 +1,15 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Auth;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Services.Refit;
+using Refit;
 
 namespace Otomar.WebApp.Controllers
 {
+    [AllowAnonymous]
     [Route("")]
     public class AuthController(IAuthApi authApi) : Controller
     {
@@ -24,21 +29,88 @@ namespace Otomar.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login([FromBody] LoginDto dto, CancellationToken cancellationToken = default)
         {
-            return await authApi.LoginAsync(dto, cancellationToken).ToActionResultAsync();
+            try
+            {
+                var tokenDto = await authApi.LoginAsync(dto, cancellationToken);
+                var principal = CookieAuthExtensions.BuildPrincipalFromToken(tokenDto, fallbackEmail: dto.Email);
+                var props = new AuthenticationProperties
+                {
+                    IsPersistent = dto.RememberMe,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+                };
+                props.StoreTokens(new[]
+                {
+                    new AuthenticationToken { Name = "access_token", Value = tokenDto.Token ?? string.Empty },
+                    new AuthenticationToken { Name = "refresh_token", Value = tokenDto.RefreshToken ?? string.Empty }
+                });
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, props);
+                return Ok(tokenDto);
+            }
+            catch (ApiException ex)
+            {
+                return new ObjectResult(new
+                {
+                    type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    title = ex.ReasonPhrase ?? "Giriş başarısız",
+                    status = ex.StatusCode,
+                    detail = ex.Content ?? ex.Message
+                })
+                {
+                    StatusCode = (int)ex.StatusCode
+                };
+            }
         }
 
         [HttpPost("kayit-ol")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto, CancellationToken cancellationToken = default)
         {
-            return await authApi.RegisterAsync(dto, cancellationToken).ToActionResultAsync();
+            try
+            {
+                var tokenDto = await authApi.RegisterAsync(dto, cancellationToken);
+                var principal = CookieAuthExtensions.BuildPrincipalFromToken(tokenDto, fallbackEmail: dto.Email);
+                var props = new AuthenticationProperties
+                {
+                    IsPersistent = false,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+                };
+                props.StoreTokens(new[]
+                {
+                    new AuthenticationToken { Name = "access_token", Value = tokenDto.Token ?? string.Empty },
+                    new AuthenticationToken { Name = "refresh_token", Value = tokenDto.RefreshToken ?? string.Empty }
+                });
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, props);
+                return Ok(tokenDto);
+            }
+            catch (ApiException ex)
+            {
+                return new ObjectResult(new
+                {
+                    type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    title = ex.ReasonPhrase ?? "Kayıt başarısız",
+                    status = ex.StatusCode,
+                    detail = ex.Content ?? ex.Message
+                })
+                {
+                    StatusCode = (int)ex.StatusCode
+                };
+            }
         }
 
-        [HttpPost("cikis-yap")]
+        [HttpGet("cikis-yap")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout(CancellationToken cancellationToken = default)
         {
-            return await authApi.LogoutAsync(cancellationToken).ToActionResultAsync();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            try
+            {
+                await authApi.LogoutAsync(cancellationToken);
+            }
+            catch
+            {
+                // Cookie zaten silindi; API hata verse de 200 dön
+            }
+            return Ok();
         }
 
         [HttpPost("token-yenile")]

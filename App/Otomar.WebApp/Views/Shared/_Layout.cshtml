@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="/assets/css/plugins/glightbox.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha512-6S2HWzVFxruDlZxI3sXOZZ4/eJ8AcxkQH1+JjSe/ONCEqR9L4Ysq5JdT5ipqtzU7WHalNwzwBv+iE51gNHJNqQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.23.0/sweetalert2.min.css" integrity="sha512-Ivy7sPrd6LPp20adiK3al16GBelPtqswhJnyXuha3kGtmQ1G2qWpjuipfVDaZUwH26b3RDe8x707asEpvxl7iA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500&display=swap"
           rel="stylesheet">
 
@@ -363,7 +364,7 @@
                                 <path fill="currentColor" stroke="currentColor" stroke-linecap="round"
                                       stroke-miterlimit="10" stroke-width="32" d="M80 160h352M80 256h352M80 352h352" />
                             </svg>
-                            <span class="visually-hidden">Offcanvas Menu Open</span>
+                            <span class="visually-hidden">Offcanvas Menü Aç</span>
                         </a>
                     </div>
                     <div class="main__logo">
@@ -395,14 +396,14 @@
                     <div class="header__account header__sticky--none">
                         <ul class="header__account--wrapper d-flex align-items-center">
                             <li class="header__account--items d-none d-lg-block">
-                                <a class="header__account--btn" href="my-account.html">
+                                <a class="header__account--btn" href="/hesabim">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                          stroke-linejoin="round" class=" -user">
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                         <circle cx="12" cy="7" r="4"></circle>
                                     </svg>
-                                    <span class="visually-hidden">My account</span>
+                                    <span class="visually-hidden">Hesabım</span>
                                 </a>
                             </li>
                             <li class="header__account--items  header__account--search__items mobile__d--block d-sm-2-none">
@@ -416,7 +417,7 @@
                                         <path fill="none" stroke="currentColor" stroke-linecap="round"
                                               stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448" />
                                     </svg>
-                                    <span class="visually-hidden">Search</span>
+                                    <span class="visually-hidden">Ara</span>
                                 </a>
                             </li>
 
@@ -439,7 +440,7 @@
                                             </g>
                                         </g>
                                     </svg>
-                                    <span class="items__count cart-badge">0</span>
+                                    <span class="items__count cart-badge"></span>
                                     <span class="minicart__btn--text">
                                         Sepetim <br> <span class="minicart__btn--text__price cart-total">₺0,00</span>
                                     </span>
@@ -460,18 +461,18 @@
                                         <path fill="none" stroke="currentColor" stroke-linecap="round"
                                               stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448" />
                                     </svg>
-                                    <span class="visually-hidden">Search</span>
+                                    <span class="visually-hidden">Ara</span>
                                 </a>
                             </li>
                             <li class="header__account--items d-none d-lg-block">
-                                <a class="header__account--btn" href="my-account.html">
+                                <a class="header__account--btn" href="/hesabim">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                          stroke-linejoin="round" class=" -user">
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                         <circle cx="12" cy="7" r="4"></circle>
                                     </svg>
-                                    <span class="visually-hidden">My account</span>
+                                    <span class="visually-hidden">Hesabım</span>
                                 </a>
                             </li>
 
@@ -520,7 +521,7 @@
                                     <ul class="header__sub--menu" id="all-products-submenu">
                                     </ul>
                                 </li>
-                
+
                                 <li class="header__menu--items" id="other-menu-item">
                                     <a class="header__menu--link" href="/ana-sayfa">
                                         DİĞER
@@ -1079,6 +1080,7 @@
     <script src="/assets/js/vendor/bootstrap.min.js" defer="defer"></script>
     <script src="/assets/js/plugins/swiper-bundle.min.js"></script>
     <script src="/assets/js/plugins/glightbox.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js" integrity="sha512-6BTOlkauINO65nLhXhthZMtepgJSghyimIalb+crKRPhvhmsCdnIuGcVbR5/aQY2A+260iC1OPy1oCdB6pSSwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha512-lbwH47l/tPXJYG9AcFNoJaTMhGvYWhVM9YI43CT+uteTRRaiLCui8snIgyAN8XWgNjNhCqlAUdzZptso6OCoFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.23.0/sweetalert2.min.js" integrity="sha512-pnPZhx5S+z5FSVwy62gcyG2Mun8h6R+PG01MidzU+NGF06/ytcm2r6+AaWMBXAnDHsdHWtsxS0dH8FBKA84FlQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/7.6.1/imask.min.js" integrity="sha512-+3RJc0aLDkj0plGNnrqlTwCCyMmDCV1fSYqXw4m+OczX09Pas5A/U+V3pFwrSyoC1svzDy40Q9RU/85yb/7D2A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

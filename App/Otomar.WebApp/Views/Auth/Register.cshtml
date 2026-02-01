@@ -1,0 +1,126 @@
+
+@{
+    ViewData["Title"] = "Kayıt Ol";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Start login section  -->
+<div class="login__section section--padding">
+    <div class="container">
+        <form id="register-form" action="#" method="post">
+            @Html.AntiForgeryToken()
+            <div class="login__section--inner">
+                <div class="row row-cols-md-2 row-cols-1 d-flex justify-content-center">
+                  
+                    <div class="col-6">
+                        <div class="account__login register">
+                            <div class="account__login--header mb-25">
+                                <h2 class="account__login--header__title mb-10 d-flex align-self-center justify-content-center"><img src="/assets/img/logo/otomarlogo.webp" alt="OTOMAR logo" style="width:280px" /></h2>
+                            </div>
+                            <div class="account__login--inner">
+                                <label>
+                                    <input class="account__login--input" name="email" id="reg-email" placeholder="E-posta giriniz..." type="email" required>
+                                </label>
+                                <label>
+                                    <input class="account__login--input" name="name" id="reg-name" placeholder="İsim giriniz..." type="text" required>
+                                </label>
+                                <label>
+                                    <input class="account__login--input" name="surname" id="reg-surname" placeholder="Soyisim giriniz..." type="text" required>
+                                </label>
+                                <label>
+                                    <input class="account__login--input" name="phoneNumber" id="reg-phone" placeholder="Telefon giriniz..." type="text">
+                                </label>
+                                <label>
+                                    <input class="account__login--input" name="password" id="reg-password" placeholder="Şifre giriniz..." type="password" required>
+                                </label>
+                                <label>
+                                    <input class="account__login--input" name="confirmPassword" id="reg-confirmPassword" placeholder="Şifre tekrar" type="password" required>
+                                </label>
+                                <div class="account__login--remember position__relative">
+                                    <input class="checkout__checkbox--input" id="check1" type="checkbox">
+                                    <span class="checkout__checkbox--checkmark"></span>
+                                    <label class="checkout__checkbox--label login__remember--label" for="check1">
+                                        Aydınlatma Metninde belirtilen ilkeler nezdinde Elektronik Ticaret İletisi almak istiyorum.
+                                    </label>
+                                 
+                                 
+                                </div>
+                                <div class="account__login--remember position__relative ">
+                                    <input class="checkout__checkbox--input" id="check2" type="checkbox" required>
+                                    <span class="checkout__checkbox--checkmark"></span>
+                                    <label class="checkout__checkbox--label login__remember--label" for="check2">
+                                        Üyelik Sözleşmesini kabul ediyorum.
+                                    </label>
+                                </div>
+                                <div class="account__login--remember position__relative mb-10">
+                                    <input class="checkout__checkbox--input" id="check3" type="checkbox" required>
+                                <span class="checkout__checkbox--checkmark"></span>
+                                <label class="checkout__checkbox--label login__remember--label" for="check3">
+                                    Kişisel verilerin işlenmesine ilişkin Aydınlatma Metnini okudum.
+                                </label>
+                                </div>
+                              
+                                <button class="account__login--btn primary__btn" type="submit">Kayıt Ol</button>
+                                <div class="account__login--divide">
+                                    <span class="account__login--divide__text">YA DA </span>
+                                </div>
+                                <div class="account__social d-flex justify-content-center mb-15">
+                                    <a class="account__social--link google" target="_blank" href="https://www.google.com">Google</a>
+                                </div>
+                                <p class="account__login--signup__text">Hesabınız var mı? <button onclick="window.location.href='/giris-yap'" type="button">Giriş Yap</button></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- End login section  -->
+
+@section Scripts {
+    <script src="~/assets/js/http-client.js"></script>
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var password = document.getElementById('reg-password').value;
+            var confirmPassword = document.getElementById('reg-confirmPassword').value;
+            if (password !== confirmPassword) {
+                if (typeof showErrorToastr === 'function') {
+                    showErrorToastr({ title: 'Kayıt', detail: 'Şifre ve şifre tekrar eşleşmiyor.' });
+                } else {
+                    alert('Şifre ve şifre tekrar eşleşmiyor.');
+                }
+                return;
+            }
+            var btn = this.querySelector('button[type="submit"]');
+            var originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Kayıt yapılıyor...';
+            try {
+                var payload = {
+                    email: document.getElementById('reg-email').value.trim(),
+                    name: document.getElementById('reg-name').value.trim(),
+                    surname: document.getElementById('reg-surname').value.trim(),
+                    phoneNumber: (document.getElementById('reg-phone').value || '').trim(),
+                    password: password,
+                    confirmPassword: confirmPassword,
+                    isCommerceMailAccepted: document.getElementById('check1').checked,
+                    isMembershipAgreementAccepted: document.getElementById('check2').checked,
+                    isClarificationAgreementAccepted: document.getElementById('check3').checked
+                };
+                await makeRequest('/kayit-ol', 'POST', payload);
+                var params = new URLSearchParams(window.location.search);
+                var returnUrl = params.get('returnUrl') || params.get('returnurl') || '/';
+                if (returnUrl && !returnUrl.startsWith('/')) returnUrl = '/' + returnUrl;
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Kayıt başarılı. Yönlendiriliyorsunuz...', 'Kayıt Ol');
+                }
+                window.location.href = returnUrl || '/';
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+    </script>
+}

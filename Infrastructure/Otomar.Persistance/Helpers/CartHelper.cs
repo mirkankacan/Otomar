@@ -69,7 +69,7 @@ namespace Otomar.Persistance.Helpers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.Strict,
                 IsEssential = true,
                 Expires = DateTimeOffset.UtcNow.AddDays(expirationDays),
                 Path = "/"

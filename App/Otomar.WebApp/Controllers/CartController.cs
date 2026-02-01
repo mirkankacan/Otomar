@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Cart;
 using Otomar.WebApp.Extensions;
@@ -5,6 +6,7 @@ using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers
 {
+    [AllowAnonymous]
     [Route("sepet")]
     public class CartController(ICartApi cartApi) : Controller
     {

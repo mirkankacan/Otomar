@@ -1,3 +1,4 @@
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Sanal POS";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -6,6 +7,8 @@
         new("Ana Sayfa", "/ana-sayfa"),
         new(ViewData["Title"] as string, null)
     };
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var clientCode = User.FindFirst("ClientCode")?.Value ?? "";
 }
 @section Styles{
     <link rel="stylesheet" href="~/assets/css/credit-card.css" />
@@ -33,11 +36,13 @@
         <div class="row">
             <div class="col-lg-12 col-md-12">
                 <div class="main checkout__main">
-                    <form id="checkoutForm" novalidate>
+                    <form id="checkoutForm" novalidate
+                          data-is-authenticated="@(isAuthenticated ? "true" : "false")"
+                          data-client-code="@(clientCode)">
                         @Html.AntiForgeryToken()
                     
 
-                        <div class="checkout__content--step section__shipping--address">
+                        <div class="checkout__content--step ">
                             <div class="section__header mb-25">
                                 <h2 class="section__header--title h3">Cari Detayları</h2>
                             </div>
@@ -277,10 +282,32 @@
 
 <!-- End checkout page area -->
 @section Scripts {
-
     <script>
-               let clientEmail;  
+               let clientEmail;
                $(document).ready(async function() {
+
+                   // Giriş yapmış kullanıcı: clientCode ile /cari/kod/{clientCode} endpoint'inden cari bilgilerini al
+                   var $form = $('#checkoutForm');
+                   var isAuth = $form.data('is-authenticated') === true || $form.data('is-authenticated') === 'true';
+                   var clientCode = ($form.data('client-code') || '').toString().trim();
+                   if (isAuth && clientCode && typeof makeRequest !== 'undefined') {
+                       makeRequest('/cari/kod/' + encodeURIComponent(clientCode), 'GET')
+                           .then(function(response) {
+                               var data = response && (response.data !== undefined ? response.data : response);
+                               if (data) {
+                                   var taxNo = (data.VERGI_NUMARASI || data.vergI_NUMARASI || data.TCKIMLIKNO || data.tckimlikno || '').toString().trim();
+                                   if (!taxNo) taxNo = (data.TCKIMLIKNO || data.tckimlikno || '').toString().trim();
+                                   $('#txtTaxNumber').val(taxNo);
+                                   $('#txtClientName').val((data.CARI_ISIM_TRK || data.carI_ISIM_TRK || '').trim());
+                                   $('#txtTaxOffice').val((data.VERGI_DAIRESI_TRK || data.vergI_DAIRESI_TRK || '').trim());
+                                   $('#txtAddress').val((data.CARI_ADRES_TRK || data.carI_ADRES_TRK || '').trim());
+                                   clientEmail = (data.CARI_EMAIL_TRK || data.carI_EMAIL_TRK || '');
+                               }
+                           })
+                           .catch(function() {
+                               toastr['error']('Cari bilgileri yüklenemedi. Sayfayı yenileyin veya vergi/TC no ile arama yapın.');
+                           });
+                   }
 
                    $('#txtTaxNumber').on('input', function() {
                        $(this).val($(this).val().replace(/[^0-9]/g, ''));

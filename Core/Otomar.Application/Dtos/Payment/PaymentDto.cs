@@ -14,6 +14,8 @@ namespace Otomar.Application.Dtos.Payment
         public DateTime CreatedAt { get; set; }
         public string BankProcReturnCode { get; set; }
         public string MaskedCreditCard { get; set; }
-        public bool IsSuccess => BankProcReturnCode == "00" ? true : false;
+        public string? BankErrorCode { get; set; }
+        public string? BankErrMsg { get; set; }
+        public bool IsSuccess { get; set; }
     }
 }

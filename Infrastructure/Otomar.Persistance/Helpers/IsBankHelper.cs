@@ -94,7 +94,10 @@ namespace Otomar.Persistance.Helpers
         {
             return dto.Response.Equals("Approved", StringComparison.OrdinalIgnoreCase) && dto.ProcReturnCode == "00";
         }
-
+        public static bool IsSuccess(string procReturnCode)
+        {
+            return procReturnCode == "00";
+        }
         public static bool IsThreeDSecureValid(string mdStatus)
         {
             var validStatuses = new[] { "1", "2", "3", "4" };

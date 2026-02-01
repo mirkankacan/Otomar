@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Otomar.WebApp.Controllers
 {
+    [AllowAnonymous]
     [Route(template: "magaza")]
     public class ShopController : Controller
     {
@@ -14,18 +16,18 @@ namespace Otomar.WebApp.Controllers
             {
                 ViewBag.MinPrice = minPrice.ToString();
             }
-            
+
             if (Request.Query.TryGetValue("maxPrice", out var maxPrice))
             {
                 ViewBag.MaxPrice = maxPrice.ToString();
             }
-            
+
             // Query parametresinden arama terimini al
             if (Request.Query.TryGetValue("searchTerm", out var searchTerm))
             {
                 ViewBag.SearchTerm = searchTerm.ToString();
             }
-            
+
             return View();
         }
 
@@ -43,7 +45,7 @@ namespace Otomar.WebApp.Controllers
                 return View("Index");
 
             var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            
+
             for (int i = 0; i < segments.Length; i++)
             {
                 if (segments[i] == "kategori" && i + 1 < segments.Length)
@@ -51,8 +53,8 @@ namespace Otomar.WebApp.Controllers
                     ViewBag.MainCategoryName = segments[i + 1];
                     i++;
                     // Alt kategori kontrolü (sonraki segment keyword değilse alt kategoridir)
-                    if (i + 1 < segments.Length && 
-                        segments[i + 1] != "marka" && 
+                    if (i + 1 < segments.Length &&
+                        segments[i + 1] != "marka" &&
                         segments[i + 1] != "uretici" &&
                         segments[i + 1] != "model" &&
                         segments[i + 1] != "versiyon")
@@ -82,24 +84,24 @@ namespace Otomar.WebApp.Controllers
                     i++;
                 }
             }
-            
+
             // Query parametrelerinden fiyat filtrelerini al
             if (Request.Query.TryGetValue("minPrice", out var minPrice))
             {
                 ViewBag.MinPrice = minPrice.ToString();
             }
-            
+
             if (Request.Query.TryGetValue("maxPrice", out var maxPrice))
             {
                 ViewBag.MaxPrice = maxPrice.ToString();
             }
-            
+
             // Query parametresinden arama terimini al
             if (Request.Query.TryGetValue("searchTerm", out var searchTerm))
             {
                 ViewBag.SearchTerm = searchTerm.ToString();
             }
-            
+
             return View("Index");
         }
     }

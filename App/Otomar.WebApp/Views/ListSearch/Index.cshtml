@@ -1,0 +1,12 @@
+﻿@{
+    ViewData["Title"] = "Liste Sorgular";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    {
+        new("Ana Sayfa", "/ana-sayfa"),
+        new(ViewData["Title"] as string, null),
+
+    };
+}
+
+<h1>Index</h1>

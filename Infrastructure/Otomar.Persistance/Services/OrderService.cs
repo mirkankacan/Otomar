@@ -322,7 +322,7 @@ namespace Otomar.Persistance.Services
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"Cari siparişleri bulunamadı");
-                    return ServiceResult<IEnumerable<ClientOrderDto>>.Error("Cari Siparişler Bulunamadı", "Sistemde cari sipariş bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<ClientOrderDto>>.SuccessAsOk(Enumerable.Empty<ClientOrderDto>());
                 }
 
                 var ordersDict = new Dictionary<Guid, ClientOrderDto>();
@@ -377,12 +377,15 @@ namespace Otomar.Persistance.Services
             }
         }
 
-        public async Task<ServiceResult<IEnumerable<ClientOrderDto>>> GetClientOrdersByUserAsync()
+        public async Task<ServiceResult<IEnumerable<ClientOrderDto>>> GetClientOrdersByUserAsync(string userId)
         {
             try
             {
-                var userId = identityService.GetUserId();
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return ServiceResult<IEnumerable<ClientOrderDto>>.Error("Geçersiz Kullanıcı ID'si", "Kullanıcı ID'si boş geçilemez", HttpStatusCode.BadRequest);
 
+                }
                 var parameters = new DynamicParameters();
                 parameters.Add("createdBy", userId);
                 string query = @"
@@ -419,7 +422,7 @@ namespace Otomar.Persistance.Services
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"{userId} ID'li carinin siparişleri bulunamadı");
-                    return ServiceResult<IEnumerable<ClientOrderDto>>.Error("Cari Siparişler Bulunamadı", $"{userId} ID'li carinin siparişleri bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<ClientOrderDto>>.SuccessAsOk(Enumerable.Empty<ClientOrderDto>());
                 }
 
                 var ordersDict = new Dictionary<Guid, ClientOrderDto>();
@@ -577,7 +580,8 @@ namespace Otomar.Persistance.Services
                         BankProcReturnCode = firstRow.BankProcReturnCode,
                         MaskedCreditCard = firstRow.MaskedCreditCard,
                         BankCardBrand = firstRow.BankCardBrand,
-                        BankCardIssuer = firstRow.BankCardIssuer
+                        BankCardIssuer = firstRow.BankCardIssuer,
+                        IsSuccess = IsBankHelper.IsSuccess(firstRow.BankProcReturnCode)
                     } : null,
                     Items = rowList
                         .Where(r => !Convert.IsDBNull(r.ItemId) && r.ItemId != null)
@@ -634,7 +638,7 @@ namespace Otomar.Persistance.Services
                         p.TotalAmount AS PaymentTotalAmount,
                         p.Status AS PaymentStatus,
                         p.CreatedAt AS PaymentCreatedAt,
-                        p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
+                        p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,p.BankErrMsg,p.BankErrorCode,
                         oi.Id AS ItemId,
                         oi.ProductId,
                         oi.ProductName,
@@ -696,8 +700,11 @@ namespace Otomar.Persistance.Services
                         MaskedCreditCard = firstRow.MaskedCreditCard,
                         BankCardBrand = firstRow.BankCardBrand,
                         BankCardIssuer = firstRow.BankCardIssuer,
+                        BankErrorCode = firstRow.BankErrorCode,
+                        BankErrMsg = firstRow.BankErrMsg,
                         Status = (PaymentStatus)firstRow.PaymentStatus,
-                        CreatedAt = firstRow.PaymentCreatedAt
+                        CreatedAt = firstRow.PaymentCreatedAt,
+                        IsSuccess = IsBankHelper.IsSuccess(firstRow.BankProcReturnCode)
                     } : null,
                     Corporate = firstRow.CorporateCompanyName != null ? new CorporateDto
                     {
@@ -785,7 +792,7 @@ p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"Siparişler bulunamadı");
-                    return ServiceResult<IEnumerable<OrderDto>>.Error("Siparişler Bulunamadı", "Sistemde sipariş bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<OrderDto>>.SuccessAsOk(Enumerable.Empty<OrderDto>());
                 }
 
                 var ordersDict = new Dictionary<Guid, OrderDto>();
@@ -833,7 +840,8 @@ p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
                                 BankProcReturnCode = row.BankProcReturnCode,
                                 MaskedCreditCard = row.MaskedCreditCard,
                                 BankCardBrand = row.BankCardBrand,
-                                BankCardIssuer = row.BankCardIssuer
+                                BankCardIssuer = row.BankCardIssuer,
+                                IsSuccess = IsBankHelper.IsSuccess(row.BankProcReturnCode)
                             } : null,
                             Items = new List<OrderItemDto>()
                         };
@@ -941,7 +949,7 @@ p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"{userId} ID'li kullanıcının siparişleri bulunamadı");
-                    return ServiceResult<IEnumerable<OrderDto>>.Error("Siparişler Bulunamadı", $"{userId} ID'li kullanıcının siparişleri bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<OrderDto>>.SuccessAsOk(Enumerable.Empty<OrderDto>());
                 }
 
                 var ordersDict = new Dictionary<Guid, OrderDto>();
@@ -989,7 +997,8 @@ p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
                                 BankProcReturnCode = row.BankProcReturnCode,
                                 MaskedCreditCard = row.MaskedCreditCard,
                                 BankCardBrand = row.BankCardBrand,
-                                BankCardIssuer = row.BankCardIssuer
+                                BankCardIssuer = row.BankCardIssuer,
+                                IsSuccess = IsBankHelper.IsSuccess(row.BankProcReturnCode)
                             } : null,
                             Items = new List<OrderItemDto>()
                         };

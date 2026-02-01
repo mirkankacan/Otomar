@@ -24,6 +24,6 @@ namespace Otomar.Application.Contracts.Services
 
         Task<ServiceResult<ClientOrderDto>> GetClientOrderByIdAsync(Guid id);
 
-        Task<ServiceResult<IEnumerable<ClientOrderDto>>> GetClientOrdersByUserAsync();
+        Task<ServiceResult<IEnumerable<ClientOrderDto>>> GetClientOrdersByUserAsync(string userId);
     }
 }

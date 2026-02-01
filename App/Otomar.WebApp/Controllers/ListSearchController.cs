@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.ListSearch;
 using Otomar.WebApp.Extensions;
@@ -5,11 +6,18 @@ using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers
 {
+    [Authorize]
     [Route("liste-sorgu")]
     public class ListSearchController(IListSearchApi listSearchApi) : Controller
     {
-        [HttpGet("olustur")]
+        [HttpGet("")]
         public IActionResult Index()
+        {
+            return View();
+        }
+
+        [HttpGet("olustur")]
+        public IActionResult Create()
         {
             return View();
         }

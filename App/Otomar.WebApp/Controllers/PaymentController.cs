@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Payment;
 using Otomar.WebApp.Services.Refit;
@@ -6,6 +7,7 @@ using System.Text.Json;
 
 namespace Otomar.WebApp.Controllers
 {
+    [AllowAnonymous]
     [Route("odeme")]
     public class PaymentController(IPaymentApi paymentApi, IOrderApi orderApi, ICartApi cartApi, ILogger<PaymentController> logger) : Controller
     {

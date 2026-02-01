@@ -1,0 +1,113 @@
+@{
+    ViewData["Title"] = "Profilim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    {
+        new("Ana Sayfa", "/ana-sayfa"),
+        new("Hesabım", "/hesabim"),
+        new(ViewData["Title"] as string ?? "Profilim", null)
+    };
+}
+
+<!-- Profilim / Kullanıcı Bilgileri -->
+<section class="my__account--section section--padding">
+    <div class="container">
+        <div class="my__account--section__inner border-radius-10 d-flex">
+            <div class="account__left--sidebar">
+                <h2 class="account__content--title mb-20">Hesabım</h2>
+                <ul class="account__menu">
+                    <li class="account__menu--list"><a href="/hesabim">Sipariş Geçmişi</a></li>
+                    <li class="account__menu--list"><a href="/liste-sorgu">Liste Sorgular</a></li>
+                    <li class="account__menu--list"><a href="/cari/hesap-hareketleri">Cari Hesap Hareketleri</a></li>
+                    <li class="account__menu--list active"><a href="/profilim">Kullanıcı Bilgileri</a></li>
+                    <li class="account__menu--list"><a href="/cikis-yap">Çıkış Yap</a></li>
+                </ul>
+            </div>
+            <div class="account__wrapper">
+                <div class="account__content account__details">
+                    <div class="profile__header mb-30 p-4 border-radius-10" style="background: linear-gradient(135deg, var(--bg-offwhite-color, #f8f9fa) 0%, var(--body-background-color) 100%); border: 1px solid var(--border-color);">
+                        <div class="d-flex align-items-center flex-wrap gap-3">
+                            <div class="profile__avatar border-radius-50 overflow-hidden flex-shrink-0" style="width: 72px; height: 72px; background: var(--secondary-color); display: flex; align-items: center; justify-content: center;">
+                                <span class="text-white fw-bold" style="font-size: 1.8rem;">@(User.Identity?.Name?.Length > 0 ? User.Identity.Name[0].ToString().ToUpperInvariant() : "?")</span>
+                            </div>
+                            <div>
+                                <h2 class="account__content--title h3 mb-5">Profilim</h2>
+                                <p class="text-secondary mb-0" style="font-size: 1.4rem;">Hesap bilgilerinizi buradan görüntüleyebilir ve güncelleyebilirsiniz.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="profileForm" class="profile__form">
+                        <div class="profile__block mb-30">
+                            <h3 class="account__content--title h4 mb-20 pb-2" style="border-bottom: 2px solid var(--border-color);">Kişisel Bilgiler</h3>
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-20">
+                                    <label class="contact__form--label d-block mb-8" for="profileFirstName">Ad</label>
+                                    <input class="contact__form--input w-100 border-radius-5" id="profileFirstName" name="firstName" type="text" placeholder="Adınız" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-20">
+                                    <label class="contact__form--label d-block mb-8" for="profileLastName">Soyad</label>
+                                    <input class="contact__form--input w-100 border-radius-5" id="profileLastName" name="lastName" type="text" placeholder="Soyadınız" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-20">
+                                    <label class="contact__form--label d-block mb-8" for="profileEmail">E-posta</label>
+                                    <input class="contact__form--input w-100 border-radius-5" id="profileEmail" name="email" type="email" placeholder="ornek@email.com" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-20">
+                                    <label class="contact__form--label d-block mb-8" for="profilePhone">Telefon</label>
+                                    <input class="contact__form--input w-100 border-radius-5" id="profilePhone" name="phone" type="tel" placeholder="05XX XXX XX XX" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile__block mb-30">
+                            <h3 class="account__content--title h4 mb-20 pb-2" style="border-bottom: 2px solid var(--border-color);">Adres</h3>
+                            <div class="mb-20">
+                                <label class="contact__form--label d-block mb-8" for="profileAddress">Adres</label>
+                                <textarea class="contact__form--input w-100 border-radius-5" id="profileAddress" name="address" rows="3" placeholder="Açık adresiniz" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color); resize: vertical;"></textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-4 col-md-6 mb-20">
+                                    <label class="contact__form--label d-block mb-8" for="profileCity">İl</label>
+                                    <input class="contact__form--input w-100 border-radius-5" id="profileCity" name="city" type="text" placeholder="İl" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                </div>
+                                <div class="col-lg-4 col-md-6 mb-20">
+                                    <label class="contact__form--label d-block mb-8" for="profileDistrict">İlçe</label>
+                                    <input class="contact__form--input w-100 border-radius-5" id="profileDistrict" name="district" type="text" placeholder="İlçe" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                </div>
+                                <div class="col-lg-4 col-md-6 mb-20">
+                                    <label class="contact__form--label d-block mb-8" for="profilePostalCode">Posta Kodu</label>
+                                    <input class="contact__form--input w-100 border-radius-5" id="profilePostalCode" name="postalCode" type="text" placeholder="Posta kodu" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile__block mb-30">
+                            <h3 class="account__content--title h4 mb-20 pb-2" style="border-bottom: 2px solid var(--border-color);">Şifre Değiştir</h3>
+                            <p class="text-secondary mb-20" style="font-size: 1.4rem;">Şifrenizi değiştirmek istemiyorsanız bu alanları boş bırakın.</p>
+                            <div class="row">
+                                <div class="col-lg-4 col-md-6 mb-20">
+                                    <label class="contact__form--label d-block mb-8" for="profileCurrentPassword">Mevcut Şifre</label>
+                                    <input class="contact__form--input w-100 border-radius-5" id="profileCurrentPassword" name="currentPassword" type="password" placeholder="••••••••" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                </div>
+                                <div class="col-lg-4 col-md-6 mb-20">
+                                    <label class="contact__form--label d-block mb-8" for="profileNewPassword">Yeni Şifre</label>
+                                    <input class="contact__form--input w-100 border-radius-5" id="profileNewPassword" name="newPassword" type="password" placeholder="••••••••" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                </div>
+                                <div class="col-lg-4 col-md-6 mb-20">
+                                    <label class="contact__form--label d-block mb-8" for="profileConfirmPassword">Yeni Şifre (Tekrar)</label>
+                                    <input class="contact__form--input w-100 border-radius-5" id="profileConfirmPassword" name="confirmPassword" type="password" placeholder="••••••••" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <button type="submit" class="primary__btn">Kaydet</button>
+                            <a href="/hesabim" class="btn border border-secondary text-secondary border-radius-5 px-4 py-2" style="font-size: 1.4rem; font-weight: 600;">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

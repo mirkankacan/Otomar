@@ -26,7 +26,7 @@ namespace Otomar.WebApp.Services.Refit
         [Get("/api/orders/client-orders/{id}")]
         Task<ClientOrderDto> GetClientOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
-        [Get("/api/orders/client-orders/user")]
-        Task<IEnumerable<ClientOrderDto>> GetClientOrdersByUserAsync(CancellationToken cancellationToken = default);
+        [Get("/api/orders/client-orders/user/{userId}")]
+        Task<IEnumerable<ClientOrderDto>> GetClientOrdersByUserAsync(string userId, CancellationToken cancellationToken = default);
     }
 }

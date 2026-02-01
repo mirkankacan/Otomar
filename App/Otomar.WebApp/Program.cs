@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Extensions;
+using Otomar.WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,13 +24,29 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.Name = ".OTOMAR.WebAppSession";
     options.Cookie.MaxAge = TimeSpan.FromHours(24);
 });
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddOptionsExtensions();
+
+builder.Services.AddScoped<IIdentityService, IdentityService>();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = ".OTOMAR.Auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+        options.SlidingExpiration = true;
+        options.LoginPath = "/giris-yap";
+        options.LogoutPath = "/cikis-yap";
+    });
+builder.Services.AddAuthorization();
 
 // Refit API Clients
 builder.Services.AddRefitClients(builder.Configuration);
@@ -73,6 +91,8 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseSession();
 app.MapStaticAssets();
 app.MapGet("/", () => Results.Redirect("/ana-sayfa"));

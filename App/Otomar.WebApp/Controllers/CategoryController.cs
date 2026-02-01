@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers
 {
+    [AllowAnonymous]
     [Route("kategori")]
     public class CategoryController(ICategoryApi categoryApi) : Controller
     {

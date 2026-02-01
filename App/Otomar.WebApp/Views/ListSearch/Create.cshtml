@@ -1,0 +1,12 @@
+﻿@{
+    ViewData["Title"] = "Liste Sorgu Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    {
+        new("Ana Sayfa", "/ana-sayfa"),
+        new(ViewData["Title"] as string, null),
+
+    };
+}
+
+<h1>Create</h1>

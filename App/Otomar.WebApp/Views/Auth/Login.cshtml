@@ -1,0 +1,87 @@
+@{
+    ViewData["Title"] = "Giriş Yap";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Start login section  -->
+<div class="login__section section--padding">
+    <div class="container">
+        <form id="login-form" action="#" method="post">
+            @Html.AntiForgeryToken()
+            <div class="login__section--inner">
+                <div class="row row-cols-md-2 row-cols-1 d-flex justify-content-center">
+                    <div class="col-6">
+                        <div class="account__login">
+                            <div class="account__login--header mb-25">
+                                <h2
+                                    class="account__login--header__title mb-10 d-flex align-self-center justify-content-center">
+                                    <img src="/assets/img/logo/otomarlogo.webp" alt="OTOMAR logo" style="width:280px" />
+                                </h2>
+                            </div>
+                            <div class="account__login--inner">
+                                <label>
+                                    <input class="account__login--input" name="email" id="login-email" placeholder="E-posta giriniz..." type="email" required>
+                                </label>
+                                <label>
+                                    <input class="account__login--input" name="password" id="login-password" placeholder="Şifre giriniz..." type="password" required>
+                                </label>
+                                <div
+                                    class="account__login--remember__forgot mb-15 d-flex justify-content-between align-items-center">
+                                    <div class="account__login--remember position__relative">
+                                        <input class="checkout__checkbox--input" name="rememberMe" id="rememberMe" type="checkbox">
+                                        <span class="checkout__checkbox--checkmark"></span>
+                                        <label class="checkout__checkbox--label login__remember--label"
+                                            for="rememberMe">
+                                            Beni Hatırla
+                                        </label>
+                                    </div>
+                                    <a href="#" class="account__login--forgot">Şifreni mi Unuttun?</a>
+                                </div>
+                                <button class="account__login--btn primary__btn" type="submit">Giriş Yap</button>
+                                <div class="account__login--divide">
+                                    <span class="account__login--divide__text">YA DA </span>
+                                </div>
+                                <div class="account__social d-flex justify-content-center mb-15">
+                                    <a class="account__social--link google" target="_blank"
+                                        href="https://www.google.com">Google</a>
+                                </div>
+                                <p class="account__login--signup__text">Hesabınız yok mu? <button
+                                        onclick="window.location.href='/kayit-ol'" type="button">Kayıt Ol</button></p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- End login section  -->
+
+@section Scripts {
+    <script src="~/assets/js/http-client.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var btn = this.querySelector('button[type="submit"]');
+            var originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Giriş yapılıyor...';
+            try {
+                var email = document.getElementById('login-email').value.trim();
+                var password = document.getElementById('login-password').value;
+                var rememberMe = document.getElementById('rememberMe').checked;
+                await makeRequest('/giris-yap', 'POST', { email: email, password: password, rememberMe: rememberMe });
+                var params = new URLSearchParams(window.location.search);
+                var returnUrl = params.get('returnUrl') || params.get('returnurl') || '/';
+                if (returnUrl && !returnUrl.startsWith('/')) returnUrl = '/' + returnUrl;
+                var path = (returnUrl || '/').replace(/^[^/]*\/\/[^/]*/, '').split('?')[0].toLowerCase();
+                if (path === '/hesabim' || path === 'hesabim') returnUrl = '/ana-sayfa';
+                window.location.href = returnUrl || '/';
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+    </script>
+}

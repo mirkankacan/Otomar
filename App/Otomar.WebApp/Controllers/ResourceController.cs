@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Otomar.WebApp.Controllers
 {
+    [AllowAnonymous]
     [Route("kaynaklar")]
     public class ResourceController : Controller
     {

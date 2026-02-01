@@ -19,9 +19,22 @@
 
 <!-- Start shop section -->
 <div class="shop__section">
+    <!-- Mobil filtre offcanvas (_script.js .widget__filter--btn ile açılır) -->
+    <div class="offcanvas__filter--sidebar d-lg-none" id="shop-filter-offcanvas">
+        <button class="offcanvas__filter--close" type="button" data-offcanvas aria-label="Filtreleri kapat">
+            <span class="offcanvas__filter--close__text">Kapat</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        <div class="offcanvas__filter--content p-4 pt-5">
+            <!-- Sidebar mobilde buraya taşınacak; tek scrollbar için sadece .offcanvas__filter--sidebar scroll -->
+        </div>
+    </div>
     <div class="container">
         <div class="row">
-            <div class="col-xl-3 col-lg-4 shop-col-width-lg-4" style="position: relative;">
+            <div class="col-xl-3 col-lg-4 shop-col-width-lg-4">
                 <div class="shop__sidebar--widget widget__area d-none d-lg-block"
                     style="position: sticky; top: 20px; align-self: flex-start; max-height: calc(100vh - 40px); overflow-y: auto;">
                     <div class="single__widget widget__bg">
@@ -928,6 +941,53 @@
         }
 
         $(document).ready(function () {
+            // Mobil: Filtre butonu görünürken (d-lg-none) tıklanınca sidebar offcanvas'ta açılsın
+            (function initMobileFilterOffcanvas() {
+                var sidebar = document.querySelector('.shop__sidebar--widget.widget__area');
+                var sidebarColumn = document.querySelector('.col-xl-3.shop-col-width-lg-4');
+                var offcanvas = document.getElementById('shop-filter-offcanvas');
+                var offcanvasContent = offcanvas && offcanvas.querySelector('.offcanvas__filter--content');
+                var filterBtn = document.querySelector('.widget__filter--btn');
+                var closeBtn = offcanvas && offcanvas.querySelector('.offcanvas__filter--close');
+
+                function moveSidebarToOffcanvas() {
+                    if (window.innerWidth >= 992 || !sidebar || !sidebarColumn || !offcanvasContent) return;
+                    if (sidebar.parentElement === offcanvasContent) return;
+                    sidebarColumn.removeChild(sidebar);
+                    sidebar.classList.remove('d-none');
+                    sidebar.style.overflowY = ''; sidebar.style.maxHeight = ''; // tek scrollbar: offcanvas panelinde kalsın
+                    offcanvasContent.appendChild(sidebar);
+                }
+
+                function moveSidebarToColumn() {
+                    if (!sidebar || !sidebarColumn || !offcanvasContent) return;
+                    if (sidebar.parentElement !== offcanvasContent) return;
+                    offcanvasContent.removeChild(sidebar);
+                    sidebar.classList.add('d-none');
+                    sidebar.style.overflowY = 'auto'; sidebar.style.maxHeight = 'calc(100vh - 40px)'; // masaüstü sidebar scroll geri
+                    sidebarColumn.appendChild(sidebar);
+                }
+
+                if (filterBtn && sidebar && sidebarColumn && offcanvasContent) {
+                    filterBtn.addEventListener('click', function () {
+                        if (window.innerWidth < 992) moveSidebarToOffcanvas();
+                    }, true);
+                }
+                if (closeBtn && sidebar && sidebarColumn && offcanvasContent) {
+                    closeBtn.addEventListener('click', function () { moveSidebarToColumn(); }, true);
+                }
+                if (offcanvas && sidebar && sidebarColumn && offcanvasContent) {
+                    var observer = new MutationObserver(function (mutations) {
+                        mutations.forEach(function (mutation) {
+                            if (mutation.attributeName === 'class' && !offcanvas.classList.contains('active')) {
+                                moveSidebarToColumn();
+                            }
+                        });
+                    });
+                    observer.observe(offcanvas, { attributes: true });
+                }
+            })();
+
             loadProducts();
             setupInfiniteScroll();
             loadShopCategories();

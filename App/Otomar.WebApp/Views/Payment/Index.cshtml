@@ -1,6 +1,11 @@
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Ödeme";
     Layout = "~/Views/Shared/_PaymentLayout.cshtml";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var userEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+    var userFullName = User.FindFirst(ClaimTypes.GivenName)?.Value ?? "";
+    var userPhone = User.FindFirst(ClaimTypes.MobilePhone)?.Value ?? "";
 }
 
     <!-- Start checkout page area -->
@@ -9,15 +14,22 @@
             <div class="row">
                 <div class="col-lg-7 col-md-6">
                     <div class="main checkout__main">
-                        <form id="checkoutForm" novalidate>
+                        <form id="checkoutForm" novalidate
+                              data-is-authenticated="@(isAuthenticated ? "true" : "false")"
+                              data-user-email="@(userEmail)"
+                              data-user-fullname="@(userFullName)"
+                              data-user-phone="@(userPhone)">
                             @Html.AntiForgeryToken()
                             <div class="checkout__content--step section__contact--information">
                                 <div class="section__header checkout__section--header d-flex align-items-center justify-content-between mb-25">
                                     <h2 class="section__header--title h3">İletişim Bilgileri</h2>
-                                    <p class="layout__flex--item">
-                                        Hesabınız var mı?
-                                        <a class="layout__flex--item__link" href="/giris-yap">Giriş yapın</a>
-                                    </p>
+                                    @if (!isAuthenticated)
+                                    {
+                                        <p class="layout__flex--item">
+                                            Hesabınız var mı?
+                                            <a class="layout__flex--item__link" href="/giris-yap">Giriş yapın</a>
+                                        </p>
+                                    }
                                 </div>
                                 <div class="customer__information">
                                     <div class="checkout__email mb-12">
@@ -61,11 +73,9 @@
 
                                         <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
                                             <div class="checkout__input--list">
-                                                <label class="checkout__input--label mb-2" for="txtSurname">Soyisim <span class="checkout__input--label__star">*</span></label>
+                                                <label class="checkout__input--label mb-2" for="txtSurname">Soyisim </label>
                                                 <input class="checkout__input--field border-radius-5" placeholder="Soyisim giriniz..." id="txtSurname" type="text">
-                                                <div class="invalid-feedback">
-                                                    Soyisim en az 2 karakter olmalıdır.
-                                                </div>
+                                              
                                             </div>
                                         </div>
                                          <div class="col-12 mb-20">
@@ -269,13 +279,6 @@
                                     </div>
                                 </div>
 
-                                <div class="checkout__checkbox mb-20">
-                                    <input class="checkout__checkbox--input" id="checkboxSaveInfo" type="checkbox">
-                                    <span class="checkout__checkbox--checkmark"></span>
-                                    <label class="checkout__checkbox--label" for="checkboxSaveInfo">
-                                        Adres ve iletişim bilgilerini bir dahaki sefer için sakla
-                                    </label>
-                                </div>
 
                                 <div class="checkout__content--step__footer d-flex align-items-center">
                                     <button type="button" class="continue__shipping--btn primary__btn border-radius-5" id="btnContinueToPayment">Ödeme Bilgilerine Geç</button>
@@ -516,6 +519,26 @@
                 // Fatura adresi için il/ilçe yükle
                 await loadProvinces('#selectProvince', '#selectDistrict');
 
+                // Giriş yapmış kullanıcı: claim'den e-posta, ad soyad, telefon ile inputları doldur
+                var $form = $('#checkoutForm');
+                var isAuth = $form.data('is-authenticated') === true || $form.data('is-authenticated') === 'true';
+                if (isAuth) {
+                    var email = ($form.data('user-email') || '').toString().trim();
+                    if (email) $('#txtEmail').val(email);
+                    var fullName = ($form.data('user-fullname') || '').toString().trim();
+                    if (fullName) {
+                        var firstSpace = fullName.indexOf(' ');
+                        if (firstSpace > 0) {
+                            $('#txtName').val(fullName.substring(0, firstSpace).trim());
+                            $('#txtSurname').val(fullName.substring(firstSpace + 1).trim());
+                        } else {
+                            $('#txtName').val(fullName);
+                        }
+                    }
+                    var phone = ($form.data('user-phone') || '').toString().trim();
+                    if (phone) $('#txtPhone').val(phone);
+                }
+
                 // Sipariş özeti yükle
                 if (typeof CartManager !== 'undefined') {
                     CartManager.getCart().then(function(cart) {
@@ -647,12 +670,7 @@
                     return { valid: true };
                 });
 
-                // Soyisim validasyonu
-                setupFieldValidation('#txtSurname', (value) => {
-                    if (Validator.isEmpty(value)) return { valid: false, message: 'Soyisim zorunludur.' };
-                    if (!Validator.isValidLength(value, 2)) return { valid: false, message: 'Soyisim en az 2 karakter olmalıdır.' };
-                    return { valid: true };
-                });
+               
 
                 // Adres validasyonu
                 setupFieldValidation('#txtAddress', (value) => {
@@ -1063,15 +1081,7 @@
                     isValid = false;
                 }
 
-                // Soyisim
-                const surname = $('#txtSurname').val();
-                if (Validator.isEmpty(surname)) {
-                    markFieldInvalid($('#txtSurname'), 'Soyisim zorunludur.');
-                    isValid = false;
-                } else if (!Validator.isValidLength(surname, 2)) {
-                    markFieldInvalid($('#txtSurname'), 'Soyisim en az 2 karakter olmalıdır.');
-                    isValid = false;
-                }
+            
 
                 // Adres
                 const address = $('#txtAddress').val();
@@ -1297,7 +1307,7 @@
                         CompanyName: ($('#txtCompanyTitle').val() || '').trim(),
                         TaxNumber: ($('#txtTaxNumber').val() || '').replace(/\D/g, ''),
                         TaxOffice: ($('#txtTaxOffice').val() || '').trim(),
-                        IsEInvoiceUser: ('#checkboxEinvoice$').is(':checked');
+                        IsEInvoiceUser: $('#checkboxEinvoice').is(':checked')
                     };
                 }
 

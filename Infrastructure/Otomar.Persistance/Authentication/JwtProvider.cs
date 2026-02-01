@@ -60,6 +60,7 @@ namespace Otomar.Persistance.Authentication
                 RoleName = userRoles.FirstOrDefault()!,
                 ClientCode = applicationUser.ClientCode ?? string.Empty,
                 PhoneNumber = applicationUser.PhoneNumber,
+                IsPaymentExempt = applicationUser.IsPaymentExempt
             };
             return ServiceResult<TokenDto>.SuccessAsCreated(response, $"/api/user/{applicationUser.Id}");
         }

@@ -1,3 +1,30 @@
+// ProblemDetails: detail bazen iç içe JSON string döner (örn. 404); title ve detail'i düzgün çıkarır
+function normalizeProblemDetails(errorData, fallbackStatus)
+{
+    let title = errorData.title || 'Hata';
+    let detail = errorData.detail || errorData.message || `Bir hata oluştu. (HTTP ${fallbackStatus})`;
+
+    const rawDetail = errorData.detail;
+    if (typeof rawDetail === 'string' && rawDetail.trim().startsWith('{'))
+    {
+        try
+        {
+            const inner = JSON.parse(rawDetail);
+            if (inner && (inner.title || inner.detail))
+            {
+                title = inner.title || title;
+                detail = (typeof inner.detail === 'string' ? inner.detail : (inner.detail ? String(inner.detail) : detail));
+            }
+        }
+        catch (_)
+        {
+            // Parse edilemezse dış title/detail kullanılır
+        }
+    }
+
+    return { title, detail };
+}
+
 // HTTP isteklerini yöneten merkezi fonksiyon
 async function makeRequest(url, method = 'GET', data = null)
 {
@@ -58,29 +85,19 @@ async function makeRequest(url, method = 'GET', data = null)
         if (response.status === 401)
         {
             let message = 'Oturum süresi doldu. Lütfen tekrar giriş yapın.';
-            let redirectUrl = '/giris';
+            let redirectUrl = '/giris-yap';
 
-            // Backend'den gelen mesajı kontrol et (ProblemDetails formatı)
+            // Backend'den gelen mesajı kontrol et (ProblemDetails formatı, iç içe detail olabilir)
             try
             {
                 const responseText = await response.text();
                 if (responseText)
                 {
                     const errorData = JSON.parse(responseText);
-                    // ProblemDetails formatında detail veya title kullan
-                    if (errorData.detail)
-                    {
-                        message = errorData.detail;
-                    }
-                    else if (errorData.title)
-                    {
-                        message = errorData.title;
-                    }
-                    // loginUrl yoksa varsayılan kullanılır
+                    const normalized = normalizeProblemDetails(errorData, 401);
+                    message = normalized.detail || normalized.title || message;
                     if (errorData.loginUrl)
-                    {
                         redirectUrl = errorData.loginUrl;
-                    }
                 }
             }
             catch (parseError)
@@ -109,11 +126,7 @@ async function makeRequest(url, method = 'GET', data = null)
             {
                 const responseText = await response.text();
                 const errorData = JSON.parse(responseText);
-
-                errorObj = {
-                    title: errorData.title || 'Hata',
-                    detail: errorData.detail || errorData.message || `Bir hata oluştu. (HTTP ${response.status})`
-                };
+                errorObj = normalizeProblemDetails(errorData, response.status);
             } catch (parseError)
             {
                 // JSON parse edilemezse varsayılan mesaj kullan
@@ -185,7 +198,7 @@ function performLogout(redirectUrl)
 
     // Logout endpoint'ine async istek gönder ama yönlendirmeyi engelleme
     fetch('/cikis-yap', {
-        method: 'POST',
+        method: 'GET',
         keepalive: true // Sayfa kapansa bile isteği tamamla
     }).catch(() =>
     {

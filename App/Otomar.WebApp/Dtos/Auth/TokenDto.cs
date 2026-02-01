@@ -10,5 +10,6 @@ namespace Otomar.WebApp.Dtos.Auth
         public string RoleName { get; set; }
         public string? ClientCode { get; set; }
         public string PhoneNumber { get; set; }
+        public bool IsPaymentExempt { get; set; }
     }
 }

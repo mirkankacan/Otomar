@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Contact;
 
 namespace Otomar.WebApp.Controllers
 {
+    [AllowAnonymous]
     [Route(template: "iletisim")]
     public class ContactController : Controller
     {

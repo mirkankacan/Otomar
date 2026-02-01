@@ -178,6 +178,16 @@ else
                             <p class="failed-address mb-0">
                                 Ödemeniz banka tarafından reddedildi veya işlem iptal edildi. Kart bilgilerinizi kontrol edip tekrar deneyebilirsiniz. Sorun devam ederse lütfen bankanızla iletişime geçin veya farklı bir ödeme yöntemi kullanın.
                             </p>
+                            @if(!string.IsNullOrEmpty(Model.Payment.BankErrMsg) || !string.IsNullOrEmpty(Model.Payment.BankErrorCode))
+                            {
+                                <p class="failed-address mb-0">
+                                    Bankadan dönen hata kodu: @Model.Payment.BankErrorCode
+                                    <br />
+                                    Bankadan dönen hata mesajı: @Model.Payment.BankErrMsg
+                                </p>
+                                
+                            }
+                        
                         }
                         else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
                         {
