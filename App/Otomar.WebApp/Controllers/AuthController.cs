@@ -97,7 +97,7 @@ namespace Otomar.WebApp.Controllers
             }
         }
 
-        [HttpGet("cikis-yap")]
+        [HttpPost("cikis-yap")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout(CancellationToken cancellationToken = default)
         {
@@ -108,7 +108,7 @@ namespace Otomar.WebApp.Controllers
             }
             catch
             {
-                // Cookie zaten silindi; API hata verse de 200 dön
+                return Ok();
             }
             return Ok();
         }

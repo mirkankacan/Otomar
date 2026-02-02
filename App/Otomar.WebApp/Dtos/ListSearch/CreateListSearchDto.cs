@@ -2,6 +2,8 @@ namespace Otomar.WebApp.Dtos.ListSearch
 {
     public class CreateListSearchDto
     {
+        public string NameSurname { get; set; }
+        public string? CompanyName { get; set; }
         public string PhoneNumber { get; set; }
         public string ChassisNumber { get; set; }
         public string? Email { get; set; }
@@ -10,7 +12,7 @@ namespace Otomar.WebApp.Dtos.ListSearch
         public string Year { get; set; }
         public string? Engine { get; set; }
         public string? LicensePlate { get; set; }
-        public string? Annotation { get; set; }
+        public string? Note { get; set; }
         public List<CreateListSearchPartDto> Parts { get; set; } = new();
     }
 }

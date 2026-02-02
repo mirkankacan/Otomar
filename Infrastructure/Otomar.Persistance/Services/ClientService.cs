@@ -105,7 +105,7 @@ namespace Otomar.Persistance.Services
                 FROM OTOMAR2026.DBO.IDF_SATIS_CARI_HAREKET(@clientCode)
                 ORDER BY TARIH_RAW DESC, INC_KEY_NUMBER DESC;";
                 var result = await context.Connection.QueryAsync<TransactionDto>(query, parameters);
-                if (result.Count() == 0)
+                if (!result.Any())
                 {
                     logger.LogWarning($"{clientCode} kodlu carinin hareketleri bulunamadı");
                     return ServiceResult<IEnumerable<TransactionDto>>.Error("Cari Hareket Bulunamadı", $"{clientCode} kodlu carinin hareketleri bulunamadı", HttpStatusCode.NotFound);
@@ -115,6 +115,61 @@ namespace Otomar.Persistance.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "GetClientTransactionsByCodeAsync işleminde hata");
+                throw;
+            }
+        }
+
+        public async Task<ServiceResult<IEnumerable<TransactionDto>>> GetClientTransactionsByCodeAsync(string clientCode, int pageNumber, int pageSize)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientCode))
+                {
+                    return ServiceResult<IEnumerable<TransactionDto>>.Error("Geçersiz Cari Kodu", "Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
+                }
+                if (pageNumber < 1) pageNumber = 1;
+                if (pageSize < 1) pageSize = 10;
+                if (pageSize > 100) pageSize = 100;
+                var parameters = new DynamicParameters();
+                parameters.Add("clientCode", clientCode.Trim());
+                parameters.Add("pageNumber", pageNumber);
+                parameters.Add("pageSize", pageSize);
+
+                var query = @"
+        SET DATEFORMAT DMY
+        SELECT
+            TRY_CAST(TARIH AS datetime) AS TARIH_RAW,
+            CONVERT(varchar(10), TRY_CAST(TARIH AS datetime), 104) AS TARIH_DISPLAY,
+            BELGE_NO,
+            CASE
+                WHEN HAREKET_TURU = 'B' AND (BELGE_NO LIKE 'OTM%' OR BELGE_NO LIKE 'MAR%' OR BELGE_NO LIKE 'A2021%') THEN 'Satış'
+                WHEN HAREKET_TURU = 'B' THEN 'Alış'
+                WHEN HAREKET_TURU = 'C' THEN 'İade'
+                WHEN HAREKET_TURU IN ('D', 'K') THEN 'Tahsilat'
+                WHEN HAREKET_TURU = 'A' THEN 'Devir'
+                WHEN HAREKET_TURU = 'E' THEN 'Senet'
+                WHEN HAREKET_TURU IN ('G', 'H') THEN 'Çek'
+                ELSE ''
+            END AS ACIKLAMA,
+            BORC,
+            ALACAK,
+            FORMAT(BAKIYE, 'c2', 'tr-TR') AS BAKIYE
+        FROM OTOMAR2026.DBO.IDF_SATIS_CARI_HAREKET(@clientCode)
+        ORDER BY TARIH_RAW DESC, INC_KEY_NUMBER DESC
+        OFFSET (@pageNumber - 1) * @pageSize ROWS
+        FETCH NEXT @pageSize ROWS ONLY;";
+
+                var result = await context.Connection.QueryAsync<TransactionDto>(query, parameters);
+                if (!result.Any())
+                {
+                    logger.LogWarning($"{clientCode} kodlu carinin hareketleri bulunamadı");
+                    return ServiceResult<IEnumerable<TransactionDto>>.Error("Cari Hareket Bulunamadı", $"{clientCode} kodlu carinin hareketleri bulunamadı", HttpStatusCode.NotFound);
+                }
+                return ServiceResult<IEnumerable<TransactionDto>>.SuccessAsOk(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "GetClientTransactionsByCodeAsync işleminde hata PageNumber: {PageNumber} PageSize: {PageSize}", pageNumber, pageSize);
                 throw;
             }
         }

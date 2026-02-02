@@ -3,14 +3,11 @@ using Refit;
 
 namespace Otomar.WebApp.Services.Refit
 {
+    /// <summary>
+    /// Body (JSON) istekleri Refit ile. FormData (multipart) istekleri HttpClient ile gönderilir.
+    /// </summary>
     public interface IListSearchApi
     {
-        [Post("/api/listsearches")]
-        [Multipart]
-        Task<ListSearchDto> CreateListSearchAsync(
-            CreateListSearchDto dto,
-            CancellationToken cancellationToken = default);
-
         [Get("/api/listsearches")]
         Task<IEnumerable<ListSearchDto>> GetListSearchesAsync(CancellationToken cancellationToken = default);
 

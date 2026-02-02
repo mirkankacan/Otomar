@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Otomar.Application.Common;
@@ -25,6 +25,7 @@ namespace Otomar.Persistance.Authentication
                 new Claim(JwtRegisteredClaimNames.Jti, NewId.NextGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Sub, applicationUser.Id),
                 new Claim(ClaimTypes.NameIdentifier, applicationUser.Id),
+                new Claim(ClaimTypes.Email, applicationUser.Email ?? string.Empty),
                 new Claim(ClaimTypes.GivenName, $"{applicationUser.Name} {applicationUser.Surname}"),
                 new Claim(ClaimTypes.Role, userRoles.FirstOrDefault()!),
                 new Claim(ClaimTypes.MobilePhone, applicationUser.PhoneNumber!),

@@ -1,12 +1,801 @@
-﻿@{
+@{
     ViewData["Title"] = "Liste Sorgu Oluştur";
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
-    {
-        new("Ana Sayfa", "/ana-sayfa"),
-        new(ViewData["Title"] as string, null),
+{
+new("Ana Sayfa", "/ana-sayfa"),
+new("Liste Sorgular", "/liste-sorgu"),
+new(ViewData["Title"] as string, null),
 
-    };
+};
 }
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css" />
+    <style>
+        .account__wrapper {
+            width: 100% !important;
+        }
 
-<h1>Create</h1>
+        .section__shipping--address {
+            padding: 0px 0px 0px 0px !important;
+        }
+
+        .parts-table th,
+        .parts-table td {
+            text-align: center;
+            vertical-align: middle;
+            border-left: none !important;
+            border-right: none !important;
+        }
+
+        .parts-table .form-control,
+        .parts-table .form-select {
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .parts-table textarea.form-control {
+            min-height: 4rem;
+            resize: vertical;
+        }
+
+        .parts-table .parts-qty {
+            width: 5rem;
+            height: 50px;
+            text-align: center;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .parts-table .dropzone-cell {
+            min-width: 160px;
+        }
+
+        .parts-table .dropzone {
+            min-height: 50px;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 0.5rem;
+            background: #f8f9fa;
+        }
+
+        .parts-table .dropzone .dz-message {
+            margin: 1.5rem 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .parts-table .dropzone .dz-preview {
+            margin: 4px;
+            width: 70px;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-image {
+            width: 60px !important;
+            height: 60px !important;
+            border-radius: 6px;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-image img {
+            width: 60px !important;
+            height: 60px !important;
+            object-fit: cover;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-details {
+            padding: 2px 4px;
+            font-size: 0.7rem;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-filename span {
+            font-size: 0.65rem;
+            max-width: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        .dropzone .dz-preview.dz-image-preview {
+            background: none !important;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-size {
+            font-size: 0.6rem;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-remove {
+            font-size: 0.7rem;
+            margin-top: 2px;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-progress {
+            width: 60px !important;
+            margin-left: -35px;
+            left: 50%;
+            height: 4px;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-progress .dz-upload {
+            height: 4px;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-progress .dz-upload::after {
+            height: 4px;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-success-mark,
+        .parts-table .dropzone .dz-preview .dz-error-mark {
+            margin-left: -30px;
+            margin-top: -30px;
+        }
+
+        .parts-table .dropzone .dz-preview .dz-success-mark svg,
+        .parts-table .dropzone .dz-preview .dz-error-mark svg {
+            width: 24px !important;
+            height: 24px !important;
+        }
+
+        .parts-table .parts-table__add-row {
+            margin-top: 1rem;
+        }
+
+        #addPartRowBtn {
+            height: 30px;
+            font-size: 1.5rem;
+        }
+    </style>
+}
+<section class="my__account--section section--padding">
+    <div class="container">
+        <div class="my__account--section__inner border-radius-10 d-flex">
+
+            <div class="account__wrapper">
+                <div class="account__content">
+                    <form id="listSearchForm" enctype="multipart/form-data" method="post" action="">
+                        @Html.AntiForgeryToken()
+                    <div class="account__table--area">
+                        <div class="checkout__content--step section__shipping--address">
+                            <div class="section__header mb-25">
+                                <h2 class="section__header--title h3">İletişim Bilgileri</h2>
+                            </div>
+                            <div class="section__shipping--address__content">
+                                <div class="row">
+
+                                    <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="txtNameSurname">İsim Soyisim
+                                                <span class="checkout__input--label__star">*</span></label>
+                                            <input class="checkout__input--field border-radius-5" name="NameSurname"
+                                                placeholder="İsim Soyisim giriniz..." id="txtNameSurname" type="text">
+                                            <div class="invalid-feedback">
+                                                İsim Soyisim en az 2 karakter olmalıdır.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="txtCompanyName">Firma
+                                                Adı</label>
+                                            <input class="checkout__input--field border-radius-5" name="CompanyName"
+                                                placeholder="Firma adı giriniz..." id="txtCompanyName" type="text">
+                                            <div class="invalid-feedback">
+                                                Firma adı en az 2 karakter olmalıdır.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="txtPhone">Telefon
+                                                Numarası (WhatsApp)<span
+                                                    class="checkout__input--label__star">*</span></label>
+                                            <input class="checkout__input--field border-radius-5" name="PhoneNumber"
+                                                placeholder="+90 5xx xxx xx xx" id="txtPhone" type="text"
+                                                inputmode="numeric" autocomplete="tel">
+                                            <div class="invalid-feedback">
+                                                Telefon numarası en az 10 karakter olmalıdır.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="txtEmail">E-posta
+                                                Adresi</label>
+                                            <div class="email-input-wrapper position-relative">
+                                                <input class="checkout__input--field border-radius-5" name="Email"
+                                                    placeholder="E-posta adresi giriniz..." id="txtEmail" type="email"
+                                                    autocomplete="email">
+                                                <ul id="emailDomainSuggestions" class="email-domain-suggestions list-unstyled mb-0" role="listbox" aria-hidden="true"></ul>
+                                            </div>
+                                            <div class="invalid-feedback">
+                                                Geçerli bir e-posta adresi giriniz.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="checkout__content--step section__shipping--address">
+                            <div class="section__header mb-25">
+                                <h2 class="section__header--title h3">Araç Bilgileri</h2>
+                            </div>
+                            <div class="section__shipping--address__content">
+                                <div class="row">
+
+                                    <div class="col-lg-4 col-md-4 col-sm-4 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="selectBrand">Marka <span
+                                                    class="checkout__input--label__star">*</span>
+                                            </label>
+                                            <select class="checkout__input--field border-radius-5" id="selectBrand" name="Brand">
+                                                <option value="" selected disabled>Marka seçiniz</option>
+                                            </select>
+                                            <div class="invalid-feedback">
+                                                Marka seçiniz.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-4 col-sm-4 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="selectModel">Model <span
+                                                    class="checkout__input--label__star">*</span>
+                                            </label>
+                                            <select class="checkout__input--field border-radius-5" id="selectModel" name="Model" disabled>
+                                                <option value="" selected disabled>Model seçiniz</option>
+                                            </select>
+                                            <div class="invalid-feedback">
+                                                Model seçiniz.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-sm-4 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="selectVersion">Versiyon
+                                                <span class="checkout__input--label__star">*</span>
+                                            </label>
+                                            <select class="checkout__input--field border-radius-5" id="selectVersion" name="Year" disabled>
+                                                <option value="" selected disabled>Versiyon seçiniz</option>
+                                            </select>
+                                            <div class="invalid-feedback">
+                                                Versiyon seçiniz.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="txtEngine">Motor
+                                            </label>
+                                            <input class="checkout__input--field border-radius-5" name="Engine"
+                                                placeholder="Motor giriniz..." id="txtEngine" type="text">
+
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="txtEngine">Şasi Numarası
+                                                <span class="checkout__input--label__star">*</span></label>
+                                            <input class="checkout__input--field border-radius-5" name="ChassisNumber"
+                                                placeholder="17 karakter VIN (şasi)" id="txtChassisNumber"
+                                                type="text" maxlength="17" autocomplete="off">
+                                            <div class="invalid-feedback">
+                                                Şasi numarası 17 karakter olmalıdır (VIN).
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="txtLicensePlate">Plaka
+                                            </label>
+                                            <input class="checkout__input--field border-radius-5" name="LicensePlate"
+                                                placeholder="34 ABC 123" id="txtLicensePlate" type="text" maxlength="10" autocomplete="off">
+
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
+                                        <div class="checkout__input--list ">
+                                            <label class="checkout__input--label mb-2" for="txtNote">Açıklama
+                                               </label>
+                                            <textarea class="checkout__notes--textarea__field border-radius-5" id="txtNote"
+                                                name="Note" placeholder="Açıklama giriniz..." rows="3"
+                                                spellcheck="false"></textarea>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="checkout__content--step section__shipping--address">
+                            <div class="section__header mb-25">
+                                <h2 class="section__header--title h3">Parça Bilgileri</h2>
+                            </div>
+                            <div class="section__shipping--address__content">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered parts-table" id="partsTable">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th class="text-white">#</th>
+                                                <th class="text-white">Parça Tanımı <span
+                                                        class="checkout__input--label__star">*</span></th>
+                                                <th class="text-white">Adet <span
+                                                        class="checkout__input--label__star">*</span></th>
+                                                <th class="text-white">Not</th>
+                                                <th class="text-white">Fotoğraflar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="partsTableBody">
+                                            @for (var i = 0; i < 10; i++)
+                                            {
+                                                <tr class="parts-row" data-row-index="@i">
+                                                    <td class="text-center align-middle">@(i + 1)</td>
+                                                    <td>
+                                                        <textarea class="form-control" name="Parts[@i].Definition"
+                                                            placeholder="Parça tanımı..." rows="2"></textarea>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" class="form-control parts-qty part-qty-input"
+                                                            name="Parts[@i].Quantity" min="1" placeholder="" />
+                                                    </td>
+                                                    <td>
+                                                        <textarea class="form-control" name="Parts[@i].Note"
+                                                            placeholder="Not..." rows="2"></textarea>
+                                                    </td>
+                                                    <td class="dropzone-cell">
+                                                        <div class="dropzone" id="dropzone_@i" data-parts-index="@i"></div>
+                                                        <input type="file" name="Parts[@i].PartImages" id="partsPhotos_@i"
+                                                            multiple accept="image/*" style="display: none;" />
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button type="button" class="btn btn-success w-100 mb-5 parts-table__add-row"
+                                    id="addPartRowBtn">
+                                    <i class="fa-solid fa-plus me-2"></i> Satır Ekle
+                                </button>
+                                <button class="w-100 primary__btn" type="button" id="btnCreateListSearch">Liste Sorgusunu
+                                    Oluştur</button>
+
+                            </div>
+                        </div>
+                    </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</section>
+<!-- my account section end -->
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+    <script>
+        Dropzone.autoDiscover = false;
+        $(function () {
+            function markFieldInvalid($field, message) {
+                $field.addClass('is-invalid').removeClass('is-valid');
+                var $feedback = $field.next('.invalid-feedback');
+                if ($feedback.length && message) $feedback.text(message).show();
+            }
+            function markFieldValid($field) {
+                $field.removeClass('is-invalid').addClass('is-valid');
+            }
+            function clearListSearchValidation() {
+                $('#listSearchForm').find('.is-invalid, .is-valid').removeClass('is-invalid is-valid');
+                $('#listSearchForm').find('.validation-error').remove();
+            }
+            function initPhoneMask() {
+                if (typeof IMask === 'undefined') return;
+                var txtPhone = document.getElementById('txtPhone');
+                if (!txtPhone) return;
+                var phoneMaskOpts = {
+                    mask: '+9\\0 Zdd ddd dd dd',
+                    definitions: { 'Z': /[1-9]/, 'd': /[0-9]/ },
+                    lazy: false
+                };
+                new IMask(txtPhone, phoneMaskOpts);
+            }
+            function initPlakaUppercase() {
+                var $plaka = $('#txtLicensePlate');
+                if (!$plaka.length) return;
+                $plaka.on('input', function () {
+                    var v = ($(this).val() || '').toUpperCase().slice(0, 10);
+                    if ($(this).val() !== v) $(this).val(v);
+                });
+            }
+            function initChassisUppercase() {
+                var $chassis = $('#txtChassisNumber');
+                if (!$chassis.length) return;
+                $chassis.on('input', function () {
+                    var v = ($(this).val() || '').toUpperCase().slice(0, 17);
+                    if ($(this).val() !== v) $(this).val(v);
+                });
+            }
+            initPhoneMask();
+            initPlakaUppercase();
+            initChassisUppercase();
+
+            (function () {
+                var emailDomains = [
+                    'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'hotmail.com.tr', 'live.com', 'live.com.tr',
+                    'msn.com', 'icloud.com', 'me.com', 'mac.com', 'yahoo.com', 'yahoo.com.tr', 'yandex.com', 'yandex.com.tr',
+                    'protonmail.com', 'proton.me', 'mail.com', 'gmx.com', 'gmx.net', 'tutanota.com', 'zoho.com',
+                    'aol.com', 'mail.ru', 'outlook.com.tr', 'windowslive.com', 'btinternet.com', 'sky.com', 'ymail.com'
+                ];
+                var $emailInput = $('#txtEmail');
+                var $list = $('#emailDomainSuggestions');
+                var selectedIndex = -1;
+
+                function getLocalPart() {
+                    var val = ($emailInput.val() || '').trim();
+                    var at = val.indexOf('@@');
+                    if (at === -1) return null;
+                    return { local: val.substring(0, at), afterAt: val.substring(at + 1).toLowerCase() };
+                }
+
+                function showSuggestions(partial) {
+                    partial = (partial || '').toLowerCase();
+                    var matches = emailDomains.filter(function (d) { return d.indexOf(partial) === 0; });
+                    if (matches.length === 0) matches = emailDomains.slice(0, 8);
+                    else if (matches.length > 10) matches = matches.slice(0, 10);
+
+                    $list.empty().attr('aria-hidden', 'true');
+                    selectedIndex = -1;
+                    if (matches.length === 0) return;
+
+                    matches.forEach(function (domain) {
+                        $list.append(
+                            $('<li class="email-domain-suggestions__item" role="option" data-domain="' + domain + '">').text('@@' + domain)
+                        );
+                    });
+                    $list.attr('aria-hidden', 'false');
+                }
+
+                function hideSuggestions() {
+                    $list.empty().attr('aria-hidden', 'true');
+                    selectedIndex = -1;
+                }
+
+                function applyDomain(domain) {
+                    var p = getLocalPart();
+                    var local = p ? p.local : ($emailInput.val() || '').replace(/@@.*$/, '').trim() || ' ';
+                    $emailInput.val(local + '@@' + domain);
+                    hideSuggestions();
+                    $emailInput.trigger('input');
+                }
+
+                $emailInput.on('input', function () {
+                    var p = getLocalPart();
+                    if (!p) { hideSuggestions(); return; }
+                    showSuggestions(p.afterAt);
+                });
+
+                $emailInput.on('keydown', function (e) {
+                    var $items = $list.find('.email-domain-suggestions__item');
+                    if ($items.length === 0) return;
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        selectedIndex = Math.min(selectedIndex + 1, $items.length - 1);
+                        $items.removeClass('is-active').eq(selectedIndex).addClass('is-active')[0].scrollIntoView({ block: 'nearest' });
+                        return;
+                    }
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        selectedIndex = Math.max(selectedIndex - 1, 0);
+                        $items.removeClass('is-active').eq(selectedIndex).addClass('is-active')[0].scrollIntoView({ block: 'nearest' });
+                        return;
+                    }
+                    if (e.key === 'Enter' || e.key === 'Tab') {
+                        if (selectedIndex >= 0 && $items.length > selectedIndex) {
+                            e.preventDefault();
+                            applyDomain($items.eq(selectedIndex).data('domain'));
+                        }
+                        if (e.key === 'Tab') hideSuggestions();
+                        return;
+                    }
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        hideSuggestions();
+                    }
+                });
+
+                $list.on('click', '.email-domain-suggestions__item', function () {
+                    applyDomain($(this).data('domain'));
+                });
+
+                $(document).on('click', function (e) {
+                    if (!$(e.target).closest('.email-input-wrapper').length) hideSuggestions();
+                });
+            })();
+
+            // Marka / Model / Versiyon: layout'taki kategori/marka-model-yil verisinden doldur
+            (function () {
+                var $brand = $('#selectBrand');
+                var $model = $('#selectModel');
+                var $version = $('#selectVersion');
+
+                function getBrandsData() {
+                    if (window.brandsModelsYearsData && Array.isArray(window.brandsModelsYearsData))
+                        return Promise.resolve(window.brandsModelsYearsData);
+                    return makeRequest('/kategori/marka-model-yil', 'GET').then(function (response) {
+                        window.brandsModelsYearsData = response && Array.isArray(response) ? response : [];
+                        return window.brandsModelsYearsData;
+                    });
+                }
+
+                function brandItem(b) {
+                    var aktif = b.aktif !== undefined ? b.aktif : b.AKTIF;
+                    if (!aktif) return null;
+                    var ad = (b.markA_ADI || b.MARKA_ADI || '').toString().trim();
+                    if (!ad) return null;
+                    return { value: ad, text: ad.toUpperCase() };
+                }
+
+                function modelItem(m) {
+                    var aktif = m.aktif !== undefined ? m.aktif : m.AKTIF;
+                    if (aktif === false) return null;
+                    var ad = (m.modeL_ADI || m.MODEL_ADI || '').toString().trim();
+                    if (!ad) return null;
+                    return { value: ad, text: ad.toUpperCase() };
+                }
+
+                function yearItem(y) {
+                    var aktif = y.aktif !== undefined ? y.aktif : y.AKTIF;
+                    if (!aktif) return null;
+                    var ad = (y.kasA_ADI || y.KASA_ADI || '').toString().trim();
+                    if (!ad) return null;
+                    return { value: ad, text: ad.toUpperCase() };
+                }
+
+                function fillBrands(brands) {
+                    $brand.find('option:not(:first)').remove();
+                    (brands || []).forEach(function (b) {
+                        var item = brandItem(b);
+                        if (item) $brand.append($('<option>').attr('value', item.value).text(item.text));
+                    });
+                }
+
+                function fillModels(modelsYears) {
+                    var list = modelsYears || [];
+                    $model.find('option:not(:first)').remove();
+                    list.forEach(function (m) {
+                        var item = modelItem(m);
+                        if (item) $model.append($('<option>').attr('value', item.value).text(item.text));
+                    });
+                    $model.prop('disabled', false).removeAttr('disabled');
+                }
+
+                function fillVersions(years) {
+                    var list = years || [];
+                    $version.find('option:not(:first)').remove();
+                    list.forEach(function (y) {
+                        var item = yearItem(y);
+                        if (item) $version.append($('<option>').attr('value', item.value).text(item.text));
+                    });
+                    $version.prop('disabled', false).removeAttr('disabled');
+                }
+
+                getBrandsData().then(function (brands) {
+                    var active = (brands || []).filter(function (b) { return brandItem(b); });
+                    fillBrands(active);
+                });
+
+                $brand.on('change', function () {
+                    var val = $(this).val();
+                    $model.val('').prop('disabled', true).find('option:not(:first)').remove();
+                    $version.val('').prop('disabled', true).find('option:not(:first)').remove();
+                    if (!val) return;
+                    var brands = window.brandsModelsYearsData || [];
+                    var brand = brands.find(function (b) {
+                        var ad = (b.markA_ADI || b.MARKA_ADI || '').toString().trim();
+                        return ad === val;
+                    });
+                    var modelsYears = brand ? (brand.modelsYears || []) : [];
+                    fillModels(modelsYears);
+                });
+
+                $model.on('change', function () {
+                    var val = $(this).val();
+                    $version.val('').find('option:not(:first)').remove();
+                    if (!val) {
+                        $version.prop('disabled', true);
+                        return;
+                    }
+                    var brandVal = $brand.val();
+                    var brands = window.brandsModelsYearsData || [];
+                    var brand = brands.find(function (b) {
+                        var ad = (b.markA_ADI || b.MARKA_ADI || '').toString().trim();
+                        return ad === brandVal;
+                    });
+                    var modelsYears = brand ? (brand.modelsYears || []) : [];
+                    var model = (modelsYears || []).find(function (m) {
+                        var ad = (m.modeL_ADI || m.MODEL_ADI || '').toString().trim();
+                        return ad === val;
+                    });
+                    var years = model ? (model.years || []) : [];
+                    fillVersions(years);
+                });
+            })();
+
+            var PARTS_DZ_OPTIONS = {
+                url: 'javascript:false;',
+                autoProcessQueue: false,
+                addRemoveLinks: true,
+                acceptedFiles: 'image/*',
+                dictDefaultMessage: 'Dosyaları buraya sürükleyin veya tıklayın',
+                dictRemoveFile: 'Kaldır',
+                init: function () {
+                    var dz = this;
+                    var idx = dz.element.getAttribute('data-parts-index');
+                    dz.on('addedfile', function () {
+                        syncDropzoneToInput('partsPhotos_' + idx);
+                    });
+                    dz.on('removedfile', function () {
+                        syncDropzoneToInput('partsPhotos_' + idx);
+                    });
+                }
+            };
+            function syncDropzoneToInput(inputId) {
+                var el = document.getElementById(inputId);
+                if (!el) return;
+                var dzEl = el.previousElementSibling;
+                if (!dzEl || !dzEl.dropzone) return;
+                var dz = dzEl.dropzone;
+                var dt = new DataTransfer();
+                for (var i = 0; i < dz.files.length; i++) dt.items.add(dz.files[i]);
+                el.files = dt.files;
+            }
+            $('#partsTableBody').on('focusin', '.part-qty-input', function () {
+                var $el = $(this);
+                if ($el.val() === '' || $el.val() == null) $el.val(1);
+            });
+            $('#partsTableBody tr').each(function () {
+                var idx = $(this).data('row-index');
+                var opts = Object.assign({}, PARTS_DZ_OPTIONS);
+                new Dropzone(document.getElementById('dropzone_' + idx), opts);
+            });
+            $('#addPartRowBtn').on('click', function () {
+                var tbody = $('#partsTableBody');
+                var index = tbody.find('tr').length;
+                var row = '<tr class="parts-row" data-row-index="' + index + '">' +
+                    '<td class="text-center align-middle">' + (index + 1) + '</td>' +
+                    '<td><textarea class="form-control" name="Parts[' + index + '].Definition" placeholder="Parça tanımı..." rows="2"></textarea></td>' +
+                    '<td><input type="number" class="form-control parts-qty part-qty-input" name="Parts[' + index + '].Quantity" min="1" placeholder="" /></td>' +
+                    '<td><textarea class="form-control" name="Parts[' + index + '].Note" placeholder="Not..." rows="2"></textarea></td>' +
+                    '<td class="dropzone-cell"><div class="dropzone" id="dropzone_' + index + '" data-parts-index="' + index + '"></div>' +
+                    '<input type="file" name="Parts[' + index + '].PartImages" id="partsPhotos_' + index + '" multiple accept="image/*" style="display: none;" /></td></tr>';
+                tbody.append(row);
+                var opts = Object.assign({}, PARTS_DZ_OPTIONS);
+                new Dropzone(document.getElementById('dropzone_' + index), opts);
+            });
+            function validateForm() {
+                clearListSearchValidation();
+                var isValid = true;
+                var name = ($('#txtNameSurname').val() || '').toString().trim();
+                var phone = ($('#txtPhone').val() || '').toString().trim();
+                if (Validator.isEmpty(name)) {
+                    markFieldInvalid($('#txtNameSurname'), 'İsim Soyisim zorunludur.');
+                    isValid = false;
+                } else if (!Validator.isValidLength(name, 2)) {
+                    markFieldInvalid($('#txtNameSurname'), 'İsim Soyisim en az 2 karakter olmalıdır.');
+                    isValid = false;
+                } else {
+                    markFieldValid($('#txtNameSurname'));
+                }
+                if (Validator.isEmpty(phone)) {
+                    markFieldInvalid($('#txtPhone'), 'Telefon numarası zorunludur.');
+                    isValid = false;
+                } else if (!Validator.isValidPhone(phone)) {
+                    markFieldInvalid($('#txtPhone'), 'Geçerli bir telefon numarası giriniz (+90 ile başlamalı, 90 sonrası 0 basılamaz).');
+                    isValid = false;
+                } else {
+                    markFieldValid($('#txtPhone'));
+                }
+                var email = ($('#txtEmail').val() || '').toString().trim();
+                if (!Validator.isEmpty(email) && !Validator.isValidEmail(email)) {
+                    markFieldInvalid($('#txtEmail'), 'Geçerli bir e-posta adresi giriniz.');
+                    isValid = false;
+                } else if (!Validator.isEmpty(email)) {
+                    markFieldValid($('#txtEmail'));
+                }
+                var brand = ($('#selectBrand').val() || '').toString().trim();
+                var model = ($('#selectModel').val() || '').toString().trim();
+                var year = ($('#selectVersion').val() || '').toString().trim();
+                var chassis = ($('#txtChassisNumber').val() || '').toString().replace(/\s/g, '').trim();
+                if (Validator.isEmpty(brand)) {
+                    markFieldInvalid($('#selectBrand'), 'Marka seçiniz.');
+                    isValid = false;
+                } else {
+                    markFieldValid($('#selectBrand'));
+                }
+                if (Validator.isEmpty(model)) {
+                    markFieldInvalid($('#selectModel'), 'Model seçiniz.');
+                    isValid = false;
+                } else {
+                    markFieldValid($('#selectModel'));
+                }
+                if (Validator.isEmpty(year)) {
+                    markFieldInvalid($('#selectVersion'), 'Versiyon seçiniz.');
+                    isValid = false;
+                } else {
+                    markFieldValid($('#selectVersion'));
+                }
+                if (Validator.isEmpty(chassis)) {
+                    markFieldInvalid($('#txtChassisNumber'), 'Şasi numarası zorunludur.');
+                    isValid = false;
+                } else if (chassis.length !== 17) {
+                    markFieldInvalid($('#txtChassisNumber'), 'Şasi numarası 17 karakter olmalıdır (VIN).');
+                    isValid = false;
+                } else {
+                    markFieldValid($('#txtChassisNumber'));
+                }
+                var note = ($('#txtNote').val() || '').toString().trim();
+                var vehicleFilled = (brand || model || year || chassis).length > 0;
+                if (vehicleFilled) {
+                    $('#partsTableBody tr').each(function () {
+                        var $row = $(this);
+                        var def = ($row.find('textarea[name*=".Definition"]').val() || '').toString().trim();
+                        var qty = ($row.find('input.part-qty-input').val() || '').toString().trim();
+                        var note = ($row.find('textarea[name*=".Note"]').val() || '').toString().trim();
+                        var idx = $row.data('row-index');
+                        var hasFiles = false;
+                        var fileInput = document.getElementById('partsPhotos_' + idx);
+                        if (fileInput && fileInput.files && fileInput.files.length > 0) hasFiles = true;
+                        var rowFilled = def || note || (qty && qty !== '0') || hasFiles;
+                        var $defField = $row.find('textarea[name*=".Definition"]');
+                        var $qtyField = $row.find('input.part-qty-input');
+                        if (rowFilled && Validator.isEmpty(def)) {
+                            Validator.showError($defField[0], 'Araç bilgisi girildiğinde Parça Tanımı zorunludur.');
+                            isValid = false;
+                        } else {
+                            $defField.removeClass('is-invalid').next('.validation-error').remove();
+                        }
+                        if (rowFilled && (Validator.isEmpty(qty) || parseInt(qty, 10) < 1)) {
+                            Validator.showError($qtyField[0], 'Araç bilgisi girildiğinde Adet zorunludur (en az 1).');
+                            isValid = false;
+                        } else {
+                            $qtyField.removeClass('is-invalid').next('.validation-error').remove();
+                        }
+                    });
+                }
+                if (!isValid) {
+                    var $firstInvalid = $('#listSearchForm .is-invalid').first();
+                    if ($firstInvalid.length) {
+                        $('html, body').animate({ scrollTop: $firstInvalid.offset().top - 100 }, 300);
+                        $firstInvalid.focus();
+                    }
+                }
+                return isValid;
+            }
+
+            $('#btnCreateListSearch').on('click', async function () {
+                if (!validateForm()) return;
+                $('#partsTableBody tr').each(function () {
+                    var idx = $(this).data('row-index');
+                    if (idx !== undefined) syncDropzoneToInput('partsPhotos_' + idx);
+                });
+                var form = document.getElementById('listSearchForm');
+                var formData = new FormData(form);
+                var btn = $('#btnCreateListSearch');
+                btn.prop('disabled', true);
+                try {
+                    var result = await makeRequest('/liste-sorgu/olustur', 'POST', formData);
+                    if (typeof toastr !== 'undefined') toastr.success('Liste sorgusu başarıyla oluşturuldu.', 'Başarılı');
+                    else alert('Liste sorgusu başarıyla oluşturuldu.');
+                    window.location.href = '/liste-sorgu';
+                } catch (e) {
+                    // makeRequest / showErrorToastr already shows error
+                } finally {
+                    btn.prop('disabled', false);
+                }
+            });
+        });
+    </script>
+}

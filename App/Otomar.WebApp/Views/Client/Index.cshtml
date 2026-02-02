@@ -1,0 +1,388 @@
+@using Otomar.WebApp.Models
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Cari Hesap Hareketleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+{
+new("Ana Sayfa", "/ana-sayfa"),
+new("Hesabım", "/hesabim"),
+new(ViewData["Title"] as string ?? "Cari Hesap Hareketleri", null)
+};
+    var userFullName = User.FindFirst(ClaimTypes.GivenName)?.Value ?? "";
+    var clientCode = ViewBag.ClientCode as string ?? "";
+}
+@section Styles {
+    <style>
+        .account__wrapper {
+            width: 100% !important;
+        }
+
+        #transactions-scroll-sentinel {
+            height: 1px;
+            visibility: hidden;
+        }
+
+        /* Banka / IBAN bölümü */
+        .iban-section .card {
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+      
+
+        .iban-section .card-subtitle {
+            margin-bottom: 1.5rem;
+            font-size: medium;
+            font-weight: 600;
+        }
+
+        .iban-section .card-subtitle-company {
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+            font-size: medium;
+            font-weight: 600;
+        }
+        .iban-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            background: var(--body-background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .iban-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .iban-row:hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 2px 12px rgba(237, 29, 36, 0.08);
+        }
+
+        .iban-row:active {
+            transform: scale(0.99);
+        }
+
+        .iban-row.copied {
+            border-color: #2e7d32;
+            background: rgba(46, 125, 50, 0.06);
+        }
+
+        .iban-row__bank {
+            font-weight: var(--headings-weight);
+            color: var(--foreground-color);
+            flex-shrink: 0;
+            min-width: 7rem;
+        }
+
+        .iban-row__number {
+            font-family: var(--inter-fonts), monospace;
+            letter-spacing: 0.04em;
+            color: var(--foreground-sub-color);
+            flex: 1;
+            min-width: 0;
+        }
+
+        .iban-row__copy {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: var(--bg-offwhite-color);
+            color: var(--secondary-color);
+            transition: var(--transition);
+        }
+
+        .iban-row:hover .iban-row__copy {
+            background: var(--secondary-color);
+            color: var(--text-white-color);
+        }
+
+        .iban-row.copied .iban-row__copy {
+            background: #2e7d32;
+            color: var(--text-white-color);
+        }
+
+        .iban-row__copy i {
+            font-size: 1.1rem;
+        }
+
+        .iban-row .copy-feedback {
+            font-size: 0.9rem;
+            color: #2e7d32;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+    </style>
+}
+<!-- my account section start -->
+<section class="my__account--section section--padding">
+    <div class="container">
+        <div class="my__account--section__inner border-radius-10 d-flex">
+
+            <div class="account__wrapper">
+                <div class="account__content">
+                    <h2 class="account__content--title h3 mb-20">@userFullName'in Hesap Hareketleri</h2>
+                    <div class="account__table--area">
+                        <div id="transactions-loading" class="text-center py-5 text-secondary">Hareketler yükleniyor...
+                        </div>
+                        <div id="transactions-empty" class="text-center py-5 text-secondary" style="display: none;">
+                            Henüz hareket bulunmuyor.</div>
+                        <div id="transactions-no-client" class="text-center py-5 text-secondary" style="display: none;">
+                            Cari hesap hareketlerini görüntülemek için cari kodunuz hesabınıza işlenmelidir.</div>
+                        <div id="transactions-wrapper" style="display: none;">
+                            <table class="account__table">
+                                <thead class="account__table--header">
+                                    <tr class="account__table--header__child">
+                                        <th class="account__table--header__child--items">Belge No</th>
+                                        <th class="account__table--header__child--items">Tarih</th>
+                                        <th class="account__table--header__child--items">Açıklama</th>
+                                        <th class="account__table--header__child--items">Borç</th>
+                                        <th class="account__table--header__child--items">Alacak</th>
+                                        <th class="account__table--header__child--items">Bakiye</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="account__table--body mobile__none" id="transactions-tbody-desktop">
+                                </tbody>
+                                <tbody class="account__table--body mobile__block" id="transactions-tbody-mobile">
+                                </tbody>
+                            </table>
+                            <div id="transactions-scroll-sentinel" aria-hidden="true"></div>
+                            <div id="transactions-infinite-scroll-loader" class="text-center py-4"
+                                style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Yükleniyor...</span>
+                                </div>
+                                <p class="mt-2 text-muted mb-0">Daha fazla hareket yükleniyor...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- my account section end -->
+<section class="about__section mb-5 iban-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card"
+                    style="background: var(--body-background-color);box-shadow: 0 2px 22px rgba(0, 0, 0, 0.16);padding: 3rem 2rem;">
+                    <h2 class="card-title account__content--title h3">Banka Bilgilerimiz</h2>
+                    <p class="card-subtitle mb-0">Hesap İsmi: <span class="card-subtitle-company">OTOMAR Otomobilcilik Tic. Ve San. Ltd. Şti.</span></p>
+                    <div class="iban-list mt-3">
+                        <button type="button" class="iban-row w-100 border-0 text-start"
+                            data-iban="TR51 0004 6006 1688 8000 1077 14" aria-label="AKBANK IBAN kopyala">
+                            <span class="iban-row__bank">AKBANK</span>
+                            <span class="iban-row__number">TR51 0004 6006 1688 8000 1077 14</span>
+                            <span class="iban-row__copy"><i class="fas fa-copy"></i></span>
+                        </button>
+                        <button type="button" class="iban-row w-100 border-0 text-start"
+                            data-iban="TR93 0006 4000 0013 4380 0949 29" aria-label="İş Bankası IBAN kopyala">
+                            <span class="iban-row__bank">İŞ BANKASI</span>
+                            <span class="iban-row__number">TR93 0006 4000 0013 4380 0949 29</span>
+                            <span class="iban-row__copy"><i class="fas fa-copy"></i></span>
+                        </button>
+                        <button type="button" class="iban-row w-100 border-0 text-start"
+                            data-iban="TR22 0006 7010 0000 0061 6383 52" aria-label="Yapı Kredi IBAN kopyala">
+                            <span class="iban-row__bank">YAPI KREDİ</span>
+                            <span class="iban-row__number">TR22 0006 7010 0000 0061 6383 52</span>
+                            <span class="iban-row__copy"><i class="fas fa-copy"></i></span>
+                        </button>
+                        <button type="button" class="iban-row w-100 border-0 text-start"
+                            data-iban="TR38 0001 0025 1553 2927 5750 02" aria-label="Ziraat Bankası IBAN kopyala">
+                            <span class="iban-row__bank">ZİRAAT</span>
+                            <span class="iban-row__number">TR38 0001 0025 1553 2927 5750 02</span>
+                            <span class="iban-row__copy"><i class="fas fa-copy"></i></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (function () {
+            var clientCode = @Json.Serialize(clientCode);
+            var transactionsCurrentPage = 0;
+            var transactionsHasMore = true;
+            var transactionsLoadingMore = false;
+            var TRANSACTIONS_PAGE_SIZE = 10;
+
+            function escapeHtml(s) {
+                if (s == null || s === '') return '';
+                return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            function val(t, key) {
+                if (!t) return '';
+                var v = t[key];
+                if (v !== undefined && v !== null) return String(v);
+                var upper = key.charAt(0).toUpperCase() + key.slice(1);
+                return t[upper] !== undefined && t[upper] !== null ? String(t[upper]) : '';
+            }
+
+            function renderTransactionRows(items) {
+                if (!items || !items.length) return;
+                $.each(items, function (i, t) {
+                    var belgeNo = escapeHtml(val(t, 'belgE_NO') || val(t, 'BELGE_NO'));
+                    var tarih = escapeHtml(val(t, 'tariH_DISPLAY') || val(t, 'TARIH_DISPLAY'));
+                    var aciklama = escapeHtml(val(t, 'aciklama') || val(t, 'ACIKLAMA'));
+                    var borc = escapeHtml(val(t, 'borc') || val(t, 'BORC') || '₺0,00');
+                    var alacak = escapeHtml(val(t, 'alacak') || val(t, 'ALACAK') || '₺0,00');
+                    var bakiye = escapeHtml(val(t, 'bakiye') || val(t, 'BAKIYE') || '₺0,00');
+
+                    var rowDesktop = '<tr class="account__table--body__child">' +
+                        '<td class="account__table--body__child--items">' + belgeNo + '</td>' +
+                        '<td class="account__table--body__child--items">' + tarih + '</td>' +
+                        '<td class="account__table--body__child--items">' + aciklama + '</td>' +
+                        '<td class="account__table--body__child--items">' + borc + '</td>' +
+                        '<td class="account__table--body__child--items">' + alacak + '</td>' +
+                        '<td class="account__table--body__child--items">' + bakiye + '</td></tr>';
+                    var rowMobile = '<tr class="account__table--body__child">' +
+                        '<td class="account__table--body__child--items"><strong>Belge No</strong><span>' + belgeNo + '</span></td>' +
+                        '<td class="account__table--body__child--items"><strong>Tarih</strong><span>' + tarih + '</span></td>' +
+                        '<td class="account__table--body__child--items"><strong>Açıklama</strong><span>' + aciklama + '</span></td>' +
+                        '<td class="account__table--body__child--items"><strong>Borç</strong><span>' + borc + '</span></td>' +
+                        '<td class="account__table--body__child--items"><strong>Alacak</strong><span>' + alacak + '</span></td>' +
+                        '<td class="account__table--body__child--items"><strong>Bakiye</strong><span>' + bakiye + '</span></td></tr>';
+                    $('#transactions-tbody-desktop').append(rowDesktop);
+                    $('#transactions-tbody-mobile').append(rowMobile);
+                });
+            }
+
+            async function loadMoreTransactions() {
+                if (transactionsLoadingMore || !transactionsHasMore || !clientCode) {
+                    $('#transactions-infinite-scroll-loader').hide();
+                    return;
+                }
+                var nextPage = transactionsCurrentPage + 1;
+                transactionsLoadingMore = true;
+                $('#transactions-infinite-scroll-loader').show();
+                try {
+                    var url = '/cari/' + encodeURIComponent(clientCode) + '/hareketler/paged?pageNumber=' + nextPage + '&pageSize=' + TRANSACTIONS_PAGE_SIZE;
+                    var response = await makeRequest(url, 'GET');
+                    var items = Array.isArray(response) ? response : (response.data || response.Data || []);
+                    if (Array.isArray(items) && items.length > 0) {
+                        renderTransactionRows(items);
+                        transactionsCurrentPage = nextPage;
+                    }
+                    if (items.length < TRANSACTIONS_PAGE_SIZE) transactionsHasMore = false;
+                } catch (e) {
+                    transactionsHasMore = false;
+                } finally {
+                    transactionsLoadingMore = false;
+                    $('#transactions-infinite-scroll-loader').hide();
+                }
+            }
+
+            function setupInfiniteScroll() {
+                var sentinel = document.getElementById('transactions-scroll-sentinel');
+                if (!sentinel) return;
+                if (typeof IntersectionObserver === 'undefined') {
+                    $(window).on('scroll.transactionsInfinite', function () {
+                        if (transactionsLoadingMore || !transactionsHasMore) return;
+                        var rect = sentinel.getBoundingClientRect();
+                        if (rect.top <= window.innerHeight) void loadMoreTransactions();
+                    });
+                    return;
+                }
+                var observer = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        if (transactionsLoadingMore || !transactionsHasMore) return;
+                        void loadMoreTransactions();
+                    });
+                }, { root: null, rootMargin: '0px', threshold: 0 });
+                observer.observe(sentinel);
+            }
+
+            async function loadFirstPage() {
+                if (!clientCode) {
+                    $('#transactions-loading').hide();
+                    $('#transactions-no-client').show();
+                    return;
+                }
+                try {
+                    var url = '/cari/' + encodeURIComponent(clientCode) + '/hareketler/paged?pageNumber=1&pageSize=' + TRANSACTIONS_PAGE_SIZE;
+                    var response = await makeRequest(url, 'GET');
+                    var items = Array.isArray(response) ? response : (response.data || response.Data || []);
+
+                    $('#transactions-loading').hide();
+                    if (!items || items.length === 0) {
+                        $('#transactions-empty').show();
+                        return;
+                    }
+                    transactionsCurrentPage = 1;
+                    transactionsHasMore = items.length >= TRANSACTIONS_PAGE_SIZE;
+                    $('#transactions-wrapper').show();
+                    $('#transactions-tbody-desktop').empty();
+                    $('#transactions-tbody-mobile').empty();
+                    renderTransactionRows(items);
+                    setupInfiniteScroll();
+                } catch (e) {
+                    $('#transactions-loading').hide();
+                    $('#transactions-empty').text('Hareketler yüklenirken bir hata oluştu.').show();
+                }
+            }
+
+            $(function () {
+                loadFirstPage();
+            });
+        })();
+
+        // IBAN kopyala
+        $(document).on('click', '.iban-row', function () {
+            var $row = $(this);
+            var iban = $row.data('iban');
+            if (!iban) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(iban).then(function () {
+                    $row.addClass('copied');
+                    $row.find('.iban-row__copy i').removeClass('fa-copy').addClass('fa-check');
+
+                    setTimeout(function () {
+                        $row.removeClass('copied');
+                        $row.find('.iban-row__copy i').removeClass('fa-check').addClass('fa-copy');
+                        $row.find('.copy-feedback').remove();
+                    }, 2000);
+                });
+            } else {
+                var input = document.createElement('input');
+                input.value = iban;
+                input.setAttribute('readonly', '');
+                document.body.appendChild(input);
+                input.select();
+                try {
+                    document.execCommand('copy');
+                    $row.addClass('copied');
+                    $row.find('.iban-row__copy i').removeClass('fa-copy').addClass('fa-check');
+                    $row.find('.iban-row__number').after('<span class="copy-feedback ms-2">Kopyalandı!</span>');
+                    setTimeout(function () {
+                        $row.removeClass('copied');
+                        $row.find('.iban-row__copy i').removeClass('fa-check').addClass('fa-copy');
+                        $row.find('.copy-feedback').remove();
+                    }, 2000);
+                } catch (e) { }
+                document.body.removeChild(input);
+            }
+        });
+    </script>
+}

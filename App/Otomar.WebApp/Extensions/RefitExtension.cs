@@ -59,6 +59,15 @@ namespace Otomar.WebApp.Extensions
                 })
                 .AddHttpMessageHandler<BearerTokenHandler>();
 
+            // FormData (multipart) istekleri için aynı base URL + Bearer
+            services.AddHttpClient("OtomarApi", c =>
+                {
+                    c.BaseAddress = baseAddress;
+                    c.DefaultRequestHeaders.Add("Accept", "application/json");
+                    c.Timeout = timeout;
+                })
+                .AddHttpMessageHandler<BearerTokenHandler>();
+
             services.AddRefitClient<IOptionApi>()
                 .ConfigureHttpClient(c =>
                 {

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Otomar.Application.Contracts.Services;
 using System.Security.Claims;
 

@@ -1,4 +1,4 @@
-﻿using Carter;
+using Carter;
 using Microsoft.OpenApi.Models;
 using Otomar.WebApi.Middlewares;
 using Serilog;
@@ -18,6 +18,7 @@ namespace Otomar.WebApi.Extensions
 
             services.AddScoped<GlobalExceptionMiddleware>();
             services.AddEndpointsApiExplorer();
+            services.AddAuthorization();
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()

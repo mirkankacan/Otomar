@@ -1,9 +1,9 @@
-using System.Net;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Otomar.WebApp.Dtos.Auth;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Services.Refit;
+using System.Net;
 
 namespace Otomar.WebApp.Handlers;
 
@@ -14,14 +14,18 @@ public class BearerTokenHandler : DelegatingHandler
 {
     private const string AccessTokenName = "access_token";
     private const string RefreshTokenName = "refresh_token";
-
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAuthApi _authApi;
+    private readonly ILogger<BearerTokenHandler> _logger;
 
-    public BearerTokenHandler(IHttpContextAccessor httpContextAccessor, IAuthApi authApi)
+    public BearerTokenHandler(
+        IHttpContextAccessor httpContextAccessor,
+        IAuthApi authApi,
+        ILogger<BearerTokenHandler> logger)
     {
         _httpContextAccessor = httpContextAccessor;
         _authApi = authApi;
+        _logger = logger;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(
@@ -29,34 +33,35 @@ public class BearerTokenHandler : DelegatingHandler
         CancellationToken cancellationToken)
     {
         var context = _httpContextAccessor.HttpContext;
+
+        // Token'ı al ve ekle
         var accessToken = context != null
             ? await context.GetTokenAsync(AccessTokenName).ConfigureAwait(false)
             : null;
 
         if (!string.IsNullOrEmpty(accessToken))
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-
-        byte[]? contentBuffer = null;
-        System.Net.Http.Headers.MediaTypeHeaderValue? contentType = null;
-        if (request.Content != null)
         {
-            contentType = request.Content.Headers.ContentType;
-            contentBuffer = await request.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-            var newContent = new ByteArrayContent(contentBuffer);
-            if (contentType != null)
-                newContent.Headers.ContentType = contentType;
-            request.Content = newContent;
+            request.Headers.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
         }
 
         var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
+        // 401 değilse veya context yoksa direkt dön
         if (response.StatusCode != HttpStatusCode.Unauthorized || context == null)
             return response;
 
+        _logger.LogInformation("401 Unauthorized alındı, token yenileniyor");
+
+        // Refresh token'ı al
         var refreshToken = await context.GetTokenAsync(RefreshTokenName).ConfigureAwait(false);
         if (string.IsNullOrEmpty(refreshToken))
+        {
+            _logger.LogWarning("Refresh token bulunamadı");
             return response;
+        }
 
+        // Token'ı yenile
         TokenDto? newTokenDto;
         try
         {
@@ -64,14 +69,19 @@ public class BearerTokenHandler : DelegatingHandler
                 new CreateTokenByRefreshTokenDto { RefreshToken = refreshToken },
                 cancellationToken).ConfigureAwait(false);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Token yenileme işlemi başarısız");
             return response;
         }
 
         if (newTokenDto == null || string.IsNullOrEmpty(newTokenDto.Token))
+        {
+            _logger.LogWarning("Token yenileme işlemi boş veya geçersiz token döndü");
             return response;
+        }
 
+        // Yeni token'ı cookie'ye kaydet
         var principal = CookieAuthExtensions.BuildPrincipalFromToken(newTokenDto);
         var props = new AuthenticationProperties
         {
@@ -89,38 +99,82 @@ public class BearerTokenHandler : DelegatingHandler
             principal,
             props).ConfigureAwait(false);
 
-        var retryRequest = CloneRequest(request, newTokenDto.Token, contentBuffer);
+        _logger.LogInformation("Token başarıyla yenilendi, istek tekrar gönderiliyor");
+
+        // Retry request'i oluştur
+        HttpRequestMessage? retryRequest = null;
         try
         {
+            retryRequest = await CloneRequestAsync(request, newTokenDto.Token, cancellationToken)
+                .ConfigureAwait(false);
+
             return await base.SendAsync(retryRequest, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Token yenilendikten sonra istek klonlama veya tekrar gönderme başarısız");
+
+            // Clone başarısız olursa orijinal 401 response'u dön
+            return response;
         }
         finally
         {
-            retryRequest.Dispose();
+            retryRequest?.Dispose();
         }
     }
 
-    private static HttpRequestMessage CloneRequest(HttpRequestMessage original, string newAccessToken, byte[]? contentBuffer)
+    private static async Task<HttpRequestMessage> CloneRequestAsync(
+        HttpRequestMessage original,
+        string newAccessToken,
+        CancellationToken cancellationToken)
     {
-        var clone = new HttpRequestMessage(original.Method, original.RequestUri);
-
-        if (contentBuffer != null && contentBuffer.Length > 0)
+        var clone = new HttpRequestMessage(original.Method, original.RequestUri)
         {
-            var content = new ByteArrayContent(contentBuffer);
-            if (original.Content?.Headers.ContentType != null)
-                content.Headers.ContentType = original.Content.Headers.ContentType;
-            clone.Content = content;
+            Version = original.Version
+        };
+
+        // Content'i clone et (stream tabanlı içerik tekrar okunamaz - 401 retry'da body gönderilmez)
+        if (original.Content != null)
+        {
+            // Stream veya multipart içerik zaten ilk istekte tüketildiği için tekrar okunamaz
+            if (original.Content is StreamContent or MultipartFormDataContent)
+            {
+                throw new InvalidOperationException(
+                    "Stream veya multipart/form-data içerik 401 sonrası tekrar gönderilemez. " +
+                    "İsteği sayfadan yenileyip tekrar deneyin.");
+            }
+
+            // ByteArrayContent, StringContent vb. için güvenli clone
+            var contentBytes = await original.Content.ReadAsByteArrayAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            clone.Content = new ByteArrayContent(contentBytes);
+
+            foreach (var header in original.Content.Headers)
+            {
+                clone.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
         }
 
+        // Request headers'ı kopyala (Authorization hariç - yenisini ekleyeceğiz)
         foreach (var header in original.Headers)
         {
             if (header.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
                 continue;
-            foreach (var value in header.Value)
-                clone.Headers.TryAddWithoutValidation(header.Key, value);
+
+            clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
         }
 
-        clone.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newAccessToken);
+        // Yeni Bearer token'ı ekle
+        clone.Headers.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newAccessToken);
+
+        // Options'ları kopyala (.NET 5+)
+        foreach (var prop in original.Options)
+        {
+            clone.Options.TryAdd(prop.Key, prop.Value);
+        }
+
         return clone;
     }
 }

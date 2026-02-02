@@ -1,5 +1,3 @@
-using System.Data;
-using System.Net;
 using Dapper;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -11,6 +9,8 @@ using Otomar.Domain.Enums;
 using Otomar.Persistance.Data;
 using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
+using System.Data;
+using System.Net;
 
 namespace Otomar.Persistance.Services
 {
@@ -384,7 +384,6 @@ namespace Otomar.Persistance.Services
                 if (string.IsNullOrEmpty(userId))
                 {
                     return ServiceResult<IEnumerable<ClientOrderDto>>.Error("Geçersiz Kullanıcı ID'si", "Kullanıcı ID'si boş geçilemez", HttpStatusCode.BadRequest);
-
                 }
                 var parameters = new DynamicParameters();
                 parameters.Add("createdBy", userId);
@@ -1207,7 +1206,7 @@ p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "GetOrdersByUserPagedAsync işleminde hata");
+                logger.LogError(ex, "GetOrdersByUserPagedAsync işleminde hata. PageNumber: {PageNumber} PageSize: {PageSize}", pageNumber, pageSize);
                 throw;
             }
         }

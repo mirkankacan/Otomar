@@ -32,6 +32,13 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
               .WithName("GetClientTransactionsByCode");
+
+            group.MapGet("/{clientCode}/transactions/paged", async (string clientCode, [FromServices] IClientService clientService, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10) =>
+            {
+                var result = await clientService.GetClientTransactionsByCodeAsync(clientCode, pageNumber, pageSize);
+                return result.ToGenericResult();
+            })
+              .WithName("GetClientTransactionsByCodePaged");
         }
     }
 }

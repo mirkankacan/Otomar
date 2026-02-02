@@ -145,7 +145,6 @@ async function makeRequest(url, method = 'GET', data = null)
             return await response.json();
         }
         return null;
-
     } catch (error)
     {
         // Eğer hata zaten işlenmediyse (title/detail yoksa), toastr göster
@@ -183,7 +182,7 @@ async function handleUnauthorizedError(message, redirectUrl)
     performLogout(redirectUrl);
 }
 
-// Logout işlemi ve yönlendirme
+// Logout işlemi ve yönlendirme (401 vb. için - makeRequest kullanmadan)
 function performLogout(redirectUrl)
 {
     // Session storage ve local storage'ı temizle
@@ -198,7 +197,7 @@ function performLogout(redirectUrl)
 
     // Logout endpoint'ine async istek gönder ama yönlendirmeyi engelleme
     fetch('/cikis-yap', {
-        method: 'GET',
+        method: 'POST',
         keepalive: true // Sayfa kapansa bile isteği tamamla
     }).catch(() =>
     {
@@ -206,6 +205,22 @@ function performLogout(redirectUrl)
     });
 
     // Her durumda hemen login sayfasına yönlendir
+    window.location.href = redirectUrl || '/giris-yap';
+}
+
+// Çıkış: makeRequest ile POST /cikis-yap (CSRF token dahil), sonra yönlendir
+async function logout(redirectUrl)
+{
+    try
+    {
+        await makeRequest('/cikis-yap', 'POST');
+    }
+    catch (_)
+    {
+        // Hata olsa bile çıkış yap (örn. zaten oturum kapanmış)
+    }
+    if (typeof sessionStorage !== 'undefined') sessionStorage.clear();
+    if (typeof localStorage !== 'undefined') localStorage.clear();
     window.location.href = redirectUrl || '/giris-yap';
 }
 

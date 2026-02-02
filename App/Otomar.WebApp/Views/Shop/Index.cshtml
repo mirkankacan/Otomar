@@ -10,10 +10,10 @@
     var minPrice = ViewBag.MinPrice as string;
     var maxPrice = ViewBag.MaxPrice as string;
 
-       ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
     {
         new("Ana Sayfa", "/ana-sayfa"),
-        new("Mağaza", "/magaza")
+        new(ViewData["Title"] as string, "/magaza")
     };
 }
 
@@ -36,16 +36,16 @@
         <div class="row">
             <div class="col-xl-3 col-lg-4 shop-col-width-lg-4">
                 <div class="shop__sidebar--widget widget__area d-none d-lg-block"
-                    style="position: sticky; top: 20px; align-self: flex-start; max-height: calc(100vh - 40px); overflow-y: auto;">
+                     style="position: sticky; top: 20px; align-self: flex-start; max-height: calc(100vh - 40px); overflow-y: auto;">
                     <div class="single__widget widget__bg">
                         <h2 class="widget__title h3 d-flex align-items-center justify-content-between w-100"
                             style="cursor: pointer;" id="categories-toggle">
                             <span>Kategoriler</span>
                             <svg id="categories-arrow" class="widget__categories--menu__arrowdown--icon"
-                                style="top: unset !important; transition: transform 0.3s ease; transform: rotate(180deg);"
-                                xmlns="http://www.w3.org/2000/svg" width="12.355" height="8.394">
+                                 style="top: unset !important; transition: transform 0.3s ease; transform: rotate(180deg);"
+                                 xmlns="http://www.w3.org/2000/svg" width="12.355" height="8.394">
                                 <path d="M15.138,8.59l-3.961,3.952L7.217,8.59,6,9.807l5.178,5.178,5.178-5.178Z"
-                                    transform="translate(-6 -8.59)" fill="currentColor"></path>
+                                      transform="translate(-6 -8.59)" fill="currentColor"></path>
                             </svg>
 
                         </h2>
@@ -59,10 +59,10 @@
                             style="cursor: pointer;" id="brands-toggle">
                             <span>Marka / Model / Versiyon</span>
                             <svg id="brands-arrow" class="widget__categories--menu__arrowdown--icon"
-                                style="top: unset !important; transition: transform 0.3s ease; transform: rotate(180deg);"
-                                xmlns="http://www.w3.org/2000/svg" width="12.355" height="8.394">
+                                 style="top: unset !important; transition: transform 0.3s ease; transform: rotate(180deg);"
+                                 xmlns="http://www.w3.org/2000/svg" width="12.355" height="8.394">
                                 <path d="M15.138,8.59l-3.961,3.952L7.217,8.59,6,9.807l5.178,5.178,5.178-5.178Z"
-                                    transform="translate(-6 -8.59)" fill="currentColor"></path>
+                                      transform="translate(-6 -8.59)" fill="currentColor"></path>
                             </svg>
                         </h2>
                         <ul id="shop-brands-menu" class="widget__categories--menu">
@@ -78,29 +78,29 @@
                     </div>
                     <div class="single__widget price__filter widget__bg">
                         <h2 class="widget__title h3">Fiyata Göre Filtrele</h2>
-                            <div class="price__filter--form__inner mb-15 d-flex align-items-center">
-                                <div class="price__filter--group">
-                                    <label class="price__filter--label" for="Filter-Price-GTE2">En Az</label>
-                                    <div class="price__filter--input border-radius-5 d-flex align-items-center">
-                                        <span class="price__filter--currency">₺</span>
-                                        <input class="price__filter--input__field border-0" name="filter.v.price.gte"
-                                            id="Filter-Price-GTE2" type="number" placeholder="0" min="0" max="250.00">
-                                    </div>
-                                </div>
-                                <div class="price__divider">
-                                    <span>-</span>
-                                </div>
-                                <div class="price__filter--group">
-                                    <label class="price__filter--label" for="Filter-Price-LTE2">En Çok</label>
-                                    <div class="price__filter--input border-radius-5 d-flex align-items-center">
-                                        <span class="price__filter--currency">₺</span>
-                                        <input class="price__filter--input__field border-0" name="filter.v.price.lte"
-                                            id="Filter-Price-LTE2" type="number" min="0" placeholder="250,00"
-                                            max="250.00">
-                                    </div>
+                        <div class="price__filter--form__inner mb-15 d-flex align-items-center">
+                            <div class="price__filter--group">
+                                <label class="price__filter--label" for="Filter-Price-GTE2">En Az</label>
+                                <div class="price__filter--input border-radius-5 d-flex align-items-center">
+                                    <span class="price__filter--currency">₺</span>
+                                    <input class="price__filter--input__field border-0" name="filter.v.price.gte"
+                                           id="Filter-Price-GTE2" type="number" placeholder="0" min="0" max="250.00">
                                 </div>
                             </div>
-                            <button class="primary__btn price__filter--btn" type="button">Filtrele</button>
+                            <div class="price__divider">
+                                <span>-</span>
+                            </div>
+                            <div class="price__filter--group">
+                                <label class="price__filter--label" for="Filter-Price-LTE2">En Çok</label>
+                                <div class="price__filter--input border-radius-5 d-flex align-items-center">
+                                    <span class="price__filter--currency">₺</span>
+                                    <input class="price__filter--input__field border-0" name="filter.v.price.lte"
+                                           id="Filter-Price-LTE2" type="number" min="0" placeholder="250,00"
+                                           max="250.00">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="primary__btn price__filter--btn" type="button">Filtrele</button>
                     </div>
                 </div>
             </div>
@@ -143,16 +143,16 @@
 
                                 <button class="widget__filter--btn d-flex d-lg-none align-items-center" data-offcanvas>
                                     <svg class="widget__filter--btn__icon" xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 512 512">
+                                         viewBox="0 0 512 512">
                                         <path fill="none" stroke="currentColor" stroke-linecap="round"
-                                            stroke-linejoin="round" stroke-width="28"
-                                            d="M368 128h80M64 128h240M368 384h80M64 384h240M208 256h240M64 256h80" />
+                                              stroke-linejoin="round" stroke-width="28"
+                                              d="M368 128h80M64 128h240M368 384h80M64 384h240M208 256h240M64 256h80" />
                                         <circle cx="336" cy="128" r="28" fill="none" stroke="currentColor"
-                                            stroke-linecap="round" stroke-linejoin="round" stroke-width="28" />
+                                                stroke-linecap="round" stroke-linejoin="round" stroke-width="28" />
                                         <circle cx="176" cy="256" r="28" fill="none" stroke="currentColor"
-                                            stroke-linecap="round" stroke-linejoin="round" stroke-width="28" />
+                                                stroke-linecap="round" stroke-linejoin="round" stroke-width="28" />
                                         <circle cx="336" cy="384" r="28" fill="none" stroke="currentColor"
-                                            stroke-linecap="round" stroke-linejoin="round" stroke-width="28" />
+                                                stroke-linecap="round" stroke-linejoin="round" stroke-width="28" />
                                     </svg>
                                     <span class="widget__filter--btn__text">Filtre</span>
                                 </button>
@@ -212,7 +212,6 @@
     </div>
 </div>
 <!-- End shop section -->
-
 @section Scripts {
     <script>
         // URL filtre parametreleri (ViewBag'den)

@@ -50,13 +50,15 @@ namespace Otomar.Persistance.Services
                 var userId = identityService.GetUserId();
 
                 var query = @"
-            INSERT INTO IdtListSearches (Id, RequestNo, PhoneNumber, ChassisNumber, Email, Brand, Model, Year, Engine, LicensePlate, Annotation, CreatedAt, CreatedBy, Status)
-            VALUES (@Id, @RequestNo, @PhoneNumber, @ChassisNumber, @Email, @Brand, @Model, @Year, @Engine, @LicensePlate, @Annotation, @CreatedAt, @CreatedBy, @Status);";
+            INSERT INTO IdtListSearches (Id, RequestNo,NameSurname, CompanyName, PhoneNumber, ChassisNumber, Email, Brand, Model, Year, Engine, LicensePlate, Note, CreatedAt, CreatedBy, Status)
+            VALUES (@Id, @RequestNo, @NameSurname, @CompanyName,@PhoneNumber, @ChassisNumber, @Email, @Brand, @Model, @Year, @Engine, @LicensePlate, @Note, @CreatedAt, @CreatedBy, @Status);";
 
                 var parameters = new DynamicParameters();
                 var id = NewId.NextGuid();
                 parameters.Add("Id", id);
                 parameters.Add("RequestNo", requestNo);
+                parameters.Add("NameSurname", createListSearchDto.NameSurname);
+                parameters.Add("CompanyName", createListSearchDto.CompanyName);
                 parameters.Add("PhoneNumber", createListSearchDto.PhoneNumber);
                 parameters.Add("ChassisNumber", createListSearchDto.ChassisNumber);
                 parameters.Add("Email", createListSearchDto.Email);
@@ -65,14 +67,18 @@ namespace Otomar.Persistance.Services
                 parameters.Add("Year", createListSearchDto.Year);
                 parameters.Add("Engine", createListSearchDto.Engine);
                 parameters.Add("LicensePlate", createListSearchDto.LicensePlate);
-                parameters.Add("Annotation", createListSearchDto.Annotation);
+                parameters.Add("Note", createListSearchDto.Note ?? null);
                 parameters.Add("CreatedAt", DateTime.Now);
                 parameters.Add("CreatedBy", userId);
                 parameters.Add("Status", ListSearchStatus.NotAnswered);
 
                 await context.Connection.ExecuteAsync(query, parameters, transaction);
 
-                foreach (var part in createListSearchDto.Parts)
+                // Sadece parça tanımı ve adet dolu olan satırlar dataya eklenir
+                var partsToAdd = (createListSearchDto.Parts ?? new List<CreateListSearchPartDto>())
+                    .Where(p => !string.IsNullOrWhiteSpace(p.Definition) && p.Quantity > 0)
+                    .ToList();
+                foreach (var part in partsToAdd)
                 {
                     var partQuery = @"
                 INSERT INTO IdtListSearchParts(ListSearchId, Definition, Quantity, PartImages)
@@ -121,9 +127,9 @@ namespace Otomar.Persistance.Services
                     ILSP.Definition,
                     ILSP.Quantity,
                     ILSP.PartImages,
-                    ILSP.Note
-                FROM IdvListSearches ILS WITH (NOLOCK)
-                LEFT JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
+                    ILSP.Note as ItemNote
+                FROM IdtListSearches ILS WITH (NOLOCK)
+                INNER JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
                 WHERE ILS.Id = @id;";
 
                 var rows = await context.Connection.QueryAsync(query, parameters);
@@ -150,12 +156,10 @@ namespace Otomar.Persistance.Services
                     Year = firstRow.Year,
                     Engine = firstRow.Engine,
                     LicensePlate = firstRow.LicensePlate,
-                    Annotation = firstRow.Annotation,
+                    Note = firstRow.Note,
                     CreatedAt = firstRow.CreatedAt,
-                    CreatedByFullName = firstRow.CreatedByFullName,
                     Status = (ListSearchStatus)firstRow.Status,
                     UpdatedAt = firstRow.UpdatedAt,
-                    UpdatedByFullName = firstRow.UpdatedByFullName,
                     Parts = rowList
                         .Where(r => !Convert.IsDBNull(r.PartId) && r.PartId != null)
                         .Select(r => new ListSearchPartDto
@@ -164,6 +168,7 @@ namespace Otomar.Persistance.Services
                             ListSearchId = r.ListSearchId,
                             Definition = r.Definition,
                             Quantity = r.Quantity,
+                            Note = r.ItemNote,
                             PartImages = string.IsNullOrEmpty(r.PartImages) ? new List<string>() : r.PartImages.Split(',').ToList()
                         })
                         .ToList()
@@ -195,9 +200,9 @@ namespace Otomar.Persistance.Services
                     ILSP.Definition,
                     ILSP.Quantity,
                     ILSP.PartImages,
-                    ILSP.Note
-                FROM IdvListSearches ILS WITH (NOLOCK)
-                LEFT JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
+                    ILSP.Note as ItemNote
+                FROM IdtListSearches ILS WITH (NOLOCK)
+                INNER JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
                 WHERE ILS.RequestNo = @requestNo;";
 
                 var rows = await context.Connection.QueryAsync(query, parameters);
@@ -224,12 +229,10 @@ namespace Otomar.Persistance.Services
                     Year = firstRow.Year,
                     Engine = firstRow.Engine,
                     LicensePlate = firstRow.LicensePlate,
-                    Annotation = firstRow.Annotation,
+                    Note = firstRow.Note,
                     CreatedAt = firstRow.CreatedAt,
-                    CreatedByFullName = firstRow.CreatedByFullName,
                     Status = (ListSearchStatus)firstRow.Status,
                     UpdatedAt = firstRow.UpdatedAt,
-                    UpdatedByFullName = firstRow.UpdatedByFullName,
                     Parts = rowList
                         .Where(r => !Convert.IsDBNull(r.PartId) && r.PartId != null)
                         .Select(r => new ListSearchPartDto
@@ -263,9 +266,9 @@ namespace Otomar.Persistance.Services
                     ILSP.Definition,
                     ILSP.Quantity,
                     ILSP.PartImages,
-                    ILSP.Note
-                FROM IdvListSearches ILS WITH (NOLOCK)
-                LEFT JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
+                    ILSP.Note as ItemNote
+                FROM IdtListSearches ILS WITH (NOLOCK)
+                INNER JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
                 ORDER BY ILS.CreatedAt DESC;";
 
                 var rows = await context.Connection.QueryAsync(query);
@@ -274,7 +277,7 @@ namespace Otomar.Persistance.Services
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"Liste sorguları bulunamadı");
-                    return ServiceResult<IEnumerable<ListSearchDto>>.Error("Liste Sorguları Bulunamadı", "Sistemde liste sorgusu bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<ListSearchDto>>.SuccessAsOk(Enumerable.Empty<ListSearchDto>());
                 }
 
                 var listSearchesDict = new Dictionary<Guid, ListSearchDto>();
@@ -296,12 +299,10 @@ namespace Otomar.Persistance.Services
                             Year = row.Year,
                             Engine = row.Engine,
                             LicensePlate = row.LicensePlate,
-                            Annotation = row.Annotation,
+                            Note = row.Note,
                             CreatedAt = row.CreatedAt,
-                            CreatedByFullName = row.CreatedByFullName,
                             Status = (ListSearchStatus)row.Status,
                             UpdatedAt = row.UpdatedAt,
-                            UpdatedByFullName = row.UpdatedByFullName,
                             Parts = new List<ListSearchPartDto>()
                         };
 
@@ -351,9 +352,9 @@ namespace Otomar.Persistance.Services
                     ILSP.Definition,
                     ILSP.Quantity,
                     ILSP.PartImages,
-                    ILSP.Note
-                FROM IdvListSearches ILS WITH (NOLOCK)
-                LEFT JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
+                    ILSP.Note as ItemNote
+                FROM IdtListSearches ILS WITH (NOLOCK)
+                INNER JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
                 WHERE ILS.CreatedBy = @userId
                 ORDER BY ILS.CreatedAt DESC;";
 
@@ -363,7 +364,7 @@ namespace Otomar.Persistance.Services
                 if (!rowList.Any())
                 {
                     logger.LogWarning($"{userId} ID'li kullanıcının liste sorguları bulunamadı");
-                    return ServiceResult<IEnumerable<ListSearchDto>>.Error("Liste Sorguları Bulunamadı", $"{userId} ID'li kullanıcının liste sorguları bulunamadı", HttpStatusCode.NotFound);
+                    return ServiceResult<IEnumerable<ListSearchDto>>.SuccessAsOk(Enumerable.Empty<ListSearchDto>());
                 }
 
                 var listSearchesDict = new Dictionary<Guid, ListSearchDto>();
@@ -385,12 +386,10 @@ namespace Otomar.Persistance.Services
                             Year = row.Year,
                             Engine = row.Engine,
                             LicensePlate = row.LicensePlate,
-                            Annotation = row.Annotation,
+                            Note = row.Note,
                             CreatedAt = row.CreatedAt,
-                            CreatedByFullName = row.CreatedByFullName,
                             Status = (ListSearchStatus)row.Status,
                             UpdatedAt = row.UpdatedAt,
-                            UpdatedByFullName = row.UpdatedByFullName,
                             Parts = new List<ListSearchPartDto>()
                         };
 

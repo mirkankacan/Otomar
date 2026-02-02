@@ -58,6 +58,8 @@ builder.Services.AddOutputCache(options =>
 
 var app = builder.Build();
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseOutputCache();
 
 if (app.Environment.IsDevelopment())

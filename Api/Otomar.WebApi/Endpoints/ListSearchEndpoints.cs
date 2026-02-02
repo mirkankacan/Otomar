@@ -19,6 +19,7 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
             .WithName("CreateListSearch")
+            .Accepts<CreateListSearchDto>("multipart/form-data")
             .DisableAntiforgery();
 
             group.MapGet("/", async ([FromServices] IListSearchService listSearchService) =>

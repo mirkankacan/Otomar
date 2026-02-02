@@ -13,5 +13,8 @@ namespace Otomar.WebApp.Services.Refit
 
         [Get("/api/clients/{clientCode}/transactions")]
         Task<IEnumerable<TransactionDto>> GetClientTransactionsByCodeAsync(string clientCode, CancellationToken cancellationToken = default);
+
+        [Get("/api/clients/{clientCode}/transactions/paged")]
+        Task<IEnumerable<TransactionDto>> GetClientTransactionsByCodePagedAsync(string clientCode, [Query] int pageNumber, [Query] int pageSize, CancellationToken cancellationToken = default);
     }
 }

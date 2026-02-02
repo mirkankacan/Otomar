@@ -38,7 +38,6 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
           .WithName("GetOrderByCode");
-            // Daha spesifik route önce kaydedilmeli: /user/{userId}/paged
             group.MapGet("/user/{userId}/paged", async (string userId, [FromServices] IOrderService orderService, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10) =>
             {
                 var result = await orderService.GetOrdersByUserAsync(userId, pageNumber, pageSize);
