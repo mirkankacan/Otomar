@@ -13,7 +13,10 @@ namespace Otomar.WebApi.Endpoints
             var group = app.MapGroup("api/listsearches")
                 .WithTags("ListSearches");
 
-            group.MapPost("/", async ([FromForm] CreateListSearchDto dto, [FromServices] IListSearchService listSearchService, CancellationToken cancellationToken) =>
+            group.MapPost("/", async (
+                [FromForm] CreateListSearchDto dto,
+                [FromServices] IListSearchService listSearchService,
+                CancellationToken cancellationToken) =>
             {
                 var result = await listSearchService.CreateListSearchAsync(dto, cancellationToken);
                 return result.ToGenericResult();

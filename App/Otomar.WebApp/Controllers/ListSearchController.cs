@@ -25,8 +25,8 @@ namespace Otomar.WebApp.Controllers
         [HttpPost("olustur")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateListSearch(
-    [FromForm] CreateListSearchDto dto,
-    CancellationToken cancellationToken = default)
+       [FromForm] CreateListSearchDto dto,
+       CancellationToken cancellationToken = default)
         {
             using var content = new MultipartFormDataContent();
 
@@ -67,20 +67,22 @@ namespace Otomar.WebApp.Controllers
 
                 content.Add(new StringContent(part.Quantity.ToString()), $"Parts[{i}].Quantity");
 
-                // Resimleri BUFFER'A AL - bu önemli!
                 if (part.PartImages != null && part.PartImages.Any())
                 {
-                    foreach (var image in part.PartImages)
+                    foreach (var (image, j) in part.PartImages.Select((img, idx) => (img, idx)))
                     {
-                        // Stream'i byte array'e çevir ki retry'da tekrar kullanılabilsin
-                        using var memoryStream = new MemoryStream();
-                        await image.OpenReadStream().CopyToAsync(memoryStream, cancellationToken);
-                        var bytes = memoryStream.ToArray();
+                        if (image != null && image.Length > 0)
+                        {
+                            using var memoryStream = new MemoryStream();
+                            await image.CopyToAsync(memoryStream, cancellationToken);
+                            var bytes = memoryStream.ToArray();
 
-                        var byteArrayContent = new ByteArrayContent(bytes);
-                        byteArrayContent.Headers.ContentType =
-                            new System.Net.Http.Headers.MediaTypeHeaderValue(image.ContentType);
-                        content.Add(byteArrayContent, $"Parts[{i}].PartImages", image.FileName);
+                            var byteArrayContent = new ByteArrayContent(bytes);
+                            byteArrayContent.Headers.ContentType =
+                                new System.Net.Http.Headers.MediaTypeHeaderValue(image.ContentType);
+
+                            content.Add(byteArrayContent, $"Parts[{i}].PartImages[{j}]", image.FileName);
+                        }
                     }
                 }
             }
