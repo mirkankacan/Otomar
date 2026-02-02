@@ -1,3 +1,4 @@
+using Otomar.WebApp.Common;
 using Otomar.WebApp.Dtos.Order;
 using Refit;
 
@@ -19,6 +20,9 @@ namespace Otomar.WebApp.Services.Refit
 
         [Get("/api/orders/user/{userId}")]
         Task<IEnumerable<OrderDto>> GetOrdersByUserAsync(string userId, CancellationToken cancellationToken = default);
+
+        [Get("/api/orders/user/{userId}/paged")]
+        Task<PagedResult<OrderDto>> GetOrdersByUserPagedAsync(string userId, [Query] int pageNumber, [Query] int pageSize, CancellationToken cancellationToken = default);
 
         [Get("/api/orders/client-orders")]
         Task<IEnumerable<ClientOrderDto>> GetClientOrdersAsync(CancellationToken cancellationToken = default);

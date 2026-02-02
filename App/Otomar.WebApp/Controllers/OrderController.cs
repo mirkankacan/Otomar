@@ -30,7 +30,7 @@ namespace Otomar.WebApp.Controllers
             return await orderApi.GetOrdersAsync(cancellationToken).ToActionResultAsync();
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetOrderById(Guid id, CancellationToken cancellationToken = default)
         {
             return await orderApi.GetOrderByIdAsync(id, cancellationToken).ToActionResultAsync();
@@ -47,6 +47,13 @@ namespace Otomar.WebApp.Controllers
         {
             var userId = identityService.GetUserId();
             return await orderApi.GetOrdersByUserAsync(userId, cancellationToken).ToActionResultAsync();
+        }
+
+        [HttpGet("siparislerim/paged")]
+        public async Task<IActionResult> GetMyOrdersPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+        {
+            var userId = identityService.GetUserId();
+            return await orderApi.GetOrdersByUserPagedAsync(userId, pageNumber, pageSize, cancellationToken).ToActionResultAsync();
         }
 
         [HttpGet("kullanici/{userId}")]

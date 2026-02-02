@@ -1,7 +1,7 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Otomar.WebApp.Dtos.Auth;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Otomar.WebApp.Extensions;
 
@@ -38,9 +38,8 @@ public static class CookieAuthExtensions
         claims.Add(new Claim(ClaimTypes.GivenName, tokenDto.FullName ?? ""));
         claims.Add(new Claim(ClaimTypes.MobilePhone, tokenDto.PhoneNumber ?? ""));
         claims.Add(new Claim(ClaimTypes.Role, tokenDto.RoleName ?? ""));
-        if (!string.IsNullOrEmpty(tokenDto.ClientCode))
-            claims.Add(new Claim("ClientCode", tokenDto.ClientCode));
-        claims.Add(new Claim("IsPaymentExempt", tokenDto.IsPaymentExempt.ToString()));
+        claims.Add(new Claim("ClientCode", tokenDto.ClientCode ?? null));
+        claims.Add(new Claim("IsPaymentExempt", tokenDto.IsPaymentExempt.ToString() ?? "false"));
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         return new ClaimsPrincipal(identity);

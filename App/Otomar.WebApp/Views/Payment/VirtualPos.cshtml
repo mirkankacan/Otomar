@@ -29,7 +29,6 @@
     </style>
 }
 
-
 <!-- Start checkout page area -->
 <div class="checkout__page--area section--padding">
     <div class="container">
@@ -40,7 +39,6 @@
                           data-is-authenticated="@(isAuthenticated ? "true" : "false")"
                           data-client-code="@(clientCode)">
                         @Html.AntiForgeryToken()
-                    
 
                         <div class="checkout__content--step ">
                             <div class="section__header mb-25">
@@ -70,24 +68,20 @@
                                         <div class="checkout__input--list">
                                             <label class="checkout__input--label mb-2" for="txtTaxOffice">Vergi Dairesi <span class="checkout__input--label__star"></span></label>
                                             <input class="checkout__input--field border-radius-5" placeholder="" id="txtTaxOffice" type="text" readonly disabled>
-                                          
+
                                         </div>
                                     </div>
                                     <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
                                         <div class="checkout__input--list">
                                             <label class="checkout__input--label mb-2" for="txtAddress">Cari Adres <span class="checkout__input--label__star"></span></label>
                                             <textarea class="checkout__notes--textarea__field border-radius-5" id="txtAddress" placeholder="" spellcheck="false" readonly disabled></textarea>
-                                         
+
                                         </div>
                                     </div>
-
-                              
 
                                 </div>
                             </div>
 
-
-                         
                             <div class="checkout__content--step__footer d-flex align-items-center">
                                 <button type="button" class="continue__shipping--btn primary__btn border-radius-5" id="btnContinueToPayment">Ödeme Bilgilerine Geç</button>
                                 <a class="previous__link--content" href="/ana-sayfa">Ana Sayfaya Dön</a>
@@ -275,7 +269,6 @@
                 </div>
             </div>
 
-
         </div>
     </div>
 </div>
@@ -286,7 +279,6 @@
                let clientEmail;
                $(document).ready(async function() {
 
-                   // Giriş yapmış kullanıcı: clientCode ile /cari/kod/{clientCode} endpoint'inden cari bilgilerini al
                    var $form = $('#checkoutForm');
                    var isAuth = $form.data('is-authenticated') === true || $form.data('is-authenticated') === 'true';
                    var clientCode = ($form.data('client-code') || '').toString().trim();
@@ -888,6 +880,5 @@
                    }, 100);
                }
 
-           
     </script>
 }

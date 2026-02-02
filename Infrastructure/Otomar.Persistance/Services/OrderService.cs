@@ -1,3 +1,5 @@
+using System.Data;
+using System.Net;
 using Dapper;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -9,8 +11,6 @@ using Otomar.Domain.Enums;
 using Otomar.Persistance.Data;
 using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
-using System.Data;
-using System.Net;
 
 namespace Otomar.Persistance.Services
 {
@@ -1038,6 +1038,176 @@ p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
             catch (Exception ex)
             {
                 logger.LogError(ex, "GetOrdersByUserAsync işleminde hata");
+                throw;
+            }
+        }
+
+        public async Task<ServiceResult<PagedResult<OrderDto>>> GetOrdersByUserAsync(string userId, int pageNumber, int pageSize)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                    return ServiceResult<PagedResult<OrderDto>>.Error("Geçersiz Kullanıcı ID'si", "Kullanıcı ID'si boş geçilemez", HttpStatusCode.BadRequest);
+                if (pageNumber < 1) pageNumber = 1;
+                if (pageSize < 1) pageSize = 10;
+                if (pageSize > 100) pageSize = 100;
+
+                var parameters = new DynamicParameters();
+                parameters.Add("userId", userId);
+                parameters.Add("offset", (pageNumber - 1) * pageSize);
+                parameters.Add("pageSize", pageSize);
+
+                var countQuery = "SELECT COUNT(1) FROM IdtOrders o WITH (NOLOCK) WHERE o.BuyerId = @userId";
+                var totalCount = await context.Connection.ExecuteScalarAsync<int>(countQuery, parameters);
+                if (totalCount == 0)
+                    return ServiceResult<PagedResult<OrderDto>>.SuccessAsOk(new PagedResult<OrderDto>(Enumerable.Empty<OrderDto>(), pageNumber, pageSize, 0));
+
+                var idsQuery = @"
+                    SELECT Id FROM IdtOrders o WITH (NOLOCK)
+                    WHERE o.BuyerId = @userId
+                    ORDER BY o.CreatedAt DESC
+                    OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
+                var orderIds = (await context.Connection.QueryAsync<Guid>(idsQuery, parameters)).ToList();
+                if (orderIds.Count == 0)
+                    return ServiceResult<PagedResult<OrderDto>>.SuccessAsOk(new PagedResult<OrderDto>(Enumerable.Empty<OrderDto>(), pageNumber, pageSize, totalCount));
+
+                parameters.Add("orderIds", orderIds);
+                var query = @"
+                    SELECT
+                        o.Id,
+                        o.Code,
+                        o.BuyerId,
+                        o.Status,
+                        o.CreatedAt,
+                        o.UpdatedAt,
+                        o.OrderType,
+                        o.TotalAmount,
+                        o.ShippingAmount,
+                        o.SubTotalAmount,
+                        o.BillingName,
+                        o.BillingPhone,
+                        o.BillingCity,
+                        o.BillingDistrict,
+                        o.BillingStreet,
+                        o.ShippingName,
+                        o.ShippingPhone,
+                        o.ShippingCity,
+                        o.ShippingDistrict,
+                        o.ShippingStreet,
+                        o.CorporateCompanyName,
+                        o.CorporateTaxNumber,
+                        o.CorporateTaxOffice,
+                        o.IsEInvoiceUser,
+                        o.Email,
+                        p.Id AS PaymentId,
+                        p.UserId AS PaymentUserId,
+                        p.OrderCode AS PaymentOrderCode,
+                        p.TotalAmount AS PaymentTotalAmount,
+                        p.Status AS PaymentStatus,
+                        p.CreatedAt AS PaymentCreatedAt,
+                        p.BankProcReturnCode, p.MaskedCreditCard, p.BankCardBrand, p.BankCardIssuer,
+                        oi.Id AS ItemId,
+                        oi.ProductId,
+                        oi.ProductName,
+                        oi.ProductCode,
+                        oi.UnitPrice,
+                        oi.Quantity,
+                        oi.OrderId AS ItemOrderId
+                    FROM IdtOrders o WITH (NOLOCK)
+                    LEFT JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
+                    LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId
+                    WHERE o.BuyerId = @userId AND o.Id IN @orderIds";
+
+                var rows = await context.Connection.QueryAsync(query, parameters);
+                var rowList = rows.ToList();
+
+                var ordersDict = new Dictionary<Guid, OrderDto>();
+                foreach (var row in rowList)
+                {
+                    if (!ordersDict.ContainsKey(row.Id))
+                    {
+                        var order = new OrderDto
+                        {
+                            Id = row.Id,
+                            Code = row.Code,
+                            BuyerId = row.BuyerId,
+                            Status = (OrderStatus)row.Status,
+                            CreatedAt = row.CreatedAt,
+                            UpdatedAt = row.UpdatedAt,
+                            OrderType = (OrderType)row.OrderType,
+                            Email = row.Email,
+                            TotalAmount = row.TotalAmount,
+                            ShippingAmount = row.ShippingAmount,
+                            SubTotalAmount = row.SubTotalAmount,
+                            BillingAddress = new AddressDto
+                            {
+                                Name = row.BillingName,
+                                Phone = row.BillingPhone,
+                                City = row.BillingCity,
+                                District = row.BillingDistrict,
+                                Street = row.BillingStreet
+                            },
+                            ShippingAddress = new AddressDto
+                            {
+                                Name = row.ShippingName,
+                                Phone = row.ShippingPhone,
+                                City = row.ShippingCity,
+                                District = row.ShippingDistrict,
+                                Street = row.ShippingStreet
+                            },
+                            Payment = row.PaymentId != null ? new PaymentDto
+                            {
+                                Id = row.PaymentId,
+                                UserId = row.PaymentUserId,
+                                OrderCode = row.PaymentOrderCode,
+                                TotalAmount = row.PaymentTotalAmount,
+                                Status = (PaymentStatus)row.PaymentStatus,
+                                CreatedAt = row.PaymentCreatedAt,
+                                BankProcReturnCode = row.BankProcReturnCode,
+                                MaskedCreditCard = row.MaskedCreditCard,
+                                BankCardBrand = row.BankCardBrand,
+                                BankCardIssuer = row.BankCardIssuer,
+                                IsSuccess = IsBankHelper.IsSuccess(row.BankProcReturnCode)
+                            } : null,
+                            Items = new List<OrderItemDto>()
+                        };
+
+                        if (!string.IsNullOrEmpty(row.CorporateCompanyName) || !string.IsNullOrEmpty(row.CorporateTaxNumber))
+                        {
+                            order.Corporate = new CorporateDto
+                            {
+                                CompanyName = row.CorporateCompanyName,
+                                TaxNumber = row.CorporateTaxNumber,
+                                TaxOffice = row.CorporateTaxOffice,
+                                IsEInvoiceUser = row.IsEInvoiceUser
+                            };
+                        }
+
+                        ordersDict[row.Id] = order;
+                    }
+
+                    if (!Convert.IsDBNull(row.ItemId) && row.ItemId != null)
+                    {
+                        ((List<OrderItemDto>)ordersDict[row.Id].Items).Add(new OrderItemDto
+                        {
+                            Id = row.ItemId,
+                            ProductId = row.ProductId,
+                            ProductName = row.ProductName,
+                            ProductCode = row.ProductCode,
+                            UnitPrice = row.UnitPrice,
+                            Quantity = row.Quantity,
+                            OrderId = row.ItemOrderId
+                        });
+                    }
+                }
+
+                var resultList = orderIds.Select(id => ordersDict[id]).ToList();
+                var paged = new PagedResult<OrderDto>(resultList, pageNumber, pageSize, totalCount);
+                return ServiceResult<PagedResult<OrderDto>>.SuccessAsOk(paged);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "GetOrdersByUserPagedAsync işleminde hata");
                 throw;
             }
         }

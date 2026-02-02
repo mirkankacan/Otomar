@@ -1,4 +1,4 @@
-﻿using Otomar.Application.Common;
+using Otomar.Application.Common;
 using Otomar.Application.Dtos.Order;
 using System.Data;
 
@@ -7,6 +7,8 @@ namespace Otomar.Application.Contracts.Services
     public interface IOrderService
     {
         Task<ServiceResult<IEnumerable<OrderDto>>> GetOrdersByUserAsync(string userId);
+
+        Task<ServiceResult<PagedResult<OrderDto>>> GetOrdersByUserAsync(string userId, int pageNumber, int pageSize);
 
         Task<ServiceResult<IEnumerable<OrderDto>>> GetOrdersAsync();
 

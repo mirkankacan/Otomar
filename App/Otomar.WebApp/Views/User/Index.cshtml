@@ -9,50 +9,187 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
 }
 @section Styles {
     <style>
-        .order-detail-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background-color: var(--secondary-color);
-            color: #fff;
-            border: none;
+        /* Sipariş kartları – style.css :root değişkenleri ile */
+        .orders-page__order-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        .order-detail-btn:hover {
-            background-color: black;
-            color: #fff;
-            border: none;
+        .orders-page__order-list__item {
+            margin-bottom: 1.25rem;
         }
 
-        .fa-book {
-            font-size: 15px;
+        .order-row {
+            background: var(--body-background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: var(--transition);
         }
 
-        /* Sipariş detay modal */
-        #orderDetailModal .modal-dialog {
-            max-width: 720px;
+        .order-row:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
 
-        #orderDetailModal .modal-header {
-            background: var(--bg-offwhite-color, #f8f9fa);
-            padding: 1rem 1.25rem;
+        .order-row--expanded {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         }
 
-        #orderDetailModal .modal-title {
-            font-weight: 600;
-            font-size: 1.125rem;
+        .order-row__summary {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            padding: 1.5rem 1.75rem;
+            cursor: pointer;
+            user-select: none;
+            outline: none;
         }
 
-        #orderDetailModal .modal-body {
-            padding: 1.25rem;
-            max-height: 75vh;
-            overflow-y: auto;
+        .order-row__summary:focus-visible {
+            box-shadow: inset 0 0 0 2px var(--secondary-color);
+        }
+
+        .order-row__summary__images {
+            flex-shrink: 0;
+            width: 72px;
+            height: 72px;
+            background: var(--bg-offwhite-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .order-row__summary__images .image__item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .order-row__summary__images .image__placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--foreground-sub-color);
+            font-size: 2.4rem;
+        }
+
+        .order-row__summary__order-data {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .order-row__summary__order-number {
+            font-size: 1.2rem;
+            color: var(--foreground-sub-color);
+        }
+
+        .order-row__summary__order-number b {
+            color: var(--foreground-color);
+            font-weight: var(--headings-weight);
+            font-size: 1.25rem;
+        }
+
+        .order-row__summary__progress-bar {
+            flex-shrink: 0;
+            margin-top: 0.5rem;
+        }
+
+        .order-row-summary__single-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.15rem;
+            color: var(--foreground-color);
+        }
+
+        .order-row-summary__single-status svg,
+        .order-row__status-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+        }
+
+        .order-row__summary__toggle__icon .order-row__chevron {
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .order-row--expanded .order-row__summary__toggle__icon .order-row__chevron {
+            transform: rotate(180deg);
+        }
+
+        .order-row__summary__price-and-date {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.4rem;
+            flex-shrink: 0;
+        }
+
+        .order-row__summary__price-and-date span {
+            font-size: 1.15rem;
+            color: var(--foreground-sub-color);
+        }
+
+        .order-row__summary__price-and-date b {
+            font-size: 1.4rem;
+            color: var(--foreground-color);
+        }
+
+        .order-row__summary__toggle {
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .order-row__summary__toggle {
+            flex-shrink: 0;
+        }
+
+        .order-row__summary__toggle__icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+        }
+
+        .order-row__summary__toggle__icon svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Detay açılış animasyonu */
+        .order-row__detail {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            padding: 0 1.75rem;
+            border-top: 1px solid transparent;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease, border-color 0.25s ease, padding 0.3s ease;
+        }
+
+        .order-row--expanded .order-row__detail {
+            max-height: 2000px;
+            opacity: 1;
+            padding: 0 1.75rem 1.75rem;
+            border-top-color: var(--border-color);
+        }
+
+        .order-row__detail__inner {
+            padding-top: 1.75rem;
         }
 
         .order-detail-section {
-            margin-bottom: 1.25rem;
-            padding-bottom: 1.25rem;
-            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.75rem;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .order-detail-section:last-of-type {
@@ -62,53 +199,55 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
         }
 
         .order-detail-section-title {
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: var(--headings-weight);
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            color: #6c757d;
-            margin-bottom: 0.75rem;
+            color: var(--foreground-sub-color);
+            margin-bottom: 1.15rem;
         }
 
         .order-detail-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 0.75rem 1.25rem;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.15rem 1.75rem;
         }
 
         .order-detail-field {
-            font-size: 0.9375rem;
+            font-size: 1.25rem;
         }
 
         .order-detail-field label {
             display: block;
-            color: #6c757d;
-            font-size: 0.75rem;
-            margin-bottom: 0.15rem;
+            color: var(--foreground-sub-color);
+            font-size: 1rem;
+            margin-bottom: 0.35rem;
         }
 
         .order-detail-field span {
             font-weight: 500;
-            color: #212529;
+            color: var(--foreground-color);
+            font-size: 1.2rem;
         }
 
         .order-detail-items-table {
             width: 100%;
-            font-size: 0.875rem;
+            font-size: 1.2rem;
             border-collapse: collapse;
         }
 
         .order-detail-items-table th,
         .order-detail-items-table td {
-            padding: 0.5rem 0.75rem;
+            padding: 0.9rem 1.2rem;
             text-align: left;
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .order-detail-items-table th {
-            font-weight: 600;
-            color: #6c757d;
-            background: #f8f9fa;
+            font-weight: var(--headings-weight);
+            font-size: 1.15rem;
+            color: var(--foreground-sub-color);
+            background: var(--bg-offwhite-color);
         }
 
         .order-detail-items-table .text-end {
@@ -120,48 +259,50 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
         }
 
         .order-detail-address-block {
-            font-size: 0.875rem;
-            line-height: 1.5;
-            color: #495057;
-            padding: 0.75rem;
-            background: #f8f9fa;
-            border-radius: 6px;
+            font-size: 1.2rem;
+            line-height: 1.65;
+            color: var(--foreground-color);
+            padding: 1.2rem 1.5rem;
+            background: var(--bg-offwhite-color);
+            border-radius: 10px;
         }
 
         .order-detail-totals {
-            font-size: 0.9375rem;
+            font-size: 1.25rem;
         }
 
         .order-detail-totals .row-total {
             display: flex;
             justify-content: space-between;
-            padding: 0.35rem 0;
+            padding: 0.6rem 0;
         }
 
         .order-detail-totals .row-total.final {
-            font-weight: 600;
-            font-size: 1rem;
-            padding-top: 0.5rem;
-            margin-top: 0.25rem;
-            border-top: 1px solid #dee2e6;
+            font-weight: var(--headings-weight);
+            font-size: 1.35rem;
+            padding-top: 0.9rem;
+            margin-top: 0.4rem;
+            border-top: 1px solid var(--border-color);
         }
 
         .order-detail-badge {
             display: inline-block;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            padding: 0.45rem 0.8rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: var(--headings-weight);
         }
 
         .order-detail-badge.sanal-pos {
-            background: #e7f1ff;
-            color: #0d6efd;
+            background: var(--bg-offwhite-color);
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
         }
 
         .order-detail-badge.siparis {
-            background: #d1e7dd;
-            color: #0f5132;
+            background: var(--bg-offwhite-color);
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
         }
     </style>
 }
@@ -186,20 +327,17 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
                         <div id="orders-loading" class="text-center py-5 text-secondary">Siparişler yükleniyor...</div>
                         <div id="orders-empty" class="text-center py-5 text-secondary" style="display: none;">Henüz
                             siparişiniz bulunmuyor.</div>
-                        <table class="account__table" id="orders-table" style="display: none;">
-                            <thead class="account__table--header">
-                                <tr class="account__table--header__child">
-                                    <th class="account__table--header__child--items">SipNo</th>
-                                    <th class="account__table--header__child--items">Tür</th>
-                                    <th class="account__table--header__child--items">Tarih</th>
-                                    <th class="account__table--header__child--items" style="text-align:center">Detaylar
-                                    </th>
-                                    <th class="account__table--header__child--items">Tutar</th>
-                                </tr>
-                            </thead>
-                            <tbody class="account__table--body mobile__none" id="orders-tbody"></tbody>
-                            <tbody class="account__table--body mobile__block" id="orders-tbody-mobile"></tbody>
-                        </table>
+                        <div class="orders-page__groups__item" id="orders-wrapper" style="display: none;">
+                            <ul class="orders-page__order-list" id="orders-list"></ul>
+                            <div id="orders-scroll-sentinel" style="height: 1px; visibility: hidden;"
+                                aria-hidden="true"></div>
+                            <div id="orders-infinite-scroll-loader" class="text-center py-4" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Yükleniyor...</span>
+                                </div>
+                                <p class="mt-2 text-muted mb-0">Daha fazla sipariş yükleniyor...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -208,26 +346,16 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
 </section>
 <!-- my account section end -->
 
-<!-- Sipariş detay modal -->
-<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-radius-10">
-            <div class="modal-header border-bottom">
-                <h5 class="modal-title" id="orderDetailModalLabel">Sipariş Detayı</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
-            </div>
-            <div class="modal-body" id="orderDetailModalBody">
-                <div id="order-detail-loading" class="text-center py-5">Yükleniyor...</div>
-                <div id="order-detail-content" style="display: none;"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
     <script>
+        // Infinite scroll: /siparis/siparislerim/paged
+        var ordersCurrentPage = 0;
+        var ordersTotalPages = 0;
+        var ordersLoadingMore = false;
+        var ORDERS_PAGE_SIZE = 10;
+
         $(function () {
-            loadMyOrders();
+            loadFirstPage();
         });
 
         function formatDate(dateStr) {
@@ -242,75 +370,128 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
             return day + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
         }
 
-        function loadMyOrders() {
-            makeRequest('/siparis/siparislerim', 'GET')
-                .then(function (orders) {
-                    $('#orders-loading').hide();
-                    if (!orders || !Array.isArray(orders) || orders.length === 0) {
-                        $('#orders-empty').show();
-                        return;
-                    }
-                    $('#orders-table').show();
-                    $('#orders-tbody').empty();
-                    $('#orders-tbody-mobile').empty();
-                    $.each(orders, function (i, order) {
-                        var code = order.code || order.Code || '—';
-                        var orderType = order.orderType != null ? order.orderType : order.OrderType;
-                        var turLabel = orderType === 0 ? 'Sanal POS' : (orderType === 1 ? 'Sipariş' : '—');
-                        var date = formatDate(order.createdAt || order.CreatedAt);
-                        var total = formatTurkishLira(order.totalAmount != null ? order.totalAmount : order.TotalAmount);
-                        var id = order.id || order.Id;
-                        var btn = '<button type="button" class="btn btn-sm order-detail-btn" data-order-id="' + id + '"><i class="fa-solid fa-book"></i></button>';
-                        $('#orders-tbody').append(
-                            '<tr class="account__table--body__child">' +
-                            '<td class="account__table--body__child--items">#' + (code || id) + '</td>' +
-                            '<td class="account__table--body__child--items">' + turLabel + '</td>' +
-                            '<td class="account__table--body__child--items">' + date + '</td>' +
-                            '<td class="account__table--body__child--items" style="text-align:center">' + btn + '</td>' +
-                            '<td class="account__table--body__child--items">' + total + '</td></tr>'
-                        );
-                        $('#orders-tbody-mobile').append(
-                            '<tr class="account__table--body__child">' +
-                            '<td class="account__table--body__child--items"><strong>SipNo</strong><span>#' + (code || id) + '</span></td>' +
-                            '<td class="account__table--body__child--items"><strong>Tür</strong><span>' + turLabel + '</span></td>' +
-                            '<td class="account__table--body__child--items"><strong>Tarih</strong><span>' + date + '</span></td>' +
-                            '<td class="account__table--body__child--items"><strong>Detaylar</strong><span>' + btn + '</span></td>' +
-                            '<td class="account__table--body__child--items"><strong>Toplam</strong><span>' + total + '</span></td></tr>'
-                        );
-                    });
-                    $(document).off('click', '.order-detail-btn').on('click', '.order-detail-btn', function () {
-                        var orderId = $(this).data('order-id');
-                        openOrderDetailModal(orderId);
-                    });
-                })
-                .catch(function () {
-                    $('#orders-loading').hide();
-                    $('#orders-empty').text('Siparişler yüklenirken bir hata oluştu.').show();
-                });
+        function escapeHtml(s) {
+            if (s == null || s === '') return '';
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        function openOrderDetailModal(orderId) {
-            var $modal = $('#orderDetailModal');
-            var $loading = $('#order-detail-loading');
-            var $content = $('#order-detail-content');
-            $('#orderDetailModalLabel').text('Sipariş Detayı');
-            $content.hide().empty();
-            $loading.show();
-            $modal.modal('show');
+        function renderOrderRows(orders) {
+            if (!orders || !orders.length) return;
+            var chevronSvg = '<svg class="order-row__chevron" xmlns="http://www.w3.org/2000/svg" width="12.355" height="8.394" viewBox="0 0 12.355 8.394"><path d="M15.138,8.59l-3.961,3.952L7.217,8.59,6,9.807l5.178,5.178,5.178-5.178Z" transform="translate(-6 -8.59)" fill="currentColor"/></svg>';
+            $.each(orders, function (i, order) {
+                var code = order.code || order.Code || '—';
+                var orderType = order.orderType != null ? order.orderType : order.OrderType;
+                var turLabel = orderType === 0 ? 'Sanal POS' : (orderType === 1 ? 'Sipariş' : '—');
+                var statusLabel = orderType === 0 ? 'Ödeme Onaylandı' : (orderType === 1 ? 'Sipariş Onaylandı' : 'Sipariş Onaylandı');
+                var date = formatDate(order.createdAt || order.CreatedAt);
+                var total = formatTurkishLira(order.totalAmount != null ? order.totalAmount : order.TotalAmount);
+                var id = order.id || order.Id;
+                var orderNumberFormatted = escapeHtml(String(code || id)).replace(/\s/g, ' ');
+                var detailHtml = buildOrderDetailHtml(order);
+                var card = '<li class="orders-page__order-list__item">' +
+                    '<div class="order-row" data-order-id="' + escapeHtml(String(id)) + '" role="button" tabindex="0" aria-expanded="false" aria-label="' + orderNumberFormatted + ' numaralı sipariş">' +
+                    '<div class="order-row__summary">' +
+                    '<div class="order-row__summary__images"><div class="image__placeholder"><i class="fa-solid fa-receipt"></i></div></div>' +
+                    '<div class="order-row__summary__order-data">' +
+                    '<div class="order-row__summary__order-number"><small>Sipariş No: <b>' + orderNumberFormatted + '</b></small></div>' +
+                    '<div class="order-row__summary__progress-bar"><div class="order-row-summary"><div class="order-row-summary__single-status order-row-summary__single-status--completed">' +
+                    '<svg class="order-row__status-icon" width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 0a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm3.36 5.36L6.8 9.92 4.64 7.76l-1.28 1.28 3.44 3.44 5.12-5.12-1.28-1.28z" fill="#5AD363"/></svg>' +
+                    '<span>' + escapeHtml(statusLabel) + '</span></div></div></div>' +
+                    '</div>' +
+                    '<div class="order-row__summary__price-and-date"><span>' + escapeHtml(date) + '</span><b>' + escapeHtml(total) + '</b></div>' +
+                    '<div class="order-row__summary__toggle"><div class="order-row__summary__toggle__icon">' + chevronSvg + '</div></div>' +
+                    '</div>' +
+                    '<div class="order-row__detail" aria-hidden="true"><div class="order-row__detail__inner">' + detailHtml + '</div></div>' +
+                    '</div></li>';
+                $('#orders-list').append(card);
+            });
+            $(document).off('click', '.order-row__summary').on('click', '.order-row__summary', function (e) {
+                var $row = $(this).closest('.order-row');
+                if (!$row.length) return;
+                var expanded = $row.attr('aria-expanded') === 'true';
+                $row.toggleClass('order-row--expanded').attr('aria-expanded', !expanded);
+                $row.find('.order-row__detail').attr('aria-hidden', expanded);
+            });
+            $(document).off('keydown', '.order-row').on('keydown', '.order-row', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    $(this).find('.order-row__summary').trigger('click');
+                }
+            });
+        }
 
-            makeRequest('/siparis/' + orderId, 'GET')
-                .then(function (order) {
-                    $loading.hide();
-                    var code = order.code || order.Code || orderId;
-                    var orderType = order.orderType != null ? order.orderType : order.OrderType;
-                    var typeLabel = orderType === 0 ? 'Sanal POS' : (orderType === 1 ? 'Sipariş' : 'Detay');
-                    $('#orderDetailModalLabel').text('Sipariş #' + code + ' — ' + typeLabel);
-                    $content.html(buildOrderDetailHtml(order)).show();
-                })
-                .catch(function () {
-                    $loading.hide();
-                    $content.html('<p class="text-danger">Sipariş detayı yüklenemedi.</p>').show();
+        async function loadMoreOrders() {
+            if (ordersLoadingMore || ordersCurrentPage >= ordersTotalPages) {
+                $('#orders-infinite-scroll-loader').hide();
+                return;
+            }
+            var nextPage = ordersCurrentPage + 1;
+            ordersLoadingMore = true;
+            $('#orders-infinite-scroll-loader').show();
+            try {
+                var paged = await makeRequest('/siparis/siparislerim/paged?pageNumber=' + nextPage + '&pageSize=' + ORDERS_PAGE_SIZE, 'GET');
+                var items = Array.isArray(paged) ? paged : (paged.Data || paged.data || []);
+                var totalPages = paged.TotalPages != null ? paged.TotalPages : paged.totalPages;
+                var pageNumber = paged.PageNumber != null ? paged.PageNumber : paged.pageNumber;
+                if (Array.isArray(items) && items.length > 0) {
+                    renderOrderRows(items);
+                    ordersCurrentPage = pageNumber != null ? pageNumber : nextPage;
+                }
+                if (totalPages != null) ordersTotalPages = totalPages;
+            } catch (e) {
+                // makeRequest hata fırlatır
+            } finally {
+                ordersLoadingMore = false;
+                $('#orders-infinite-scroll-loader').hide();
+            }
+        }
+
+        function setupInfiniteScroll() {
+            // Son sipariş (sentinel) ekranda görünür görünmez yeni istek at
+            var sentinel = document.getElementById('orders-scroll-sentinel');
+            if (!sentinel) return;
+            if (typeof IntersectionObserver === 'undefined') {
+                $(window).on('scroll.ordersInfinite', function () {
+                    if (ordersLoadingMore || ordersTotalPages <= 0 || ordersCurrentPage >= ordersTotalPages) return;
+                    var rect = sentinel.getBoundingClientRect();
+                    if (rect.top <= window.innerHeight) void loadMoreOrders();
                 });
+                return;
+            }
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (!entry.isIntersecting) return;
+                    if (ordersLoadingMore || ordersTotalPages <= 0 || ordersCurrentPage >= ordersTotalPages) return;
+                    void loadMoreOrders();
+                });
+            }, { root: null, rootMargin: '0px', threshold: 0 });
+            observer.observe(sentinel);
+        }
+
+        async function loadFirstPage() {
+            try {
+                var paged = await makeRequest('/siparis/siparislerim/paged?pageNumber=1&pageSize=' + ORDERS_PAGE_SIZE, 'GET');
+                var items = Array.isArray(paged) ? paged : (paged.Data || paged.data || []);
+                var totalCount = paged.TotalCount != null ? paged.TotalCount : paged.totalCount;
+                var totalPages = paged.TotalPages != null ? paged.TotalPages : paged.totalPages;
+                var pageNumber = paged.PageNumber != null ? paged.PageNumber : paged.pageNumber;
+
+                $('#orders-loading').hide();
+                if (!items.length && (totalCount == null || totalCount === 0)) {
+                    $('#orders-empty').show();
+                    return;
+                }
+                ordersCurrentPage = pageNumber != null ? pageNumber : 1;
+                ordersTotalPages = totalPages != null ? totalPages : (totalCount != null ? Math.ceil(totalCount / ORDERS_PAGE_SIZE) : 1);
+
+                $('#orders-wrapper').show();
+                $('#orders-list').empty();
+                renderOrderRows(items);
+                setupInfiniteScroll();
+            } catch (e) {
+                $('#orders-loading').hide();
+                $('#orders-empty').text('Siparişler yüklenirken bir hata oluştu.').show();
+            }
         }
 
         function getOrderTypeLabel(orderType) {
@@ -326,7 +507,11 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
             var createdAt = formatDate(order.createdAt || order.CreatedAt);
             var total = formatTurkishLira(order.totalAmount != null ? order.totalAmount : order.TotalAmount);
             var subTotal = formatTurkishLira(order.subTotalAmount != null ? order.subTotalAmount : order.SubTotalAmount);
-            var shipping = formatTurkishLira(order.shippingAmount != null ? order.shippingAmount : order.ShippingAmount);
+            var shippingAmountVal = order.shippingAmount != null ? order.shippingAmount : order.ShippingAmount;
+            if (shippingAmountVal === '' || shippingAmountVal === null || shippingAmountVal === undefined || Number(shippingAmountVal) === 0 || isNaN(Number(shippingAmountVal))) {
+                shippingAmountVal = 0;
+            }
+            var shipping = formatTurkishLira(shippingAmountVal);
             var email = order.email || order.Email || '';
             var identityNumber = order.identityNumber || order.IdentityNumber || '';
 
@@ -418,8 +603,8 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
             html += '<div class="order-detail-section">';
             html += '<div class="order-detail-section-title">Toplamlar</div>';
             html += '<div class="order-detail-totals">';
-            html += '<div class="row-total"><span>Ara Toplam</span><span>' + subTotal + '</span></div>';
-            if (order.shippingAmount != null && order.shippingAmount > 0 || (order.ShippingAmount != null && order.ShippingAmount > 0)) {
+            html += '<div class="row-total"><span>Alt Toplam</span><span>' + subTotal + '</span></div>';
+            if (orderType !== 0) {
                 html += '<div class="row-total"><span>Kargo</span><span>' + shipping + '</span></div>';
             }
             html += '<div class="row-total final"><span>Genel Toplam</span><span>' + total + '</span></div>';
