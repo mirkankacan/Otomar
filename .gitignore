@@ -372,3 +372,4 @@ FodyWeavers.xsd
 # Foto klasörü
 Foto/
 **/Foto/
+/App/Otomar.WebApp/wwwroot/ListSearch/OTOMAR-4A600000
