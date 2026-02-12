@@ -1,12 +1,423 @@
-﻿@{
+@using Otomar.WebApp.Models
+@{
     ViewData["Title"] = "Liste Sorgular";
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
     {
         new("Ana Sayfa", "/ana-sayfa"),
-        new(ViewData["Title"] as string, null),
-
+        new(ViewData["Title"] as string ?? "Liste Sorgular", null)
     };
 }
+@section Styles {
+    <style>
+        .account__wrapper { width: 100% !important; }
+        #listsearches-scroll-sentinel { height: 1px; visibility: hidden; }
 
-<h1>Index</h1>
+        .listsearch-page__list { list-style: none; padding: 0; margin: 0; }
+        .listsearch-page__list__item { margin-bottom: 1.25rem; }
+
+        .order-row {
+            background: var(--body-background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        .order-row:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+        .order-row--expanded { box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); }
+
+        .order-row__summary {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem 2.5rem;
+            padding: 1.25rem 1.75rem;
+            cursor: pointer;
+            user-select: none;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .order-row__summary:focus-visible { box-shadow: inset 0 0 0 2px var(--secondary-color); }
+
+        .order-row__summary__cell {
+            font-size: 1.5rem;
+            color: var(--foreground-color);
+        }
+        .order-row__summary__cell--label {
+            color: var(--foreground-sub-color);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .order-row__summary__cell b { font-weight: var(--headings-weight); }
+
+        .order-row__summary__toggle {
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        .order-row__summary__toggle__icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+        }
+        .order-row__summary__toggle__icon svg {
+            width: 12px;
+            height: 12px;
+            transition: transform 0.3s ease;
+        }
+        .order-row--expanded .order-row__summary__toggle__icon svg { transform: rotate(180deg); }
+
+        .order-row__detail {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            padding: 0 1.75rem;
+            border-top: 1px solid transparent;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease, border-color 0.25s ease, padding 0.3s ease;
+        }
+        .order-row--expanded .order-row__detail {
+            max-height: 3000px;
+            opacity: 1;
+            padding: 0 1.75rem 1.75rem;
+            border-top-color: var(--border-color);
+        }
+        .order-row__detail__inner { padding-top: 2rem; }
+
+        .order-detail-section {
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .order-detail-section:last-of-type { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+        .order-detail-section-title {
+            font-size: 1.5rem;
+            font-weight: var(--headings-weight);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--foreground-sub-color);
+            margin-bottom: 1.15rem;
+        }
+        .order-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.15rem 1.75rem;
+        }
+        .order-detail-field { font-size: 1.3rem; }
+        .order-detail-field label {
+            display: block;
+            color: var(--foreground-sub-color);
+            font-size: 1.5rem;
+            margin-bottom: 0.35rem;
+        }
+        .order-detail-field span { font-weight: 500; color: var(--foreground-color); font-size: 1.3rem; }
+
+        .order-detail-items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .order-detail-items-table th,
+        .order-detail-items-table td {
+            padding: 0.9rem 1.2rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .order-detail-items-table th {
+            font-weight: var(--headings-weight);
+            font-size: 1.5rem;
+            color: var(--foreground-sub-color);
+            background: var(--bg-offwhite-color);
+        }
+        .order-detail-items-table td { font-size: 1.3rem; }
+
+        .listsearch-status-badge {
+            display: inline-block;
+            padding: 0.35rem 0.7rem;
+            border-radius: 8px;
+            font-size: 1.3rem;
+            font-weight: var(--headings-weight);
+        }
+        .listsearch-status-badge.beklemede {
+            background: rgba(255, 152, 0, 0.12);
+            color: #e65100;
+        }
+        .listsearch-status-badge.cevaplandi {
+            background: rgba(46, 125, 50, 0.12);
+            color: #2e7d32;
+        }
+
+        .btn-siparis-listsearch {
+            padding: 0.5rem 1rem;
+            font-size: 1.3rem;
+            border-radius: 10px;
+            background: var(--secondary-color);
+            color: var(--text-white-color);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-siparis-listsearch:hover {
+            opacity: 0.9;
+        }
+    </style>
+}
+<!-- my account section start -->
+<section class="my__account--section section--padding">
+    <div class="container">
+        <div class="my__account--section__inner border-radius-10 d-flex">
+            <div class="account__wrapper">
+                <div class="account__content">
+                    <h2 class="account__content--title h3 mb-20">Tüm Liste Sorgular</h2>
+                    <div class="account__table--area">
+                        <div id="listsearches-loading" class="text-center py-5 text-secondary">Liste sorguları yükleniyor...</div>
+                        <div id="listsearches-empty" class="text-center py-5 text-secondary" style="display: none;">Henüz liste sorgusu bulunmuyor.</div>
+                        <div class="orders-page__groups__item" id="listsearches-wrapper" style="display: none;">
+                            <ul class="listsearch-page__list" id="listsearches-list"></ul>
+                            <div id="listsearches-scroll-sentinel" aria-hidden="true"></div>
+                            <div id="listsearches-infinite-scroll-loader" class="text-center py-4" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Yükleniyor...</span>
+                                </div>
+                                <p class="mt-2 text-muted mb-0">Daha fazla kayıt yükleniyor...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- my account section end -->
+
+@section Scripts {
+    <script>
+        (function () {
+            var listsearchesCurrentPage = 0;
+            var listsearchesHasMore = true;
+            var listsearchesLoadingMore = false;
+            var LISTSEARCHES_PAGE_SIZE = 10;
+
+            function escapeHtml(s) {
+                if (s == null || s === '') return '';
+                return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            function val(t, key) {
+                if (!t) return '';
+                var v = t[key];
+                if (v !== undefined && v !== null) return String(v);
+                var pascal = key.charAt(0).toUpperCase() + key.slice(1).replace(/_([a-z])/g, function (_, c) { return c.toUpperCase(); });
+                return t[pascal] !== undefined && t[pascal] !== null ? String(t[pascal]) : '';
+            }
+
+            function formatDate(createdAt) {
+                if (!createdAt) return '';
+                var d = new Date(createdAt);
+                if (isNaN(d.getTime())) return escapeHtml(createdAt);
+                var day = ('0' + d.getDate()).slice(-2);
+                var month = ('0' + (d.getMonth() + 1)).slice(-2);
+                var year = d.getFullYear();
+                return day + '.' + month + '.' + year;
+            }
+
+            function statusText(status) {
+                if (status === 0 || (typeof status === 'string' && status.toLowerCase() === 'notanswered')) return 'Beklemede';
+                if (status === 1 || (typeof status === 'string' && status.toLowerCase() === 'answered')) return 'Cevaplandı';
+                return escapeHtml(String(status));
+            }
+
+            function statusClass(status) {
+                if (status === 0 || (typeof status === 'string' && status.toLowerCase() === 'notanswered')) return 'beklemede';
+                if (status === 1 || (typeof status === 'string' && status.toLowerCase() === 'answered')) return 'cevaplandi';
+                return '';
+            }
+
+            function buildListSearchDetailHtml(row) {
+                var nameSurname = escapeHtml(val(row, 'nameSurname'));
+                var companyName = escapeHtml(val(row, 'companyName'));
+                var phoneNumber = escapeHtml(val(row, 'phoneNumber'));
+                var chassisNumber = escapeHtml(val(row, 'chassisNumber'));
+                var email = escapeHtml(val(row, 'email'));
+                var brand = escapeHtml(val(row, 'brand'));
+                var model = escapeHtml(val(row, 'model'));
+                var year = escapeHtml(val(row, 'year'));
+                var engine = escapeHtml(val(row, 'engine'));
+                var licensePlate = escapeHtml(val(row, 'licensePlate'));
+                var note = escapeHtml(val(row, 'note'));
+                var createdAt = formatDate(row.createdAt || row.CreatedAt);
+                var status = statusText(row.status !== undefined ? row.status : row.Status);
+
+                var html = '';
+                html += '<div class="order-detail-section">';
+                html += '<div class="order-detail-section-title">Talep Bilgileri</div>';
+                html += '<div class="order-detail-grid">';
+                html += '<div class="order-detail-field"><label>Ad Soyad</label><span>' + (nameSurname || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>Firma</label><span>' + (companyName || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>Telefon</label><span>' + (phoneNumber || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>E-posta</label><span>' + (email || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>Marka</label><span>' + (brand || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>Model</label><span>' + (model || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>Versiyon</label><span>' + (year || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>Motor</label><span>' + (engine || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>Plaka</label><span>' + (licensePlate || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>Şasi No</label><span>' + (chassisNumber || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>Talep Tarihi</label><span>' + (createdAt || '—') + '</span></div>';
+                html += '<div class="order-detail-field"><label>Durum</label><span>' + status + '</span></div>';
+                if (note) html += '<div class="order-detail-field" style="grid-column: 1 / -1;"><label>Not</label><span>' + note + '</span></div>';
+                html += '</div></div>';
+
+                var parts = row.parts || row.Parts || [];
+                if (parts.length > 0) {
+                    html += '<div class="order-detail-section">';
+                    html += '<div class="order-detail-section-title">Parça Talepleri</div>';
+                    html += '<div class="table-responsive"><table class="order-detail-items-table">';
+                    html += '<thead><tr><th>Tanım</th><th>Not</th><th>Adet</th><th>Görseller</th></tr></thead><tbody>';
+                    for (var i = 0; i < parts.length; i++) {
+                        var p = parts[i];
+                        var def = escapeHtml(val(p, 'definition'));
+                        var pNote = escapeHtml(val(p, 'note'));
+                        var qty = p.quantity !== undefined ? p.quantity : (p.Quantity !== undefined ? p.Quantity : '—');
+                        var imgs = p.partImages || p.PartImages || [];
+                        var imgLinks = '';
+                        if (Array.isArray(imgs) && imgs.length > 0) {
+                            for (var j = 0; j < imgs.length; j++) {
+                                var u = typeof imgs[j] === 'string' ? imgs[j] : '';
+                                if (u) imgLinks += '<a href="' + escapeHtml(u) + '" target="_blank" rel="noopener">Görsel ' + (j + 1) + '</a> ';
+                            }
+                        }
+                        if (!imgLinks) imgLinks = '—';
+                        html += '<tr><td>' + (def || '—') + '</td><td>' + (pNote || '—') + '</td><td>' + qty + '</td><td>' + imgLinks + '</td></tr>';
+                    }
+                    html += '</tbody></table></div></div>';
+                }
+
+                return html;
+            }
+
+            function renderListSearchRows(items) {
+                if (!items || !items.length) return;
+                var chevronSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="12.355" height="8.394" viewBox="0 0 12.355 8.394"><path d="M15.138,8.59l-3.961,3.952L7.217,8.59,6,9.807l5.178,5.178,5.178-5.178Z" transform="translate(-6 -8.59)" fill="currentColor"/></svg>';
+                $.each(items, function (i, row) {
+                    var requestNo = escapeHtml(val(row, 'requestNo'));
+                    var licensePlate = escapeHtml(val(row, 'licensePlate') || '—');
+                    var brand = escapeHtml(val(row, 'brand'));
+                    var model = escapeHtml(val(row, 'model'));
+                    var year = escapeHtml(val(row, 'year'));
+                    var aracModel = [brand, model, year].filter(Boolean).join(' / ') || '—';
+                    var chassisNumber = escapeHtml(val(row, 'chassisNumber') || '—');
+                    var statusVal = row.status !== undefined ? row.status : row.Status;
+                    var status = statusText(statusVal);
+                    var statusCss = statusClass(statusVal);
+                    var createdAt = formatDate(row.createdAt || row.CreatedAt);
+                    var detailHtml = buildListSearchDetailHtml(row);
+
+                    var card = '<li class="listsearch-page__list__item">' +
+                        '<div class="order-row" role="button" tabindex="0" aria-expanded="false" aria-label="Talep ' + requestNo + '">' +
+                        '<div class="order-row__summary">' +
+                        '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Talep No</span><br><b>' + requestNo + '</b></div>' +
+                        '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Plaka</span><br><span>' + licensePlate + '</span></div>' +
+                        '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Araç / Model / Versiyon</span><br><span>' + aracModel + '</span></div>' +
+                        '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Şasi</span><br><span>' + chassisNumber + '</span></div>' +
+                        '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Talep Durumu</span><br><span class="listsearch-status-badge ' + statusCss + '">' + status + '</span></div>' +
+                        '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Talep Tarihi</span><br><span>' + createdAt + '</span></div>' +
+                        // '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Sipariş</span><br><button type="button" class="btn-siparis-listsearch" data-request-no="' + escapeHtml(requestNo) + '" onclick="event.stopPropagation();">Sipariş</button></div>' +
+                        '<div class="order-row__summary__toggle"><div class="order-row__summary__toggle__icon">' + chevronSvg + '</div></div>' +
+                        '</div>' +
+                        '<div class="order-row__detail" aria-hidden="true"><div class="order-row__detail__inner">' + detailHtml + '</div></div>' +
+                        '</div></li>';
+                    $('#listsearches-list').append(card);
+                });
+
+                $(document).off('click.listsearch', '.order-row__summary').on('click.listsearch', '.order-row__summary', function (e) {
+                    if ($(e.target).closest('.btn-siparis-listsearch').length) return;
+                    var $row = $(this).closest('.order-row');
+                    if (!$row.length) return;
+                    var expanded = $row.attr('aria-expanded') === 'true';
+                    $row.toggleClass('order-row--expanded').attr('aria-expanded', !expanded);
+                    $row.find('.order-row__detail').attr('aria-hidden', expanded);
+                });
+                $(document).off('keydown.listsearch', '.order-row').on('keydown.listsearch', '.order-row', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        $(this).find('.order-row__summary').trigger('click');
+                    }
+                });
+            }
+
+            async function loadMoreListSearches() {
+                if (listsearchesLoadingMore || !listsearchesHasMore) {
+                    $('#listsearches-infinite-scroll-loader').hide();
+                    return;
+                }
+                var nextPage = listsearchesCurrentPage + 1;
+                listsearchesLoadingMore = true;
+                $('#listsearches-infinite-scroll-loader').show();
+                try {
+                    var url = '/liste-sorgu/listele/paged?pageNumber=' + nextPage + '&pageSize=' + LISTSEARCHES_PAGE_SIZE;
+                    var response = await makeRequest(url, 'GET');
+                    var items = Array.isArray(response) ? response : (response.data || response.Data || []);
+                    if (Array.isArray(items) && items.length > 0) {
+                        renderListSearchRows(items);
+                        listsearchesCurrentPage = nextPage;
+                    }
+                    if (!items || items.length < LISTSEARCHES_PAGE_SIZE) listsearchesHasMore = false;
+                } catch (e) {
+                    listsearchesHasMore = false;
+                } finally {
+                    listsearchesLoadingMore = false;
+                    $('#listsearches-infinite-scroll-loader').hide();
+                }
+            }
+
+            function setupInfiniteScroll() {
+                var sentinel = document.getElementById('listsearches-scroll-sentinel');
+                if (!sentinel) return;
+                if (typeof IntersectionObserver === 'undefined') {
+                    $(window).on('scroll.listsearchesInfinite', function () {
+                        if (listsearchesLoadingMore || !listsearchesHasMore) return;
+                        var rect = sentinel.getBoundingClientRect();
+                        if (rect.top <= window.innerHeight) void loadMoreListSearches();
+                    });
+                    return;
+                }
+                var observer = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        if (listsearchesLoadingMore || !listsearchesHasMore) return;
+                        void loadMoreListSearches();
+                    });
+                }, { root: null, rootMargin: '0px', threshold: 0 });
+                observer.observe(sentinel);
+            }
+
+            async function loadFirstPage() {
+                try {
+                    var url = '/liste-sorgu/listele/paged?pageNumber=1&pageSize=' + LISTSEARCHES_PAGE_SIZE;
+                    var response = await makeRequest(url, 'GET');
+                    var items = Array.isArray(response) ? response : (response.data || response.Data || []);
+
+                    $('#listsearches-loading').hide();
+                    if (!items || items.length === 0) {
+                        $('#listsearches-empty').show();
+                        return;
+                    }
+                    listsearchesCurrentPage = 1;
+                    listsearchesHasMore = items.length >= LISTSEARCHES_PAGE_SIZE;
+                    $('#listsearches-wrapper').show();
+                    $('#listsearches-list').empty();
+                    renderListSearchRows(items);
+                    setupInfiniteScroll();
+                } catch (e) {
+                    $('#listsearches-loading').hide();
+                    $('#listsearches-empty').text('Liste sorguları yüklenirken bir hata oluştu.').show();
+                }
+            }
+
+            $(function () {
+                loadFirstPage();
+            });
+        })();
+    </script>
+}

@@ -4,7 +4,7 @@ namespace Otomar.Application.Dtos.ListSearch
 {
     public class ListSearchDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string NameSurname { get; set; }
         public string? CompanyName { get; set; }
         public string RequestNo { get; set; }
@@ -21,6 +21,6 @@ namespace Otomar.Application.Dtos.ListSearch
         public DateTime CreatedAt { get; set; }
         public ListSearchStatus Status { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public IEnumerable<ListSearchPartDto> Parts { get; set; } = Enumerable.Empty<ListSearchPartDto>();
+        public List<ListSearchPartDto> Parts { get; set; } = new();
     }
 }

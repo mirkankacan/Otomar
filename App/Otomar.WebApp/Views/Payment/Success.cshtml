@@ -1,7 +1,7 @@
 @model Otomar.WebApp.Dtos.Order.OrderDto
 @using System.Globalization
 @{
-    ViewData["Title"] = "Ödeme Başarılı";
+
     Layout = "~/Views/Shared/_PaymentLayout.cshtml";
     var culture = new CultureInfo("tr-TR");
     var customerName = Model.BillingAddress?.Name ?? Model.ShippingAddress?.Name ?? "Müşteri";
@@ -143,10 +143,9 @@
                     {
                         <h2 class="thankyou-card-title">Siparişiniz onaylandı</h2>
                         <p class="thankyou-address mb-0">
-                      
+
                                 <text> Siparişinizi aldık ve hazırlıyoruz. </text>
-                            
-                            
+
                             @if (!string.IsNullOrEmpty(Model.Email))
                             {
 
@@ -163,10 +162,9 @@
                         <h2 class="thankyou-card-title">Ödemeniz onaylandı</h2>
                         <text> Sanal POS ödemenizi aldık. </text>
                     }
-            
+
                 </div>
 
-            
                 @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
                 {
 

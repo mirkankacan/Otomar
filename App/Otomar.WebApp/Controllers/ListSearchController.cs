@@ -99,6 +99,12 @@ namespace Otomar.WebApp.Controllers
             return await listSearchApi.GetListSearchesAsync(cancellationToken).ToActionResultAsync();
         }
 
+        [HttpGet("listele/paged")]
+        public async Task<IActionResult> GetListSearchesPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+        {
+            return await listSearchApi.GetListSearchesPagedAsync(pageNumber, pageSize, cancellationToken).ToActionResultAsync();
+        }
+
         [HttpGet("kullanici/{userId}")]
         public async Task<IActionResult> GetListSearchesByUser(string userId, CancellationToken cancellationToken = default)
         {

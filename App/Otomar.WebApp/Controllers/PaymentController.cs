@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Payment;
+using Otomar.WebApp.Enums;
 using Otomar.WebApp.Services.Refit;
 using Refit;
 using System.Text.Json;
@@ -102,6 +103,21 @@ namespace Otomar.WebApp.Controllers
                     {
                         return Redirect($"/odeme/basarisiz/{orderCode}");
                     }
+                    switch (order.OrderType)
+                    {
+                        case OrderType.VirtualPOS:
+                            ViewData["Title"] = "Ödeme Başarılı";
+                            break;
+
+                        case OrderType.Purchase:
+                            ViewData[index: "Title"] = "Sipariş Başarılı";
+                            break;
+
+                        default:
+                            ViewData[index: "Title"] = "Sipariş Başarılı";
+                            break;
+                    }
+
                     return View(order);
                 }
             }
@@ -124,6 +140,20 @@ namespace Otomar.WebApp.Controllers
                         if (order.Payment.BankProcReturnCode == "00")
                         {
                             return Redirect($"/odeme/basarili/{orderCode}");
+                        }
+                        switch (order.OrderType)
+                        {
+                            case OrderType.VirtualPOS:
+                                ViewData["Title"] = "Ödeme Başarısız";
+                                break;
+
+                            case OrderType.Purchase:
+                                ViewData[index: "Title"] = "Sipariş Başarısız";
+                                break;
+
+                            default:
+                                ViewData[index: "Title"] = "Sipariş Başarısız";
+                                break;
                         }
                         return View(order);
                     }

@@ -9,6 +9,8 @@ namespace Otomar.Application.Contracts.Services
 
         Task<ServiceResult<IEnumerable<ListSearchDto>>> GetListSearchesAsync();
 
+        Task<ServiceResult<IEnumerable<ListSearchDto>>> GetListSearchesAsync(int pageNumber, int pageSize);
+
         Task<ServiceResult<IEnumerable<ListSearchDto>>> GetListSearchesByUserAsync(string userId);
 
         Task<ServiceResult<ListSearchDto>> GetListSearchByRequestNoAsync(string requestNo);

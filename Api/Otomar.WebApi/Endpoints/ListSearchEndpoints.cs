@@ -25,12 +25,18 @@ namespace Otomar.WebApi.Endpoints
             .Accepts<CreateListSearchDto>("multipart/form-data")
             .DisableAntiforgery();
 
+            group.MapGet("/paged", async ([FromServices] IListSearchService listSearchService, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10) =>
+            {
+                var result = await listSearchService.GetListSearchesAsync(pageNumber, pageSize);
+                return result.ToGenericResult();
+            })
+            .WithName("GetListSearchesPaged");
             group.MapGet("/", async ([FromServices] IListSearchService listSearchService) =>
             {
                 var result = await listSearchService.GetListSearchesAsync();
                 return result.ToGenericResult();
             })
-            .WithName("GetListSearches");
+           .WithName("GetListSearches");
 
             group.MapGet("/user/{userId}", async (string userId, [FromServices] IListSearchService listSearchService) =>
             {

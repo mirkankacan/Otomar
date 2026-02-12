@@ -11,6 +11,9 @@ namespace Otomar.WebApp.Services.Refit
         [Get("/api/listsearches")]
         Task<IEnumerable<ListSearchDto>> GetListSearchesAsync(CancellationToken cancellationToken = default);
 
+        [Get("/api/listsearches/paged")]
+        Task<IEnumerable<ListSearchDto>> GetListSearchesPagedAsync([Query] int pageNumber, [Query] int pageSize, CancellationToken cancellationToken = default);
+
         [Get("/api/listsearches/user/{userId}")]
         Task<IEnumerable<ListSearchDto>> GetListSearchesByUserAsync(string userId, CancellationToken cancellationToken = default);
 

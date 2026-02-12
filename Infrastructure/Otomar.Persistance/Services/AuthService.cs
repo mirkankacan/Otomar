@@ -16,7 +16,6 @@ namespace Otomar.Persistance.Services
         IJwtProvider jwtProvider,
         IHttpContextAccessor httpContextAccessor) : IAuthService
     {
-
         public async Task<ServiceResult<TokenDto>> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken = default)
         {
             try
@@ -220,7 +219,10 @@ namespace Otomar.Persistance.Services
                         "Refresh token'ın süresi dolmuş. Lütfen tekrar giriş yapın.",
                         HttpStatusCode.Unauthorized);
                 }
-
+                // ESKİ REFRESH TOKEN'I GEÇERSİZ KIL (Rotating Refresh Token Pattern)
+                user.RefreshToken = null; // Geçici olarak null yap
+                user.RefreshTokenExpires = null; // Geçici olarak null yap
+                await userManager.UpdateAsync(user);
                 var tokenResult = await jwtProvider.CreateTokenAsync(user);
                 return tokenResult;
             }
@@ -239,7 +241,7 @@ namespace Otomar.Persistance.Services
             {
                 // ResetPasswordDto henüz implement edilmemiş, placeholder olarak bırakıldı
                 // İleride email ile şifre sıfırlama token'ı gönderilmesi ve yeni şifre belirlenmesi için kullanılacak
-                
+
                 return ServiceResult<bool>.Error(
                     "Henüz Implement Edilmedi",
                     "Şifre sıfırlama özelliği henüz implement edilmemiştir",

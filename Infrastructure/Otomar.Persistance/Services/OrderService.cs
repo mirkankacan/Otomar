@@ -22,14 +22,17 @@ namespace Otomar.Persistance.Services
 
             try
             {
+                if (!identityService.IsUserPaymentExempt())
+                {
+                    return ServiceResult<Guid>.Error(title: "Yetki Hatası", "Bu işlemi gerçekleştirmek için yetkiniz yok.", HttpStatusCode.Forbidden);
+                }
                 var orderId = NewId.NextGuid();
-                //var createdBy = identityService.GetUserId();
-                var createdBy = "test";
+                var createdBy = identityService.GetUserId();
 
                 var cart = await cartService.GetCartAsync(cancellationToken);
                 if (!cart.IsSuccess || cart.Data == null)
                 {
-                    return ServiceResult<Guid>.Error("Sepet Bulunamadı", "Cari sipariş oluşturma işlemi tamamlanamadı sepet bulunamadı.", HttpStatusCode.BadRequest);
+                    return ServiceResult<Guid>.Error(title: "Sepet Bulunamadı", "Cari sipariş oluşturma işlemi tamamlanamadı sepet bulunamadı.", HttpStatusCode.BadRequest);
                 }
                 var subTotalAmount = cart.Data.Items.Sum(item => item.UnitPrice * item.Quantity);
                 var totalAmount = subTotalAmount;

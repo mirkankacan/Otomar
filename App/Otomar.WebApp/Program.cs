@@ -45,6 +45,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.SlidingExpiration = true;
         options.LoginPath = "/giris-yap";
         options.LogoutPath = "/cikis-yap";
+        options.AccessDeniedPath = "/erisim-engellendi";
     });
 builder.Services.AddAuthorization();
 
@@ -81,11 +82,6 @@ app.UseHttpsRedirection();
 //    }
 //});
 
-app.Use(async (context, next) =>
-{
-    context.Request.EnableBuffering();
-    await next();
-});
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>

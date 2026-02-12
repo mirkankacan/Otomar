@@ -8,5 +8,6 @@ namespace Otomar.WebApp.Dtos.ListSearch
         public string? Note { get; set; }
         public int Quantity { get; set; }
         public List<string> PartImages { get; set; }
+        public ListSearchAnswerDto? Answer { get; set; }
     }
 }

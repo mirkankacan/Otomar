@@ -1,7 +1,6 @@
 @model Otomar.WebApp.Dtos.Order.OrderDto?
 @using System.Globalization
 @{
-    ViewData["Title"] = "Ödeme Başarısız";
     Layout = "~/Views/Shared/_PaymentLayout.cshtml";
     var culture = new CultureInfo("tr-TR");
     var customerName = Model?.BillingAddress?.Name ?? Model?.ShippingAddress?.Name ?? "Müşteri";
@@ -185,9 +184,9 @@ else
                                     <br />
                                     Bankadan dönen hata mesajı: @Model.Payment.BankErrMsg
                                 </p>
-                                
+
                             }
-                        
+
                         }
                         else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
                         {

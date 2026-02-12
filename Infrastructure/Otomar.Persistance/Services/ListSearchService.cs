@@ -81,8 +81,8 @@ namespace Otomar.Persistance.Services
                 foreach (var part in partsToAdd)
                 {
                     var partQuery = @"
-                INSERT INTO IdtListSearchParts(ListSearchId, Definition, Quantity, PartImages)
-                VALUES (@ListSearchId, @Definition, @Quantity, @PartImages);";
+                INSERT INTO IdtListSearchParts(ListSearchId, Definition, Quantity, Note, PartImages)
+                VALUES (@ListSearchId, @Definition, @Quantity,@Note, @PartImages);";
 
                     var partParameters = new DynamicParameters();
                     partParameters.Add("ListSearchId", id);
@@ -117,59 +117,54 @@ namespace Otomar.Persistance.Services
         {
             try
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("id", id);
-                string query = @"
-                SELECT TOP 1
-                   ILS.*,
-                    ILSP.Id as PartId,
-                    ILSP.ListSearchId,
-                    ILSP.Definition,
-                    ILSP.Quantity,
-                    ILSP.PartImages,
-                    ILSP.Note as ItemNote
-                FROM IdtListSearches ILS WITH (NOLOCK)
-                INNER JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
-                WHERE ILS.Id = @id;";
+                var listSearchQuery = @"
+                    SELECT *
+                    FROM IdtListSearches WITH (NOLOCK)
+                    WHERE Id = @id;";
+                var listSearchRow = await context.Connection.QueryFirstOrDefaultAsync<dynamic>(listSearchQuery, new { id });
 
-                var rows = await context.Connection.QueryAsync(query, parameters);
-                var rowList = rows.ToList();
-
-                if (!rowList.Any())
+                if (listSearchRow == null)
                 {
                     logger.LogWarning($"{id} ID'li liste sorgusu bulunamadı");
                     return ServiceResult<ListSearchDto>.Error("Liste Sorgusu Bulunamadı", $"{id} ID'li liste sorgusu bulunamadı", HttpStatusCode.NotFound);
                 }
 
-                var firstRow = rowList.First();
+                var partsQuery = @"
+                    SELECT Id as PartId, ListSearchId, Definition, Quantity, PartImages, Note as ItemNote
+                    FROM IdtListSearchParts WITH (NOLOCK)
+                    WHERE ListSearchId = @ListSearchId;";
+                var parts = await context.Connection.QueryAsync<dynamic>(partsQuery, new { ListSearchId = id });
+                var partsList = parts.ToList();
+
                 var listSearch = new ListSearchDto
                 {
-                    Id = firstRow.Id,
-                    RequestNo = firstRow.RequestNo,
-                    NameSurname = firstRow.NameSurname,
-                    CompanyName = firstRow.CompanyName,
-                    PhoneNumber = firstRow.PhoneNumber,
-                    ChassisNumber = firstRow.ChassisNumber,
-                    Email = firstRow.Email,
-                    Brand = firstRow.Brand,
-                    Model = firstRow.Model,
-                    Year = firstRow.Year,
-                    Engine = firstRow.Engine,
-                    LicensePlate = firstRow.LicensePlate,
-                    Note = firstRow.Note,
-                    CreatedAt = firstRow.CreatedAt,
-                    Status = (ListSearchStatus)firstRow.Status,
-                    UpdatedAt = firstRow.UpdatedAt,
-                    Parts = rowList
-                        .Where(r => !Convert.IsDBNull(r.PartId) && r.PartId != null)
-                        .Select(r => new ListSearchPartDto
+                    Id = listSearchRow.Id,
+                    RequestNo = listSearchRow.RequestNo,
+                    NameSurname = listSearchRow.NameSurname,
+                    CompanyName = listSearchRow.CompanyName,
+                    PhoneNumber = listSearchRow.PhoneNumber,
+                    ChassisNumber = listSearchRow.ChassisNumber,
+                    Email = listSearchRow.Email,
+                    Brand = listSearchRow.Brand,
+                    Model = listSearchRow.Model,
+                    Year = listSearchRow.Year,
+                    Engine = listSearchRow.Engine,
+                    LicensePlate = listSearchRow.LicensePlate,
+                    Note = listSearchRow.Note,
+                    CreatedAt = listSearchRow.CreatedAt,
+                    Status = (ListSearchStatus)listSearchRow.Status,
+                    UpdatedAt = listSearchRow.UpdatedAt,
+                    Parts = partsList
+                        .Select(p => new ListSearchPartDto
                         {
-                            Id = r.PartId,
-                            ListSearchId = r.ListSearchId,
-                            Definition = r.Definition,
-                            Quantity = r.Quantity,
-                            Note = r.ItemNote,
-                            PartImages = string.IsNullOrEmpty(r.PartImages) ? new List<string>() : r.PartImages.Split(',').ToList()
+                            Id = p.PartId,
+                            ListSearchId = p.ListSearchId,
+                            Definition = p.Definition,
+                            Quantity = p.Quantity,
+                            Note = p.ItemNote,
+                            PartImages = string.IsNullOrEmpty(p.PartImages as string)
+                                ? new List<string>()
+                                : new List<string>((p.PartImages as string)!.Split(',', StringSplitOptions.RemoveEmptyEntries))
                         })
                         .ToList()
                 };
@@ -190,58 +185,56 @@ namespace Otomar.Persistance.Services
                 {
                     return ServiceResult<ListSearchDto>.Error("İstek No Boş", "İstek numarası boş geçilemez", HttpStatusCode.BadRequest);
                 }
-                var parameters = new DynamicParameters();
-                parameters.Add("requestNo", requestNo);
-                string query = @"
-                SELECT TOP 1
-                   ILS.*,
-                    ILSP.Id as PartId,
-                    ILSP.ListSearchId,
-                    ILSP.Definition,
-                    ILSP.Quantity,
-                    ILSP.PartImages,
-                    ILSP.Note as ItemNote
-                FROM IdtListSearches ILS WITH (NOLOCK)
-                INNER JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
-                WHERE ILS.RequestNo = @requestNo;";
 
-                var rows = await context.Connection.QueryAsync(query, parameters);
-                var rowList = rows.ToList();
+                var listSearchQuery = @"
+                    SELECT *
+                    FROM IdtListSearches WITH (NOLOCK)
+                    WHERE RequestNo = @requestNo;";
+                var listSearchRow = await context.Connection.QueryFirstOrDefaultAsync<dynamic>(listSearchQuery, new { requestNo });
 
-                if (!rowList.Any())
+                if (listSearchRow == null)
                 {
                     logger.LogWarning($"{requestNo} istek numaralı liste sorgusu bulunamadı");
                     return ServiceResult<ListSearchDto>.Error("Liste Sorgusu Bulunamadı", $"{requestNo} istek numaralı liste sorgusu bulunamadı", HttpStatusCode.NotFound);
                 }
 
-                var firstRow = rowList.First();
+                var listSearchId = (Guid)listSearchRow.Id;
+                var partsQuery = @"
+                    SELECT Id as PartId, ListSearchId, Definition, Quantity, PartImages, Note as ItemNote
+                    FROM IdtListSearchParts WITH (NOLOCK)
+                    WHERE ListSearchId = @ListSearchId;";
+                var parts = await context.Connection.QueryAsync<dynamic>(partsQuery, new { ListSearchId = listSearchId });
+                var partsList = parts.ToList();
+
                 var listSearch = new ListSearchDto
                 {
-                    Id = firstRow.Id,
-                    RequestNo = firstRow.RequestNo,
-                    NameSurname = firstRow.NameSurname,
-                    CompanyName = firstRow.CompanyName,
-                    PhoneNumber = firstRow.PhoneNumber,
-                    ChassisNumber = firstRow.ChassisNumber,
-                    Email = firstRow.Email,
-                    Brand = firstRow.Brand,
-                    Model = firstRow.Model,
-                    Year = firstRow.Year,
-                    Engine = firstRow.Engine,
-                    LicensePlate = firstRow.LicensePlate,
-                    Note = firstRow.Note,
-                    CreatedAt = firstRow.CreatedAt,
-                    Status = (ListSearchStatus)firstRow.Status,
-                    UpdatedAt = firstRow.UpdatedAt,
-                    Parts = rowList
-                        .Where(r => !Convert.IsDBNull(r.PartId) && r.PartId != null)
-                        .Select(r => new ListSearchPartDto
+                    Id = listSearchRow.Id,
+                    RequestNo = listSearchRow.RequestNo,
+                    NameSurname = listSearchRow.NameSurname,
+                    CompanyName = listSearchRow.CompanyName,
+                    PhoneNumber = listSearchRow.PhoneNumber,
+                    ChassisNumber = listSearchRow.ChassisNumber,
+                    Email = listSearchRow.Email,
+                    Brand = listSearchRow.Brand,
+                    Model = listSearchRow.Model,
+                    Year = listSearchRow.Year,
+                    Engine = listSearchRow.Engine,
+                    LicensePlate = listSearchRow.LicensePlate,
+                    Note = listSearchRow.Note,
+                    CreatedAt = listSearchRow.CreatedAt,
+                    Status = (ListSearchStatus)listSearchRow.Status,
+                    UpdatedAt = listSearchRow.UpdatedAt,
+                    Parts = partsList
+                        .Select(p => new ListSearchPartDto
                         {
-                            Id = r.PartId,
-                            ListSearchId = r.ListSearchId,
-                            Definition = r.Definition,
-                            Quantity = r.Quantity,
-                            PartImages = string.IsNullOrEmpty(r.PartImages) ? new List<string>() : r.PartImages.Split(',').ToList()
+                            Id = p.PartId,
+                            ListSearchId = p.ListSearchId,
+                            Definition = p.Definition,
+                            Quantity = p.Quantity,
+                            Note = p.ItemNote,
+                            PartImages = string.IsNullOrEmpty(p.PartImages as string)
+                                ? new List<string>()
+                                : new List<string>((p.PartImages as string)!.Split(',', StringSplitOptions.RemoveEmptyEntries))
                         })
                         .ToList()
                 };
@@ -254,75 +247,187 @@ namespace Otomar.Persistance.Services
             }
         }
 
+        public async Task<ServiceResult<IEnumerable<ListSearchDto>>> GetListSearchesAsync(int pageNumber, int pageSize)
+        {
+            try
+            {
+                if (pageNumber < 1) pageNumber = 1;
+                if (pageSize < 1) pageSize = 10;
+                if (pageSize > 100) pageSize = 100;
+
+                var parameters = new DynamicParameters();
+                parameters.Add("offset", (pageNumber - 1) * pageSize);
+                parameters.Add("pageSize", pageSize);
+
+                // 1. Önce ListSearches kayıtlarını çek
+                string listSearchQuery = @"
+            SELECT *
+            FROM IdtListSearches WITH (NOLOCK)
+            ORDER BY CreatedAt DESC
+            OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;";
+
+                var listSearches = await context.Connection.QueryAsync<dynamic>(listSearchQuery, parameters);
+                var listSearchList = listSearches.ToList();
+
+                if (!listSearchList.Any())
+                {
+                    logger.LogWarning($"Liste sorguları bulunamadı. PageNumber: {pageNumber}, PageSize: {pageSize}");
+                    return ServiceResult<IEnumerable<ListSearchDto>>.SuccessAsOk(Enumerable.Empty<ListSearchDto>());
+                }
+
+                // 2. ListSearch Id'lerini topla
+                var listSearchIds = listSearchList.Select(ls => (Guid)ls.Id).ToList();
+
+                // 3. Bu Id'lere ait Part'ları çek
+                string partsQuery = @"
+            SELECT 
+                Id as PartId,
+                ListSearchId,
+                Definition,
+                Quantity,
+                PartImages,
+                Note as ItemNote
+            FROM IdtListSearchParts WITH (NOLOCK)
+            WHERE ListSearchId IN @ListSearchIds
+            ORDER BY ListSearchId;";
+
+                var parts = await context.Connection.QueryAsync<dynamic>(partsQuery, new { ListSearchIds = listSearchIds });
+                var partsList = parts.ToList();
+
+                // 4. Part'ları ListSearchId'ye göre grupla
+                var partsGrouped = partsList
+                    .GroupBy(p => (Guid)p.ListSearchId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                // 5. DTO'ları oluştur
+                var result = new List<ListSearchDto>();
+
+                foreach (var row in listSearchList)
+                {
+                    var listSearchDto = new ListSearchDto
+                    {
+                        Id = row.Id,
+                        RequestNo = row.RequestNo,
+                        NameSurname = row.NameSurname,
+                        CompanyName = row.CompanyName,
+                        PhoneNumber = row.PhoneNumber,
+                        ChassisNumber = row.ChassisNumber,
+                        Email = row.Email,
+                        Brand = row.Brand,
+                        Model = row.Model,
+                        Year = row.Year,
+                        Engine = row.Engine,
+                        LicensePlate = row.LicensePlate,
+                        Note = row.Note,
+                        CreatedAt = row.CreatedAt,
+                        Status = (ListSearchStatus)row.Status,
+                        UpdatedAt = row.UpdatedAt,
+                        Parts = new List<ListSearchPartDto>()
+                    };
+
+                    // İlgili Part'ları ekle
+                    if (partsGrouped.ContainsKey(row.Id))
+                    {
+                        foreach (var part in partsGrouped[row.Id])
+                        {
+                            listSearchDto.Parts.Add(new ListSearchPartDto
+                            {
+                                Id = part.PartId,
+                                ListSearchId = part.ListSearchId,
+                                Definition = part.Definition,
+                                Quantity = part.Quantity,
+                                Note = part.ItemNote,
+                                PartImages = string.IsNullOrEmpty(part.PartImages as string)
+                                    ? new List<string>()
+                                    : new List<string>((part.PartImages as string)!.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                            });
+                        }
+                    }
+
+                    result.Add(listSearchDto);
+                }
+
+                logger.LogInformation($"Liste sorguları başarıyla getirildi. Count: {result.Count}, PageNumber: {pageNumber}");
+                return ServiceResult<IEnumerable<ListSearchDto>>.SuccessAsOk(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "GetListSearchesAsync işleminde hata. PageNumber: {PageNumber}, PageSize: {PageSize}", pageNumber, pageSize);
+                throw;
+            }
+        }
+
         public async Task<ServiceResult<IEnumerable<ListSearchDto>>> GetListSearchesAsync()
         {
             try
             {
-                string query = @"
-                SELECT
-                    ILS.*,
-                    ILSP.Id as PartId,
-                    ILSP.ListSearchId,
-                    ILSP.Definition,
-                    ILSP.Quantity,
-                    ILSP.PartImages,
-                    ILSP.Note as ItemNote
-                FROM IdtListSearches ILS WITH (NOLOCK)
-                INNER JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
-                ORDER BY ILS.CreatedAt DESC;";
+                var listSearchQuery = @"
+                    SELECT *
+                    FROM IdtListSearches WITH (NOLOCK)
+                    ORDER BY CreatedAt DESC;";
+                var listSearches = await context.Connection.QueryAsync<dynamic>(listSearchQuery);
+                var listSearchList = listSearches.ToList();
 
-                var rows = await context.Connection.QueryAsync(query);
-                var rowList = rows.ToList();
-
-                if (!rowList.Any())
+                if (!listSearchList.Any())
                 {
                     logger.LogWarning($"Liste sorguları bulunamadı");
                     return ServiceResult<IEnumerable<ListSearchDto>>.SuccessAsOk(Enumerable.Empty<ListSearchDto>());
                 }
 
-                var listSearchesDict = new Dictionary<Guid, ListSearchDto>();
-                foreach (var row in rowList)
+                var listSearchIds = listSearchList.Select(ls => (Guid)ls.Id).ToList();
+                var partsQuery = @"
+                    SELECT Id as PartId, ListSearchId, Definition, Quantity, PartImages, Note as ItemNote
+                    FROM IdtListSearchParts WITH (NOLOCK)
+                    WHERE ListSearchId IN @ListSearchIds
+                    ORDER BY ListSearchId;";
+                var parts = await context.Connection.QueryAsync<dynamic>(partsQuery, new { ListSearchIds = listSearchIds });
+                var partsList = parts.ToList();
+                var partsGrouped = partsList
+                    .GroupBy(p => (Guid)p.ListSearchId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var result = new List<ListSearchDto>();
+                foreach (var row in listSearchList)
                 {
-                    if (!listSearchesDict.ContainsKey(row.Id))
+                    var listSearchDto = new ListSearchDto
                     {
-                        var listSearch = new ListSearchDto
-                        {
-                            Id = row.Id,
-                            RequestNo = row.RequestNo,
-                            NameSurname = row.NameSurname,
-                            CompanyName = row.CompanyName,
-                            PhoneNumber = row.PhoneNumber,
-                            ChassisNumber = row.ChassisNumber,
-                            Email = row.Email,
-                            Brand = row.Brand,
-                            Model = row.Model,
-                            Year = row.Year,
-                            Engine = row.Engine,
-                            LicensePlate = row.LicensePlate,
-                            Note = row.Note,
-                            CreatedAt = row.CreatedAt,
-                            Status = (ListSearchStatus)row.Status,
-                            UpdatedAt = row.UpdatedAt,
-                            Parts = new List<ListSearchPartDto>()
-                        };
-
-                        listSearchesDict[row.Id] = listSearch;
-                    }
-
-                    if (!Convert.IsDBNull(row.PartId) && row.PartId != null)
+                        Id = row.Id,
+                        RequestNo = row.RequestNo,
+                        NameSurname = row.NameSurname,
+                        CompanyName = row.CompanyName,
+                        PhoneNumber = row.PhoneNumber,
+                        ChassisNumber = row.ChassisNumber,
+                        Email = row.Email,
+                        Brand = row.Brand,
+                        Model = row.Model,
+                        Year = row.Year,
+                        Engine = row.Engine,
+                        LicensePlate = row.LicensePlate,
+                        Note = row.Note,
+                        CreatedAt = row.CreatedAt,
+                        Status = (ListSearchStatus)row.Status,
+                        UpdatedAt = row.UpdatedAt,
+                        Parts = new List<ListSearchPartDto>()
+                    };
+                    if (partsGrouped.ContainsKey(row.Id))
                     {
-                        ((List<ListSearchPartDto>)listSearchesDict[row.Id].Parts).Add(new ListSearchPartDto
+                        foreach (var part in partsGrouped[row.Id])
                         {
-                            Id = row.PartId,
-                            ListSearchId = row.ListSearchId,
-                            Definition = row.Definition,
-                            Quantity = row.Quantity,
-                            PartImages = string.IsNullOrEmpty(row.PartImages) ? new List<string>() : row.PartImages.Split(',').ToList()
-                        });
+                            listSearchDto.Parts.Add(new ListSearchPartDto
+                            {
+                                Id = part.PartId,
+                                ListSearchId = part.ListSearchId,
+                                Definition = part.Definition,
+                                Quantity = part.Quantity,
+                                Note = part.ItemNote,
+                                PartImages = string.IsNullOrEmpty(part.PartImages as string)
+                                    ? new List<string>()
+                                    : new List<string>((part.PartImages as string)!.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                            });
+                        }
                     }
+                    result.Add(listSearchDto);
                 }
-
-                var result = listSearchesDict.Values.ToList();
                 return ServiceResult<IEnumerable<ListSearchDto>>.SuccessAsOk(result);
             }
             catch (Exception ex)
@@ -341,75 +446,74 @@ namespace Otomar.Persistance.Services
                     return ServiceResult<IEnumerable<ListSearchDto>>.Error("Geçersiz Kullanıcı ID'si", "Kullanıcı ID'si boş geçilemez", HttpStatusCode.BadRequest);
                 }
 
-                var parameters = new DynamicParameters();
-                parameters.Add("userId", userId);
+                var listSearchQuery = @"
+                    SELECT *
+                    FROM IdtListSearches WITH (NOLOCK)
+                    WHERE CreatedBy = @userId
+                    ORDER BY CreatedAt DESC;";
+                var listSearches = await context.Connection.QueryAsync<dynamic>(listSearchQuery, new { userId });
+                var listSearchList = listSearches.ToList();
 
-                string query = @"
-                SELECT
-                    ILS.*,
-                    ILSP.Id as PartId,
-                    ILSP.ListSearchId,
-                    ILSP.Definition,
-                    ILSP.Quantity,
-                    ILSP.PartImages,
-                    ILSP.Note as ItemNote
-                FROM IdtListSearches ILS WITH (NOLOCK)
-                INNER JOIN IdtListSearchParts ILSP ON ILS.Id = ILSP.ListSearchId
-                WHERE ILS.CreatedBy = @userId
-                ORDER BY ILS.CreatedAt DESC;";
-
-                var rows = await context.Connection.QueryAsync(query, parameters);
-                var rowList = rows.ToList();
-
-                if (!rowList.Any())
+                if (!listSearchList.Any())
                 {
                     logger.LogWarning($"{userId} ID'li kullanıcının liste sorguları bulunamadı");
                     return ServiceResult<IEnumerable<ListSearchDto>>.SuccessAsOk(Enumerable.Empty<ListSearchDto>());
                 }
 
-                var listSearchesDict = new Dictionary<Guid, ListSearchDto>();
-                foreach (var row in rowList)
+                var listSearchIds = listSearchList.Select(ls => (Guid)ls.Id).ToList();
+                var partsQuery = @"
+                    SELECT Id as PartId, ListSearchId, Definition, Quantity, PartImages, Note as ItemNote
+                    FROM IdtListSearchParts WITH (NOLOCK)
+                    WHERE ListSearchId IN @ListSearchIds
+                    ORDER BY ListSearchId;";
+                var parts = await context.Connection.QueryAsync<dynamic>(partsQuery, new { ListSearchIds = listSearchIds });
+                var partsList = parts.ToList();
+                var partsGrouped = partsList
+                    .GroupBy(p => (Guid)p.ListSearchId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var result = new List<ListSearchDto>();
+                foreach (var row in listSearchList)
                 {
-                    if (!listSearchesDict.ContainsKey(row.Id))
+                    var listSearchDto = new ListSearchDto
                     {
-                        var listSearch = new ListSearchDto
-                        {
-                            Id = row.Id,
-                            RequestNo = row.RequestNo,
-                            NameSurname = row.NameSurname,
-                            CompanyName = row.CompanyName,
-                            PhoneNumber = row.PhoneNumber,
-                            ChassisNumber = row.ChassisNumber,
-                            Email = row.Email,
-                            Brand = row.Brand,
-                            Model = row.Model,
-                            Year = row.Year,
-                            Engine = row.Engine,
-                            LicensePlate = row.LicensePlate,
-                            Note = row.Note,
-                            CreatedAt = row.CreatedAt,
-                            Status = (ListSearchStatus)row.Status,
-                            UpdatedAt = row.UpdatedAt,
-                            Parts = new List<ListSearchPartDto>()
-                        };
-
-                        listSearchesDict[row.Id] = listSearch;
-                    }
-
-                    if (!Convert.IsDBNull(row.PartId) && row.PartId != null)
+                        Id = row.Id,
+                        RequestNo = row.RequestNo,
+                        NameSurname = row.NameSurname,
+                        CompanyName = row.CompanyName,
+                        PhoneNumber = row.PhoneNumber,
+                        ChassisNumber = row.ChassisNumber,
+                        Email = row.Email,
+                        Brand = row.Brand,
+                        Model = row.Model,
+                        Year = row.Year,
+                        Engine = row.Engine,
+                        LicensePlate = row.LicensePlate,
+                        Note = row.Note,
+                        CreatedAt = row.CreatedAt,
+                        Status = (ListSearchStatus)row.Status,
+                        UpdatedAt = row.UpdatedAt,
+                        Parts = new List<ListSearchPartDto>()
+                    };
+                    if (partsGrouped.ContainsKey(row.Id))
                     {
-                        ((List<ListSearchPartDto>)listSearchesDict[row.Id].Parts).Add(new ListSearchPartDto
+                        foreach (var part in partsGrouped[row.Id])
                         {
-                            Id = row.PartId,
-                            ListSearchId = row.ListSearchId,
-                            Definition = row.Definition,
-                            Quantity = row.Quantity,
-                            PartImages = string.IsNullOrEmpty(row.PartImages) ? new List<string>() : row.PartImages.Split(',').ToList()
-                        });
+                            listSearchDto.Parts.Add(new ListSearchPartDto
+                            {
+                                Id = part.PartId,
+                                ListSearchId = part.ListSearchId,
+                                Definition = part.Definition,
+                                Quantity = part.Quantity,
+                                Note = part.ItemNote,
+                                PartImages = string.IsNullOrEmpty(part.PartImages as string)
+                                    ? new List<string>()
+                                    : new List<string>((part.PartImages as string)!.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                            });
+                        }
                     }
+                    result.Add(listSearchDto);
                 }
-
-                var result = listSearchesDict.Values.ToList();
                 return ServiceResult<IEnumerable<ListSearchDto>>.SuccessAsOk(result);
             }
             catch (Exception ex)
