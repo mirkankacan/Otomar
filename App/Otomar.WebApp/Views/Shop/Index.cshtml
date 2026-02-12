@@ -20,8 +20,8 @@
 
     if (metaParts.Count > 0)
     {
-        ViewData["Title"] = string.Join(" ", metaParts) + " Yedek Parça";
-        ViewData["MetaDescription"] = $"{string.Join(" ", metaParts)} yedek parça ürünleri OTOMAR'da. Orijinal ve yan sanayi parçalar uygun fiyatlarla.";
+        ViewData["Title"] = SlugHelper.ToTitle(string.Join(" ", metaParts)) + " Yedek Parça";
+        ViewData["MetaDescription"] = $"{SlugHelper.ToTitle(string.Join(" ", metaParts))} yedek parça ürünleri OTOMAR'da. Orijinal ve yan sanayi parçalar uygun fiyatlarla.";
     }
     else
     {
@@ -1487,7 +1487,7 @@
                     // Marka adı
                     const brandText = document.createElement('span');
                     brandText.className = 'widget__categories--menu__text';
-                    brandText.textContent = markaAdi.toUpperCase();
+                    brandText.textContent = markaAdi.toLocaleUpperCase('tr-TR');
                     brandText.style.cursor = 'pointer';
                     brandText.setAttribute('data-brand-slug', brandSlugForMain);
                     leftContainer.appendChild(brandText);
@@ -1624,7 +1624,7 @@
                             // Model adı
                             const modelText = document.createElement('span');
                             modelText.className = 'widget__categories--sub__menu--text';
-                            modelText.textContent = (model.modeL_ADI || '').toUpperCase();
+                            modelText.textContent = (model.modeL_ADI || '').toLocaleUpperCase('tr-TR');
                             modelText.style.cursor = 'pointer';
                             modelText.setAttribute('data-brand-slug', brandSlugForModel);
                             modelText.setAttribute('data-model-slug', modelSlugForModel);
@@ -1743,7 +1743,7 @@
 
                                     const versionText = document.createElement('span');
                                     versionText.className = 'widget__categories--sub__menu--text';
-                                    versionText.textContent = versionValue.toUpperCase();
+                                    versionText.textContent = versionValue.toLocaleUpperCase('tr-TR');
                                     versionLink.appendChild(versionText);
 
                                     versionItem.appendChild(versionLink);
@@ -1913,28 +1913,81 @@
             }
         }
 
+        function appendSkeletonCards(containerId, count = 4) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            for (let i = 0; i < count; i++) {
+                const colDiv = document.createElement('div');
+                colDiv.className = 'col-lg-4 col-md-4 col-sm-6 col-6 custom-col mb-30 skeleton-placeholder';
+
+                const article = document.createElement('article');
+                article.className = 'product__card';
+                article.style.height = '100%';
+                article.style.display = 'flex';
+                article.style.flexDirection = 'column';
+
+                const imageSkeleton = document.createElement('div');
+                imageSkeleton.className = 'skeleton';
+                imageSkeleton.style.width = '100%';
+                imageSkeleton.style.height = '200px';
+                imageSkeleton.style.borderRadius = '8px';
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'product__card--content';
+                contentDiv.style.padding = '15px';
+
+                const titleSkeleton = document.createElement('div');
+                titleSkeleton.className = 'skeleton skeleton-text';
+                titleSkeleton.style.width = '80%';
+                titleSkeleton.style.margin = '0 auto 10px';
+
+                const priceSkeleton = document.createElement('div');
+                priceSkeleton.className = 'skeleton skeleton-text';
+                priceSkeleton.style.width = '40%';
+                priceSkeleton.style.margin = '0 auto';
+
+                contentDiv.appendChild(titleSkeleton);
+                contentDiv.appendChild(priceSkeleton);
+                article.appendChild(imageSkeleton);
+                article.appendChild(contentDiv);
+                colDiv.appendChild(article);
+                container.appendChild(colDiv);
+            }
+        }
+
+        function removeSkeletonCards(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('.skeleton-placeholder').forEach(el => el.remove());
+        }
+
         function setupInfiniteScroll() {
-            let scrollTimeout;
+            let ticking = false;
 
             $(window).on('scroll', function () {
-                // Debounce - her scroll'da değil, scroll bittiğinde kontrol et
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(function () {
-                    // Sayfa sonuna yakın mıyız?
+                if (ticking) return;
+                ticking = true;
+
+                requestAnimationFrame(function () {
+                    ticking = false;
+
+                    if (isLoading || !hasMoreProducts) return;
+
                     const scrollTop = $(window).scrollTop();
                     const windowHeight = $(window).height();
                     const documentHeight = $(document).height();
                     const distanceFromBottom = documentHeight - (scrollTop + windowHeight);
 
-                    // 500px kala yüklemeye başla
-                    if (distanceFromBottom < 500) {
-                        if (!isLoading && hasMoreProducts) {
-                            currentPage++;
-                            loadProducts(true); // Append mode
-                        } else {
-                        }
+                    // 1500px kala yüklemeye başla
+                    if (distanceFromBottom < 1500) {
+                        // Skeleton kartları hemen grid'e ekle
+                        appendSkeletonCards('shop-products-grid', 4);
+
+                        currentPage++;
+                        loadProducts(true); // Append mode
                     }
-                }, 100); // 100ms debounce
+                });
             });
         }
 
@@ -1950,7 +2003,6 @@
                 const allLoadedGrid = document.getElementById('all-products-loaded');
 
                 if (append) {
-                    if (loaderGrid) loaderGrid.style.display = 'block';
                     if (allLoadedGrid) allLoadedGrid.style.display = 'none';
                 } else {
                     // İlk yükleme - skeleton göster
@@ -1997,7 +2049,8 @@
                     totalProductCount = response.totalCount || response.total || totalProductCount;
                 }
 
-                // Loading göstergelerini gizle
+                // Skeleton kartları kaldır
+                removeSkeletonCards('shop-products-grid');
                 if (loaderGrid) loaderGrid.style.display = 'none';
 
                 // Hata kontrolü
@@ -2028,6 +2081,7 @@
 
             } catch (error) {
                 console.error('Ürünler yüklenirken hata oluştu:', error);
+                removeSkeletonCards('shop-products-grid');
                 const loaderGrid = document.getElementById('infinite-scroll-loader');
                 if (loaderGrid) loaderGrid.style.display = 'none';
 

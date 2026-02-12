@@ -105,12 +105,15 @@ async function makeRequest(url, method = 'GET', data = null)
                 // JSON parse hatası - varsayılan mesaj kullan
             }
 
-            // Direkt logout ve yönlendirme yap
-            await handleUnauthorizedError(message, redirectUrl);
+            // Sadece mutasyon isteklerinde (POST, PUT, DELETE vb.) login'e yönlendir
+            // GET isteklerinde yönlendirme yapma, hatayı çağıran koda bırak
+            if (method.toUpperCase() !== 'GET')
+            {
+                await handleUnauthorizedError(message, redirectUrl);
+            }
 
-            // Bu noktaya gelmemeli ama yine de hata fırlat
             throw {
-                title: 'Oturum Sonlandı',
+                title: 'Yetkilendirme Hatası',
                 detail: message
             };
         }

@@ -118,12 +118,20 @@ app.UseStaticFiles(new StaticFileOptions
             "public,max-age=" + durationInSeconds;
     }
 });
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.Value == "/")
+    {
+        context.Response.Redirect("/ana-sayfa", true);
+        return;
+    }
+    await next();
+});
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
 app.MapStaticAssets();
-app.MapGet("/", () => Results.Redirect("/ana-sayfa"));
 
 app.MapControllerRoute(
     name: "default",

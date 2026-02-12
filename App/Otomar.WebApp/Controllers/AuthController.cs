@@ -96,7 +96,6 @@ namespace Otomar.WebApp.Controllers
                 };
             }
         }
-
         [HttpPost("cikis-yap")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout(CancellationToken cancellationToken = default)
