@@ -1,0 +1,21 @@
+# OTOMAR Yedek Parca - robots.txt
+User-agent: *
+Allow: /
+
+# Indexlenmemesi gereken sayfalar
+Disallow: /odeme/
+Disallow: /sepet
+Disallow: /giris-yap
+Disallow: /kayit-ol
+Disallow: /cikis-yap
+Disallow: /erisim-engellendi
+Disallow: /kullanici/
+Disallow: /musteri/
+Disallow: /siparis/
+
+# Statik asset klasorleri
+Disallow: /assets/js/
+Disallow: /assets/css/
+
+# Sitemap
+Sitemap: https://otomar.com.tr/sitemap.xml

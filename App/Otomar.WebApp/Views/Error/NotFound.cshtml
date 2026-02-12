@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Sayfa Bulunamadı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["MetaRobots"] = "noindex, nofollow";
+}
+
+<section class="section--padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8 text-center">
+                <h1 style="font-size: 8rem; font-weight: 800; color: var(--secondary-color); margin-bottom: 0;">404</h1>
+                <h2 class="mb-15">Sayfa Bulunamadı</h2>
+                <p class="mb-30" style="font-size: 1.5rem; color: #666;">
+                    Aradığınız sayfa taşınmış, kaldırılmış veya hiç var olmamış olabilir.
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="/ana-sayfa" class="primary__btn">Ana Sayfaya Dön</a>
+                    <a href="/magaza" class="primary__btn" style="background: var(--primary-color);">Mağazaya Git</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

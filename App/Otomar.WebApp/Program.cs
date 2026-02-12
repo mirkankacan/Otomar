@@ -69,7 +69,34 @@ else
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+app.UseStatusCodePagesWithReExecute("/hata/{0}");
 app.UseHttpsRedirection();
+
+// Security headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+    context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    await next();
+});
+
+// www -> non-www 301 redirect
+app.Use(async (context, next) =>
+{
+    var host = context.Request.Host.Host;
+    if (host.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+    {
+        var newHost = host[4..]; // "www." kısmını kaldır
+        var newUrl = $"{context.Request.Scheme}://{newHost}{context.Request.Path}{context.Request.QueryString}";
+        context.Response.StatusCode = 301;
+        context.Response.Headers.Location = newUrl;
+        return;
+    }
+    await next();
+});
 //app.MapHealthChecks("/health", new HealthCheckOptions
 //{
 //    Predicate = _ => true,

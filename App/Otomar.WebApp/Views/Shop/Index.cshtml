@@ -10,11 +10,39 @@
     var minPrice = ViewBag.MinPrice as string;
     var maxPrice = ViewBag.MaxPrice as string;
 
-    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    // Dinamik SEO meta description
+    var metaParts = new List<string>();
+    if (!string.IsNullOrEmpty(brandName)) metaParts.Add(brandName);
+    if (!string.IsNullOrEmpty(modelName)) metaParts.Add(modelName);
+    if (!string.IsNullOrEmpty(mainCategoryName)) metaParts.Add(mainCategoryName);
+    if (!string.IsNullOrEmpty(subCategoryName)) metaParts.Add(subCategoryName);
+    if (!string.IsNullOrEmpty(manufacturerName)) metaParts.Add(manufacturerName);
+
+    if (metaParts.Count > 0)
+    {
+        ViewData["Title"] = string.Join(" ", metaParts) + " Yedek Parça";
+        ViewData["MetaDescription"] = $"{string.Join(" ", metaParts)} yedek parça ürünleri OTOMAR'da. Orijinal ve yan sanayi parçalar uygun fiyatlarla.";
+    }
+    else
+    {
+        ViewData["MetaDescription"] = "OTOMAR Yedek Parça mağazası - Binlerce oto yedek parça uygun fiyatlarla. Marka, model ve kategoriye göre arama yapın.";
+    }
+
+    // Dinamik breadcrumb
+    var breadcrumbs = new List<BreadcrumbItem>
     {
         new("Ana Sayfa", "/ana-sayfa"),
-        new(ViewData["Title"] as string, "/magaza")
+        new("Mağaza", "/magaza")
     };
+    if (!string.IsNullOrEmpty(brandName))
+        breadcrumbs.Add(new(brandName, $"/magaza/marka/{brandName}"));
+    if (!string.IsNullOrEmpty(modelName))
+        breadcrumbs.Add(new(modelName, $"/magaza/marka/{brandName}/model/{modelName}"));
+    if (!string.IsNullOrEmpty(mainCategoryName))
+        breadcrumbs.Add(new(mainCategoryName, $"/magaza/kategori/{mainCategoryName}"));
+    if (!string.IsNullOrEmpty(subCategoryName))
+        breadcrumbs.Add(new(subCategoryName, null));
+    ViewData["BreadcrumbItems"] = breadcrumbs;
 }
 
 <!-- Start shop section -->

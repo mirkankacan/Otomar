@@ -7,10 +7,81 @@
 
 <head>
     <meta charset="utf-8">
+
+    <!-- Preconnect & DNS-Prefetch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://code.jquery.com">
     <title>@ViewData["Title"] • OTOMAR Yedek Parça</title>
-    <meta name="description" content="OTOMAR Yedek Parça E-Ticaret Sitesi">
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? "OTOMAR Yedek Parça - Oto yedek parça e-ticaret sitesi. Orijinal ve yan sanayi araç yedek parçaları uygun fiyatlarla.")">
+    <meta name="keywords" content="@(ViewData["MetaKeywords"] ?? "oto yedek parça, araç yedek parça, otomobil parça, orijinal yedek parça, yan sanayi, OTOMAR")">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="@(ViewData["MetaRobots"] ?? "index, follow")">
+    <meta name="author" content="OTOMAR Yedek Parça">
+    <meta name="language" content="tr">
+    <link rel="canonical" href="@(ViewData["CanonicalUrl"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/favicon-96x96.png">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
     <link rel="shortcut icon" type="image/x-icon" href="/assets/img/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="@(ViewData["OgType"] ?? "website")">
+    <meta property="og:url" content="@(ViewData["CanonicalUrl"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")">
+    <meta property="og:title" content="@ViewData["Title"] • OTOMAR Yedek Parça">
+    <meta property="og:description" content="@(ViewData["MetaDescription"] ?? "OTOMAR Yedek Parça - Oto yedek parça e-ticaret sitesi. Orijinal ve yan sanayi araç yedek parçaları uygun fiyatlarla.")">
+    <meta property="og:image" content="@(ViewData["OgImage"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}/assets/img/logo/otomarlogoclean.webp")">
+    <meta property="og:site_name" content="OTOMAR Yedek Parça">
+    <meta property="og:locale" content="tr_TR">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@ViewData["Title"] • OTOMAR Yedek Parça">
+    <meta name="twitter:description" content="@(ViewData["MetaDescription"] ?? "OTOMAR Yedek Parça - Oto yedek parça e-ticaret sitesi.")">
+    <meta name="twitter:image" content="@(ViewData["OgImage"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}/assets/img/logo/otomarlogoclean.webp")">
+
+    <!-- Organization JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "Organization",
+        "name": "OTOMAR Yedek Parça",
+        "url": "https://otomar.com.tr",
+        "logo": "https://otomar.com.tr/assets/img/logo/otomarlogoclean.webp",
+        "contactPoint": {
+            "@@type": "ContactPoint",
+            "contactType": "customer service",
+            "areaServed": "TR",
+            "availableLanguage": "Turkish"
+        },
+        "address": {
+            "@@type": "PostalAddress",
+            "addressLocality": "İzmir",
+            "addressCountry": "TR"
+        },
+        "sameAs": []
+    }
+    </script>
+
+    <!-- WebSite JSON-LD with SearchAction -->
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "WebSite",
+        "name": "OTOMAR Yedek Parça",
+        "url": "https://otomar.com.tr",
+        "potentialAction": {
+            "@@type": "SearchAction",
+            "target": "https://otomar.com.tr/magaza?searchTerm={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
 
     <script>
         window.SITE_KEY = '6LcQvngqAAAAAE54QYZrbKgnK7NdsmwV3zsrfVwi';
@@ -808,6 +879,26 @@
                     </div>
                 </div>
             </section>
+
+            <!-- BreadcrumbList JSON-LD -->
+            <script type="application/ld+json">
+            {
+                "@@context": "https://schema.org",
+                "@@type": "BreadcrumbList",
+                "itemListElement": [
+                    @for (var bi = 0; bi < breadcrumbItems.Count; bi++)
+                    {
+                        var bItem = breadcrumbItems[bi];
+                        <text>{
+                            "@@type": "ListItem",
+                            "position": @(bi + 1),
+                            "name": "@Html.Raw(bItem.Text?.Replace("\"", "\\\""))"@if (!string.IsNullOrEmpty(bItem.Url)){<text>,
+                            "item": "https://otomar.com.tr@(bItem.Url)"</text>}
+                        }@(bi < breadcrumbItems.Count - 1 ? "," : "")</text>
+                    }
+                ]
+            }
+            </script>
         }
         @RenderBody()
 

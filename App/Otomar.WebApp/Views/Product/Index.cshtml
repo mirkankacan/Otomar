@@ -42,6 +42,62 @@
         compatibles.Add($"{brandNames[i].Trim()} {versionNames[i].Trim()}");
     }
     var compatiblesAsString = string.Join(", ", compatibles);
+
+    var seoDescription = $"{Model.STOK_ADI} - {Model.URETICI_MARKA_ADI} marka, {compatiblesAsString} uyumlu oto yedek parça. OTOMAR Yedek Parça'da uygun fiyatlarla satın alın.";
+    if (seoDescription.Length > 160) seoDescription = seoDescription.Substring(0, 157) + "...";
+    ViewData["MetaDescription"] = seoDescription;
+    ViewData["MetaKeywords"] = $"{Model.STOK_ADI}, {Model.URETICI_KODU?.Replace(";", ", ")}, {Model.URETICI_MARKA_ADI}, {compatiblesAsString}, oto yedek parça";
+    ViewData["OgType"] = "product";
+    var ogBaseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var firstImage = images.Count > 0 ? images[0] : null;
+    ViewData["OgImage"] = firstImage != null
+        ? (firstImage.StartsWith("http") ? firstImage : $"{ogBaseUrl}{(firstImage.StartsWith("/") ? "" : "/")}{firstImage}")
+        : null;
+
+    var productSlug = Otomar.WebApp.Helpers.SlugHelper.Generate(Model.STOK_ADI ?? "");
+    ViewData["CanonicalUrl"] = $"https://otomar.com.tr/urun/{productSlug}/{Model.STOK_KODU}";
+}
+@section Seo{
+    <!-- Product JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "Product",
+        "name": "@Html.Raw(Model.STOK_ADI?.Replace("\"", "\\\""))",
+        "description": "@Html.Raw(seoDescription.Replace("\"", "\\\""))",
+        "sku": "@Model.STOK_KODU",
+        "mpn": "@Html.Raw(Model.URETICI_KODU?.Split(';')[0].Trim().Replace("\"", "\\\""))",
+        @if (images.Count > 0)
+        {
+            var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+            <text>"image": [@string.Join(",", images.Select(img => img.StartsWith("http") ? $"\"{img}\"" : $"\"{baseUrl}{(img.StartsWith("/") ? "" : "/")}{img}\""))],</text>
+        }
+        "brand": {
+            "@@type": "Brand",
+            "name": "@Html.Raw(Model.URETICI_MARKA_ADI?.Replace("\"", "\\\""))"
+        },
+        "category": "@Html.Raw(firstMainCat.Replace("\"", "\\\"")) > @Html.Raw(firstSubCat.Replace("\"", "\\\""))",
+        "offers": {
+            "@@type": "Offer",
+            "url": "https://otomar.com.tr/urun/@productSlug/@Model.STOK_KODU",
+            "priceCurrency": "TRY",
+            "price": "@Model.SATIS_FIYAT.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)",
+            "availability": "@(Model.HasStock ? "https://schema.org/InStock" : "https://schema.org/LimitedAvailability")",
+            "seller": {
+                "@@type": "Organization",
+                "name": "OTOMAR Yedek Parça"
+            },
+            "itemCondition": "https://schema.org/NewCondition",
+            "shippingDetails": {
+                "@@type": "OfferShippingDetails",
+                "shippingDestination": {
+                    "@@type": "DefinedRegion",
+                    "addressCountry": "TR"
+                }
+            }
+        }
+    }
+    </script>
 }
 @section Styles{
     <style>

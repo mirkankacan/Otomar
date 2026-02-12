@@ -1,6 +1,41 @@
 @{
     ViewData["Title"] = "Ana Sayfa";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["MetaDescription"] = "OTOMAR Yedek Parça - Oto yedek parça e-ticaret sitesi. Orijinal ve yan sanayi araç yedek parçaları en uygun fiyatlarla kapınıza kadar. Hızlı kargo, güvenli ödeme.";
+    ViewData["CanonicalUrl"] = "https://otomar.com.tr/ana-sayfa";
+}
+@section Seo{
+    <!-- LocalBusiness JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "AutoPartsStore",
+        "name": "OTOMAR Yedek Parça",
+        "url": "https://otomar.com.tr",
+        "logo": "https://otomar.com.tr/assets/img/logo/otomarlogoclean.webp",
+        "image": "https://otomar.com.tr/assets/img/logo/otomarlogoclean.webp",
+        "description": "Oto yedek parça e-ticaret sitesi. Orijinal ve yan sanayi araç yedek parçaları en uygun fiyatlarla.",
+        "address": {
+            "@@type": "PostalAddress",
+            "addressLocality": "İzmir",
+            "addressRegion": "İzmir",
+            "addressCountry": "TR"
+        },
+        "geo": {
+            "@@type": "GeoCoordinates",
+            "latitude": 38.4192,
+            "longitude": 27.1287
+        },
+        "priceRange": "₺₺",
+        "currenciesAccepted": "TRY",
+        "paymentAccepted": "Kredi Kartı, Banka Kartı",
+        "areaServed": {
+            "@@type": "Country",
+            "name": "Türkiye"
+        },
+        "sameAs": []
+    }
+    </script>
 }
 
 <!-- Start slider section -->
