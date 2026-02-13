@@ -35,8 +35,6 @@ const CartManager = {
             this.showNotification('Ürün sepete eklendi', 'success');
             return cart;
         } catch (e) {
-            const msg = (e && (e.detail || e.title)) || 'Ürün eklenemedi';
-            this.showNotification(typeof msg === 'string' ? msg : 'Ürün eklenemedi', 'error');
             return null;
         }
     },

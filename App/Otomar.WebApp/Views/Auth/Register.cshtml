@@ -62,12 +62,11 @@
                                 </div>
                               
                                 <button class="account__login--btn primary__btn" type="submit">Kayıt Ol</button>
+                                <p class="recaptcha-terms">Bu site reCAPTCHA ile korunmaktadır. Google <a href="https://policies.google.com/privacy" target="_blank">Gizlilik Politikası</a> ve <a href="https://policies.google.com/terms" target="_blank">Hizmet Şartları</a> geçerlidir.</p>
                                 <div class="account__login--divide">
                                     <span class="account__login--divide__text">YA DA </span>
                                 </div>
-                                <div class="account__social d-flex justify-content-center mb-15">
-                                    <a class="account__social--link google" target="_blank" href="https://www.google.com">Google</a>
-                                </div>
+                             
                                 <p class="account__login--signup__text">Hesabınız var mı? <button onclick="window.location.href='/giris-yap'" type="button">Giriş Yap</button></p>
                             </div>
                         </div>
@@ -110,7 +109,7 @@
                     isMembershipAgreementAccepted: document.getElementById('check2').checked,
                     isClarificationAgreementAccepted: document.getElementById('check3').checked
                 };
-                await makeRequest('/kayit-ol', 'POST', payload);
+                await makeRequestWithRecaptcha('/kayit-ol', 'POST', payload, 'register');
                 var params = new URLSearchParams(window.location.search);
                 var returnUrl = params.get('returnUrl') || params.get('returnurl') || '/';
                 if (returnUrl && !returnUrl.startsWith('/')) returnUrl = '/' + returnUrl;

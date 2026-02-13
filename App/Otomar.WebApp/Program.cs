@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Services;
+using Otomar.WebApp.Options;
+using Otomar.WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +50,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/erisim-engellendi";
     });
 builder.Services.AddAuthorization();
+
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<RecaptchaService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddHostedService<FeedGeneratorService>();
 
 // Refit API Clients
 builder.Services.AddRefitClients(builder.Configuration);

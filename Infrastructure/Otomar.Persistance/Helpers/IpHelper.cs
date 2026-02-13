@@ -23,6 +23,16 @@ namespace Otomar.Persistance.Helpers
                 }
             }
 
+            // CF-Connecting-IP header'ını kontrol et (Cloudflare gerçek client IP)
+            if (httpContext.Request.Headers.TryGetValue("CF-Connecting-IP", out var cfConnectingIp))
+            {
+                var cfIp = cfConnectingIp.ToString().Trim();
+                if (!string.IsNullOrEmpty(cfIp) && !IsPrivateIpAddress(cfIp))
+                {
+                    return NormalizeIpAddress(cfIp);
+                }
+            }
+
             // X-Forwarded-For header'ını kontrol et
             if (httpContext.Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
             {

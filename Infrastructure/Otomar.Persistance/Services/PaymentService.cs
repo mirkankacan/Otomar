@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Net;
 using Dapper;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
@@ -11,11 +13,10 @@ using Otomar.Domain.Enums;
 using Otomar.Persistance.Data;
 using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
-using System.Net;
 
 namespace Otomar.Persistance.Services
 {
-    public class PaymentService(IAppDbContext context, HttpClient httpClient, IHttpContextAccessor accessor, IIdentityService identityService, PaymentOptions paymentOptions, ILogger<PaymentService> logger, IDistributedCache cache, IOrderService orderService, ICartService cartService, IProductService productService) : IPaymentService
+    public class PaymentService(IAppDbContext context, HttpClient httpClient, IHttpContextAccessor accessor, IIdentityService identityService, PaymentOptions paymentOptions, ILogger<PaymentService> logger, IDistributedCache cache, IOrderService orderService, ICartService cartService, IProductService productService, IEmailService emailService) : IPaymentService
     {
         public async Task<ServiceResult<InitializePaymentResponseDto>> InitializeVirtualPosPaymentAsync(InitializeVirtualPosPaymentDto dto, CancellationToken cancellationToken)
         {
@@ -215,11 +216,19 @@ namespace Otomar.Persistance.Services
                     logger.LogError($"Bankadan cevap alınamadı");
                     return ServiceResult<string>.Error("Banka Cevap", "Bankadan cevap alınamadı", HttpStatusCode.BadRequest);
                 }
+                var isPaymentSuccessful = IsBankHelper.IsPaymentSuccess(isBankResponse);
+                var paymentId = NewId.NextGuid();
+                var userId = identityService.GetUserId() ?? null;
+                var totalAmount = decimal.Parse(parameters.GetValueOrDefault("amount")?.Replace(",", ".") ?? "0", CultureInfo.InvariantCulture);
+                string maskedCreditCard = parameters.GetValueOrDefault("maskedCreditCard");
+                ServiceResult<OrderDto> order;
+                Guid orderId;
+
                 using var transaction = context.Connection.BeginTransaction();
 
                 try
                 {
-                    var order = await orderService.GetOrderByCodeAsync(orderCode, transaction);
+                    order = await orderService.GetOrderByCodeAsync(orderCode, transaction);
                     if (order == null)
                     {
                         transaction.Rollback();
@@ -230,14 +239,9 @@ namespace Otomar.Persistance.Services
                             HttpStatusCode.NotFound);
                     }
 
-                    // 1. ÖDEME OLUŞTUR
-                    var orderId = order.Data.Id;
-                    var isPaymentSuccessful = IsBankHelper.IsPaymentSuccess(isBankResponse);
-                    var paymentId = NewId.NextGuid();
-                    var userId = identityService.GetUserId() ?? null;
-                    var totalAmount = Convert.ToDecimal(parameters.GetValueOrDefault("amount"));
-                    string maskedCreditCard = parameters.GetValueOrDefault("maskedCreditCard");
+                    orderId = order.Data.Id;
 
+                    // 1. ÖDEME OLUŞTUR
                     var paymentInsertQuery = @"
         INSERT INTO IdtPayments (Id, UserId, OrderCode, TotalAmount, Status, CreatedAt, IpAddress, BankResponse, BankAuthCode, BankHostRefNum, BankProcReturnCode, BankTransId, BankErrMsg, BankErrorCode, BankSettleId, BankTrxDate, BankCardBrand, BankCardIssuer, BankAvsApprove, BankHostDate, BankAvsErrorCodeDetail, BankNumCode,MaskedCreditCard)
         VALUES (@Id, @UserId, @OrderCode, @TotalAmount, @Status, @CreatedAt, @IpAddress, @BankResponse, @BankAuthCode, @BankHostRefNum, @BankProcReturnCode, @BankTransId, @BankErrMsg, @BankErrorCode, @BankSettleId, @BankTrxDate, @BankCardBrand, @BankCardIssuer, @BankAvsApprove, @BankHostDate, @BankAvsErrorCodeDetail, @BankNumCode, @MaskedCreditCard);";
@@ -294,26 +298,57 @@ namespace Otomar.Persistance.Services
                     logger.LogInformation($"{orderId} ID'li sipariş, {paymentId} ID'li ödeme ile ilişkilendirildi ve güncellendi");
 
                     transaction.Commit();
-
-                    if (!isPaymentSuccessful)
-                    {
-                        logger.LogError($"{orderCode} sipariş kodlu ödeme başarısız. Bankadan dönen Mesaj:{isBankResponse.ErrMsg} Kod: {isBankResponse.ErrorCode}");
-                        return ServiceResult<string>.Error("Ödeme Başarısız", $"{isBankResponse.ErrMsg}", HttpStatusCode.BadRequest);
-                    }
-                    else
-                    {
-                        await cartService.ClearCartAsync(cancellationToken);
-                    }
-
-                    logger.LogInformation($"{orderCode} sipariş kodlu ödeme işlemi başarıyla tamamlandı");
-
-                    return ServiceResult<string>.SuccessAsCreated(orderCode, $"/api/payments/{paymentId}");
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
+                    logger.LogError(ex, "Ödeme/sipariş DB işleminde hata. OrderCode: {OrderCode}", orderCode);
                     return ServiceResult<string>.Error("Ödeme Başarısız", $"{isBankResponse.ErrMsg}", HttpStatusCode.BadRequest);
                 }
+
+                // E-posta gönderimi ve sepet temizleme transaction dışında yapılır.
+                // DB commit edildiyse, bu işlemlerdeki hatalar ödeme sonucunu etkilemez.
+                if (!isPaymentSuccessful)
+                {
+                    try
+                    {
+                        await emailService.SendPaymentFailedMailAsync(orderCode, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Ödeme başarısız e-postası gönderilemedi. OrderCode: {OrderCode}", orderCode);
+                    }
+
+                    logger.LogError($"{orderCode} sipariş kodlu ödeme başarısız. Bankadan dönen Mesaj:{isBankResponse.ErrMsg} Kod: {isBankResponse.ErrorCode}");
+                    return ServiceResult<string>.Error("Ödeme Başarısız", $"{isBankResponse.ErrMsg}", HttpStatusCode.BadRequest);
+                }
+
+                try
+                {
+                    await cartService.ClearCartAsync(cancellationToken);
+                    switch (order.Data.OrderType)
+                    {
+                        case OrderType.VirtualPOS:
+                            await emailService.SendVirtualPosPaymentSuccessMailAsync(orderId, cancellationToken);
+                            break;
+
+                        case OrderType.Purchase:
+                            await emailService.SendPaymentSuccessMailAsync(orderId, cancellationToken);
+                            break;
+
+                        default:
+                            await emailService.SendPaymentSuccessMailAsync(orderId, cancellationToken);
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Ödeme sonrası işlemlerde hata (sepet/e-posta). OrderCode: {OrderCode}", orderCode);
+                }
+
+                logger.LogInformation($"{orderCode} sipariş kodlu ödeme işlemi başarıyla tamamlandı");
+
+                return ServiceResult<string>.SuccessAsCreated(orderCode, $"/api/payments/{paymentId}");
             }
             catch (Exception ex)
             {
@@ -328,7 +363,7 @@ namespace Otomar.Persistance.Services
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("paymentId", paymentId);
-                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount,SubTotalAmount, ShippingAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode,MaskedCreditCard FROM IdtPayments WITH (NOLOCK) WHERE Id = @paymentId";
+                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt, BankProcReturnCode, MaskedCreditCard, BankErrorCode, BankErrMsg FROM IdtPayments WITH (NOLOCK) WHERE Id = @paymentId";
 
                 var result = await context.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, parameters);
                 if (result == null)
@@ -357,7 +392,7 @@ namespace Otomar.Persistance.Services
 
                 var parameters = new DynamicParameters();
                 parameters.Add("orderCode", orderCode);
-                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount,SubTotalAmount, ShippingAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode,MaskedCreditCard FROM IdtPayments WITH (NOLOCK) WHERE OrderCode = @orderCode";
+                var query = $@"SELECT TOP 1 Id, UserId, OrderCode, TotalAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt, BankProcReturnCode, MaskedCreditCard, BankErrorCode, BankErrMsg FROM IdtPayments WITH (NOLOCK) WHERE OrderCode = @orderCode";
 
                 var result = await context.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, parameters);
                 if (result == null)
@@ -380,7 +415,7 @@ namespace Otomar.Persistance.Services
             try
             {
                 var query = $@"
-                 SELECT  Id, UserId, OrderCode, TotalAmount,SubTotalAmount, ShippingAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode,MaskedCreditCard
+                 SELECT  Id, UserId, OrderCode, TotalAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt, BankProcReturnCode, MaskedCreditCard, BankErrorCode, BankErrMsg
                  FROM IdtPayments WITH (NOLOCK)";
 
                 var result = await context.Connection.QueryAsync<PaymentDto>(query);
@@ -412,7 +447,7 @@ namespace Otomar.Persistance.Services
                 parameters.Add("userId", userId);
 
                 var query = $@"
-                 SELECT Id, UserId, OrderCode, TotalAmount,SubTotalAmount, ShippingAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt,BankProcReturnCode,MaskedCreditCard
+                 SELECT Id, UserId, OrderCode, TotalAmount, BankCardBrand, BankCardIssuer, Status, CreatedAt, BankProcReturnCode, MaskedCreditCard, BankErrorCode, BankErrMsg
                  FROM IdtPayments WITH (NOLOCK)
                  WHERE UserId = @userId";
 

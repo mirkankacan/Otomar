@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.ListSearch;
 using Otomar.WebApp.Extensions;
+using Otomar.WebApp.Filters;
 using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers
@@ -24,6 +25,7 @@ namespace Otomar.WebApp.Controllers
 
         [HttpPost("olustur")]
         [ValidateAntiForgeryToken]
+        [ValidateRecaptcha("list_search")]
         public async Task<IActionResult> CreateListSearch(
        [FromForm] CreateListSearchDto dto,
        CancellationToken cancellationToken = default)

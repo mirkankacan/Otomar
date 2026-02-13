@@ -41,7 +41,7 @@
                           data-client-code="@(clientCode)">
                         @Html.AntiForgeryToken()
 
-                        <div class="checkout__content--step ">
+                        <div id="clientSection" class="checkout__content--step ">
                             <div class="section__header mb-25">
                                 <h2 class="section__header--title h3">Cari Detayları</h2>
                             </div>
@@ -383,8 +383,7 @@
                        if (!validateVirtualPosClientSection()) {
                            return;
                        }
-                       $('.section__shipping--address').slideUp(300);
-                       $('.checkout__content--step__footer').first().slideUp(300);
+                       $('#clientSection').slideUp(300);
                        setTimeout(function() {
                            $('#paymentSection').slideDown(300);
                            initCreditCard();
@@ -397,9 +396,8 @@
                        e.preventDefault();
                        $('#paymentSection').slideUp(300);
                        setTimeout(function() {
-                           $('.section__shipping--address').slideDown(300);
-                           $('.checkout__content--step__footer').first().slideDown(300);
-                           $('html, body').animate({ scrollTop: $('.section__shipping--address').offset().top - 100 }, 500);
+                           $('#clientSection').slideDown(300);
+                           $('html, body').animate({ scrollTop: $('#clientSection').offset().top - 100 }, 500);
                        }, 300);
                    });
 

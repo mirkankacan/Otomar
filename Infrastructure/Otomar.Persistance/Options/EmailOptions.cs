@@ -17,39 +17,11 @@ namespace Otomar.Persistance.Options
         [Required]
         public EmailCredentials Credentials { get; set; } = default!;
 
-        public string? RequiredCc { get; set; }
+        public List<string> RequiredCc { get; set; } = [];
 
-        public string? RequiredBcc { get; set; }
+        public List<string> RequiredBcc { get; set; } = [];
 
-        public string? ErrorTo { get; set; }
-
-        // Helper methods
-        public List<string> GetRequiredCcList()
-        {
-            return SplitEmailAddresses(RequiredCc);
-        }
-
-        public List<string> GetRequiredBccList()
-        {
-            return SplitEmailAddresses(RequiredBcc);
-        }
-
-        public List<string> GetErrorToList()
-        {
-            return SplitEmailAddresses(ErrorTo);
-        }
-
-        private List<string> SplitEmailAddresses(string? emailString)
-        {
-            if (string.IsNullOrWhiteSpace(emailString))
-                return new List<string>();
-
-            return emailString
-                .Split(';', StringSplitOptions.RemoveEmptyEntries)
-                .Select(e => e.Trim())
-                .Where(e => !string.IsNullOrWhiteSpace(e))
-                .ToList();
-        }
+        public List<string> ErrorTo { get; set; } = [];
 
         public class EmailCredentials
         {

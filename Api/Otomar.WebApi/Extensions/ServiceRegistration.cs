@@ -4,6 +4,7 @@ using Otomar.Persistance.Options;
 using Otomar.WebApi.Middlewares;
 using Serilog;
 using Serilog.Events;
+using Serilog.Filters;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.Email;
 using Serilog.Sinks.MSSqlServer;
@@ -66,27 +67,34 @@ namespace Otomar.WebApi.Extensions
                     restrictedToMinimumLevel: LogEventLevel.Information,
                     columnOptions: GetColumnOptions());
 
-            if (emailOptions?.ErrorTo is not null && emailOptions.Credentials is not null)
+            if (emailOptions?.ErrorTo?.Count > 0 && emailOptions.Credentials is not null)
             {
-                loggerConfig.WriteTo.Email(
-                    new EmailSinkOptions
-                    {
-                        From = emailOptions.Credentials.UserName,
-                        To = emailOptions.GetErrorToList(),
-                        Host = emailOptions.Host,
-                        Port = emailOptions.Port,
-                        ConnectionSecurity = emailOptions.EnableSsl
-                            ? MailKit.Security.SecureSocketOptions.StartTls
-                            : MailKit.Security.SecureSocketOptions.Auto,
-                        Credentials = new NetworkCredential(
-                            emailOptions.Credentials.UserName,
-                            emailOptions.Credentials.Password),
-                        Subject = new MessageTemplateTextFormatter(
-                            "[{Level:u3}] Otomar.WebApi - {Message:lj}"),
-                        Body = new MessageTemplateTextFormatter(GetErrorEmailHtmlTemplate()),
-                        IsBodyHtml = true
-                    },
-                    restrictedToMinimumLevel: LogEventLevel.Error);
+                loggerConfig.WriteTo.Logger(lc => lc
+                    .Filter.ByExcluding(e =>
+                        e.Exception is TimeoutException
+                        || e.Exception is TaskCanceledException
+                        || e.Exception is OperationCanceledException
+                        || (e.Exception?.InnerException is TimeoutException)
+                        || (e.Exception?.InnerException is TaskCanceledException))
+                    .WriteTo.Email(
+                        new EmailSinkOptions
+                        {
+                            From = emailOptions.Credentials.UserName,
+                            To = emailOptions.ErrorTo,
+                            Host = emailOptions.Host,
+                            Port = emailOptions.Port,
+                            ConnectionSecurity = emailOptions.EnableSsl
+                                ? MailKit.Security.SecureSocketOptions.StartTls
+                                : MailKit.Security.SecureSocketOptions.Auto,
+                            Credentials = new NetworkCredential(
+                                emailOptions.Credentials.UserName,
+                                emailOptions.Credentials.Password),
+                            Subject = new MessageTemplateTextFormatter(
+                                "[{Level:u3}] Otomar.WebApi - {Message:lj}"),
+                            Body = new MessageTemplateTextFormatter(GetErrorEmailHtmlTemplate()),
+                            IsBodyHtml = true
+                        },
+                        restrictedToMinimumLevel: LogEventLevel.Error));
             }
 
             Log.Logger = loggerConfig.CreateLogger();

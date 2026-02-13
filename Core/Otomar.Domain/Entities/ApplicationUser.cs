@@ -12,8 +12,8 @@ namespace Otomar.Domain.Entities
         }
 
         public string Name { get; set; }
-        public string Surname { get; set; }
-        public string PhoneNumber { get; set; }
+        public string? Surname { get; set; }
+        public string? PhoneNumber { get; set; }
         public bool IsActive { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpires { get; set; }

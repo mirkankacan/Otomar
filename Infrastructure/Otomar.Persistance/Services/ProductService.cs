@@ -55,7 +55,7 @@ namespace Otomar.Persistance.Services
 
             var tasks = new[]
               {
-                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY ID DESC"),
+                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY STOK_BAKIYE DESC, SATIS_FIYAT ASC"),
                     context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY STOK_BAKIYE DESC"),
                     context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY WEB_GOSTER_TARIH DESC"),
                     context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY SATIS_FIYAT ASC"),

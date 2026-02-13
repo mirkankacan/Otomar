@@ -26,9 +26,9 @@ namespace Otomar.Persistance.Authentication
                 new Claim(JwtRegisteredClaimNames.Sub, applicationUser.Id),
                 new Claim(ClaimTypes.NameIdentifier, applicationUser.Id),
                 new Claim(ClaimTypes.Email, applicationUser.Email ?? string.Empty),
-                new Claim(ClaimTypes.GivenName, $"{applicationUser.Name} {applicationUser.Surname}"),
+                new Claim(ClaimTypes.GivenName, $"{applicationUser.Name} {applicationUser.Surname ?? string.Empty}"),
                 new Claim(ClaimTypes.Role, userRoles.FirstOrDefault()!),
-                new Claim(ClaimTypes.MobilePhone, applicationUser.PhoneNumber!),
+                new Claim(ClaimTypes.MobilePhone, applicationUser.PhoneNumber ?? string.Empty),
                 new Claim("ClientCode", applicationUser.ClientCode ?? string.Empty),
                 new Claim("IsPaymentExempt", applicationUser.IsPaymentExempt.ToString())
             };

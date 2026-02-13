@@ -8,6 +8,7 @@ namespace Otomar.WebApp.Extensions
         public static IServiceCollection AddOptionsExtensions(this IServiceCollection services)
         {
             services.AddValidatedOptions<ApiOptions>();
+            services.AddValidatedOptions<RecaptchaOptions>();
 
             return services;
         }

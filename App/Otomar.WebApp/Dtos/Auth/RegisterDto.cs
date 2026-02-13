@@ -11,5 +11,6 @@ namespace Otomar.WebApp.Dtos.Auth
         public bool IsCommerceMailAccepted { get; set; }
         public bool IsClarificationAgreementAccepted { get; set; }
         public bool IsMembershipAgreementAccepted { get; set; }
+        public string? RecaptchaToken { get; set; }
     }
 }

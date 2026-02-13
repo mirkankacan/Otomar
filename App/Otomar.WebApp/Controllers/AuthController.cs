@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Auth;
 using Otomar.WebApp.Extensions;
+using Otomar.WebApp.Filters;
 using Otomar.WebApp.Services.Refit;
 using Refit;
 
@@ -27,6 +28,7 @@ namespace Otomar.WebApp.Controllers
 
         [HttpPost("giris-yap")]
         [ValidateAntiForgeryToken]
+        [ValidateRecaptcha("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto, CancellationToken cancellationToken = default)
         {
             try
@@ -63,6 +65,7 @@ namespace Otomar.WebApp.Controllers
 
         [HttpPost("kayit-ol")]
         [ValidateAntiForgeryToken]
+        [ValidateRecaptcha("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto, CancellationToken cancellationToken = default)
         {
             try
@@ -121,6 +124,7 @@ namespace Otomar.WebApp.Controllers
 
         [HttpPost("sifre-sifirla")]
         [ValidateAntiForgeryToken]
+        [ValidateRecaptcha("password_reset")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto, CancellationToken cancellationToken = default)
         {
             return await authApi.ResetPasswordAsync(dto, cancellationToken).ToActionResultAsync();

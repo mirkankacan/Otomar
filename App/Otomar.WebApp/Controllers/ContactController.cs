@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Contact;
+using Otomar.WebApp.Filters;
 
 namespace Otomar.WebApp.Controllers
 {
@@ -15,6 +16,7 @@ namespace Otomar.WebApp.Controllers
         }
 
         [HttpPost("mail-gonder")]
+        [ValidateRecaptcha("contact")]
         public async Task<IActionResult> SendMessage([FromBody] CreateContactMessageDto dto, CancellationToken cancellationToken = default)
         {
             // Model validasyonu

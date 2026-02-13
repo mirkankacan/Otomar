@@ -2,7 +2,7 @@
 
 namespace Otomar.Persistance.Data
 {
-    public interface IAppDbContext
+    public interface IAppDbContext : IDisposable
     {
         IDbConnection Connection { get; }
     }

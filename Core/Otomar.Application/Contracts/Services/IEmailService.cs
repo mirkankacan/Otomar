@@ -10,6 +10,6 @@
 
         Task SendClientOrderMailAsync(Guid orderId, CancellationToken cancellationToken);
 
-        Task SendPaymentFailedMailAsync(CancellationToken cancellationToken);
+        Task SendPaymentFailedMailAsync(string orderCode, CancellationToken cancellationToken);
     }
 }

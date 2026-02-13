@@ -39,13 +39,11 @@
                                     <a href="#" class="account__login--forgot">Şifreni mi Unuttun?</a>
                                 </div>
                                 <button class="account__login--btn primary__btn" type="submit">Giriş Yap</button>
+                                <p class="recaptcha-terms">Bu site reCAPTCHA ile korunmaktadır. Google <a href="https://policies.google.com/privacy" target="_blank">Gizlilik Politikası</a> ve <a href="https://policies.google.com/terms" target="_blank">Hizmet Şartları</a> geçerlidir.</p>
                                 <div class="account__login--divide">
                                     <span class="account__login--divide__text">YA DA </span>
                                 </div>
-                                <div class="account__social d-flex justify-content-center mb-15">
-                                    <a class="account__social--link google" target="_blank"
-                                        href="https://www.google.com">Google</a>
-                                </div>
+                             
                                 <p class="account__login--signup__text">Hesabınız yok mu? <button
                                         onclick="window.location.href='/kayit-ol'" type="button">Kayıt Ol</button></p>
                             </div>
@@ -72,7 +70,7 @@
                 var email = document.getElementById('login-email').value.trim();
                 var password = document.getElementById('login-password').value;
                 var rememberMe = document.getElementById('rememberMe').checked;
-                await makeRequest('/giris-yap', 'POST', { email: email, password: password, rememberMe: rememberMe });
+                await makeRequestWithRecaptcha('/giris-yap', 'POST', { email: email, password: password, rememberMe: rememberMe }, 'login');
                 var params = new URLSearchParams(window.location.search);
                 var returnUrl = params.get('returnUrl') || params.get('returnurl') || '/';
                 if (returnUrl && !returnUrl.startsWith('/')) returnUrl = '/' + returnUrl;

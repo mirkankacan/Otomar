@@ -2,20 +2,29 @@
 User-agent: *
 Allow: /
 
-# Indexlenmemesi gereken sayfalar
-Disallow: /odeme/
-Disallow: /sepet
+# Kimlik dogrulama
 Disallow: /giris-yap
 Disallow: /kayit-ol
 Disallow: /cikis-yap
+Disallow: /sifre-sifirla
+Disallow: /token-yenile
 Disallow: /erisim-engellendi
+
+# Ozel / giris gerektiren sayfalar
+Disallow: /hesabim
+Disallow: /profilim
+Disallow: /liste-sorgu/
+Disallow: /siparis/
+Disallow: /cari/
 Disallow: /kullanici/
 Disallow: /musteri/
-Disallow: /siparis/
 
-# Statik asset klasorleri
-Disallow: /assets/js/
-Disallow: /assets/css/
+# Sepet ve odeme
+Disallow: /sepet
+Disallow: /odeme/
+
+# Hata sayfalari
+Disallow: /hata/
 
 # Sitemap
 Sitemap: https://otomar.com.tr/sitemap.xml

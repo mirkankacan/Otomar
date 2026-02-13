@@ -361,6 +361,7 @@ new(ViewData["Title"] as string, null),
                                 </button>
                                 <button class="w-100 primary__btn" type="button" id="btnCreateListSearch">Liste Sorgusunu
                                     Oluştur</button>
+                                <p class="recaptcha-terms">Bu site reCAPTCHA ile korunmaktadır. Google <a href="https://policies.google.com/privacy" target="_blank">Gizlilik Politikası</a> ve <a href="https://policies.google.com/terms" target="_blank">Hizmet Şartları</a> geçerlidir.</p>
 
                             </div>
                         </div>
@@ -787,7 +788,7 @@ new(ViewData["Title"] as string, null),
                 var btn = $('#btnCreateListSearch');
                 btn.prop('disabled', true);
                 try {
-                    var result = await makeRequest('/liste-sorgu/olustur', 'POST', formData);
+                    var result = await makeRequestWithRecaptcha('/liste-sorgu/olustur', 'POST', formData, 'list_search');
                     if (typeof toastr !== 'undefined') toastr.success('Liste sorgusu başarıyla oluşturuldu.', 'Başarılı');
                     else alert('Liste sorgusu başarıyla oluşturuldu.');
                     window.location.href = '/liste-sorgu';

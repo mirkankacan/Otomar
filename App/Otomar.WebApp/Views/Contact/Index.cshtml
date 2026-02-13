@@ -69,6 +69,7 @@
                         </div>
                     </div>
                     <button class="contact__form--btn primary__btn" type="submit"> <span>Gönder</span></button>
+                    <p class="recaptcha-terms">Bu site reCAPTCHA ile korunmaktadır. Google <a href="https://policies.google.com/privacy" target="_blank">Gizlilik Politikası</a> ve <a href="https://policies.google.com/terms" target="_blank">Hizmet Şartları</a> geçerlidir.</p>
                 </form>
             </div>
             <div class="contact__info border-radius-5">
@@ -268,7 +269,7 @@
 
                 try {
                     // API'ye istek at
-                    const response = await makeRequest('/iletisim/mail-gonder', 'POST', formData);
+                    const response = await makeRequestWithRecaptcha('/iletisim/mail-gonder', 'POST', formData, 'contact');
 
                     // Başarılı mesaj
                     toastr.success('Mesajınız başarıyla gönderildi. En kısa sürede size dönüş yapacağız.', 'Başarılı');

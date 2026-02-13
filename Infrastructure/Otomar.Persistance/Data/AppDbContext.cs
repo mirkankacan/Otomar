@@ -4,7 +4,7 @@ using System.Data;
 
 namespace Otomar.Persistance.Data
 {
-    public class AppDbContext : IAppDbContext
+    public class AppDbContext : IAppDbContext, IDisposable
     {
         private readonly IDbConnection _connection;
         private bool _disposed;

@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OTOMAR Yedek Parça - Sipariş Hata Bilgilendirmesi</title>
+    <title>OTOMAR Yedek Parça - Ödeme Hata Bilgilendirmesi</title>
     <style>
 
         body {
@@ -45,6 +45,22 @@
                 margin: 10px 0;
             }
 
+        .alert-banner {
+            background-color: #fee2e2;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px;
+            text-align: center;
+        }
+
+            .alert-banner p {
+                margin: 5px 0;
+                color: #991b1b;
+                font-weight: bold;
+                font-size: 16px;
+            }
+
         .info-block {
             margin: 20px;
             padding-bottom: 10px;
@@ -79,7 +95,13 @@
 
             table th {
                 background-color: #f4f4f4;
+                width: 40%;
             }
+
+        .red-text {
+            color: #dc2626;
+            font-weight: bold;
+        }
 
         .footer {
             text-align: center;
@@ -97,23 +119,66 @@
 <body>
     <div class="page">
 
-        <div class="content">
-            <p>OTOMAR Yedek Parça ödeme işleminde hata!</p>
+        <div class="alert-banner">
+            <p>Ödeme işleminde hata oluştu!</p>
         </div>
 
         <div class="info-block">
+            <h3>Sipariş Bilgileri</h3>
             <table>
-                <thead>
+                <tbody>
                     <tr>
                         <th>Sipariş Kodu</th>
-                        <th>Not</th>
-                        <th>Tarih</th>
+                        <td>{{OrderCode}}</td>
                     </tr>
-                </thead>
+                    <tr>
+                        <th>Tutar</th>
+                        <td>{{Amount}}</td>
+                    </tr>
+                    <tr>
+                        <th>Tarih</th>
+                        <td>{{CreatedAt}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="info-block">
+            <h3>Kart Bilgileri</h3>
+            <table>
                 <tbody>
-                <td>{{OrderId}}</td>
-                <td class='red-text'>{{Note}}</td>
-                <td>{{CurrentDate}}</td>
+                    <tr>
+                        <th>Kart Numarası</th>
+                        <td>{{MaskedCreditCard}}</td>
+                    </tr>
+                    <tr>
+                        <th>Kart Markası</th>
+                        <td>{{CardBrand}}</td>
+                    </tr>
+                    <tr>
+                        <th>Kartı Veren Banka</th>
+                        <td>{{CardIssuer}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="info-block">
+            <h3>Hata Detayları</h3>
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Banka Hata Kodu</th>
+                        <td class="red-text">{{BankErrorCode}}</td>
+                    </tr>
+                    <tr>
+                        <th>Banka Hata Mesajı</th>
+                        <td class="red-text">{{BankErrMsg}}</td>
+                    </tr>
+                    <tr>
+                        <th>İşlem Dönüş Kodu</th>
+                        <td>{{BankProcReturnCode}}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>

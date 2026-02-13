@@ -23,5 +23,7 @@ namespace Otomar.WebApp.Dtos.Contact
         [Required(ErrorMessage = "Mesaj alanı zorunludur.")]
         [StringLength(1000, MinimumLength = 10, ErrorMessage = "Mesaj en az 10, en fazla 1000 karakter olabilir.")]
         public string Message { get; set; }
+
+        public string? RecaptchaToken { get; set; }
     }
 }

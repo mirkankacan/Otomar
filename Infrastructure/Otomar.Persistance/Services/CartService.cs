@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
 using Otomar.Application.Dtos.Cart;
@@ -56,7 +59,7 @@ namespace Otomar.Persistance.Services
             {
                 return ServiceResult<CartDto>.Error(
                     "Yetersiz Stok",
-                    $"Yeterli stok yok. Mevcut stok: {product.STOK_BAKIYE}, İstenen: {dto.Quantity}",
+                    "Yeterli stok yok.",
                     HttpStatusCode.BadRequest);
             }
 
@@ -87,7 +90,7 @@ namespace Otomar.Persistance.Services
                 {
                     return ServiceResult<CartDto>.Error(
                         "Yetersiz Stok",
-                        $"Yeterli stok yok. Mevcut stok: {product.STOK_BAKIYE}, İstenen: {newQuantity}",
+                        "Yeterli stok yok.",
                         HttpStatusCode.BadRequest);
                 }
 
@@ -177,7 +180,7 @@ namespace Otomar.Persistance.Services
                     {
                         return ServiceResult<CartDto>.Error(
                             "Yetersiz Stok",
-                            $"Yeterli stok yok. Mevcut stok: {product.STOK_BAKIYE}, İstenen: {dto.Quantity}",
+                            "Yeterli stok yok.",
                             HttpStatusCode.BadRequest);
                     }
 

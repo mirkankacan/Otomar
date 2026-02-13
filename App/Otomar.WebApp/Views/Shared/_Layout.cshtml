@@ -82,8 +82,12 @@
     }
     </script>
 
+    @{
+        var recaptchaOptions = (Otomar.WebApp.Options.RecaptchaOptions)Context.RequestServices.GetService(typeof(Otomar.WebApp.Options.RecaptchaOptions));
+    }
     <script>
-        window.SITE_KEY = '6LcQvngqAAAAAE54QYZrbKgnK7NdsmwV3zsrfVwi';
+        window.SITE_KEY = '@recaptchaOptions.SiteKey';
+        window.RECAPTCHA_ENABLED = @recaptchaOptions.Enabled.ToString().ToLower();
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
@@ -91,6 +95,15 @@
         gtag('config', 'GT-WFFPZK75');
     </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-5TKFSDZK3S"></script>
+    @if (recaptchaOptions.Enabled)
+    {
+        <script src="https://www.google.com/recaptcha/api.js?render=@recaptchaOptions.SiteKey"></script>
+        <style>
+            .grecaptcha-badge { visibility: hidden; }
+            .recaptcha-terms { font-size: 11px; color: #888; margin-top: 8px; line-height: 1.4; }
+            .recaptcha-terms a { color: #888; text-decoration: underline; }
+        </style>
+    }
 
     <!-- ======= All CSS Plugins here ======== -->
     <link rel="stylesheet" href="/assets/css/plugins/swiper-bundle.min.css">
@@ -1236,6 +1249,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/7.6.1/imask.min.js" integrity="sha512-+3RJc0aLDkj0plGNnrqlTwCCyMmDCV1fSYqXw4m+OczX09Pas5A/U+V3pFwrSyoC1svzDy40Q9RU/85yb/7D2A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="/assets/js/validation.js"></script>
     <script src="/assets/js/http-client.js"></script>
+    <script src="/assets/js/recaptcha-helper.js"></script>
     <script src="/assets/js/skeleton-loader.js"></script>
 
     <!-- Customscript js -->

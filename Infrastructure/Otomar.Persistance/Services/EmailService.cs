@@ -11,15 +11,17 @@ using System.Net;
 
 namespace Otomar.Persistance.Services
 {
-    public class EmailService(
-        ILogger<EmailService> logger, EmailOptions emailOptions, IIdentityService identityService, IServiceProvider serviceProvider) : IEmailService
+    public class EmailService(ILogger<EmailService> logger, EmailOptions emailOptions, IIdentityService identityService, IServiceProvider serviceProvider) : IEmailService
     {
-        public async Task SendPaymentFailedMailAsync(CancellationToken cancellationToken)
+        public async Task SendPaymentFailedMailAsync(string orderCode, CancellationToken cancellationToken)
         {
-            var to = emailOptions.ErrorTo;
-            if (string.IsNullOrWhiteSpace(to))
+            await using var scope = serviceProvider.CreateAsyncScope();
+            var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentService>();
+            var payment = await paymentService.GetPaymentByOrderCodeAsync(orderCode);
+
+            if (payment.Data == null)
             {
-                logger.LogWarning("Hatayı gönderilecek e-posta adresi bulunamadı. Ödeme başarısız maili gönderilemedi.");
+                logger.LogWarning($"{orderCode} sipariş kodlu ödeme bulunamadı");
                 return;
             }
 
@@ -30,8 +32,19 @@ namespace Otomar.Persistance.Services
                 return;
             }
 
+            body = body
+                         .Replace("{{OrderCode}}", WebUtility.HtmlEncode(payment.Data.OrderCode))
+                         .Replace("{{Amount}}", payment.Data.TotalAmount.ToString("C2", new CultureInfo("tr-TR")))
+                         .Replace("{{CreatedAt}}", payment.Data.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                         .Replace("{{MaskedCreditCard}}", WebUtility.HtmlEncode(payment.Data.MaskedCreditCard))
+                         .Replace("{{CardBrand}}", WebUtility.HtmlEncode(payment.Data.BankCardBrand))
+                         .Replace("{{CardIssuer}}", WebUtility.HtmlEncode(payment.Data.BankCardIssuer))
+                         .Replace("{{BankErrorCode}}", WebUtility.HtmlEncode(payment.Data.BankErrorCode ?? "-"))
+                         .Replace("{{BankErrMsg}}", WebUtility.HtmlEncode(payment.Data.BankErrMsg ?? "-"))
+                         .Replace("{{BankProcReturnCode}}", WebUtility.HtmlEncode(payment.Data.BankProcReturnCode));
+
             const string subject = "Ödemede Hata ❌";
-            await SendInternalAsync(subject, body, to, null, null, isHtml: true, cancellationToken);
+            await SendInternalAsync(subject, body, null, null, null, isHtml: true, cancellationToken);
         }
 
         public async Task SendPaymentSuccessMailAsync(Guid orderId, CancellationToken cancellationToken)
@@ -125,11 +138,11 @@ namespace Otomar.Persistance.Services
                          .Replace("{{Email}}", WebUtility.HtmlEncode(order.Data.Email ?? string.Empty))
                          .Replace("{{CardBrand}}", WebUtility.HtmlEncode(payment.Data.BankCardBrand))
                          .Replace("{{CardIssuer}}", WebUtility.HtmlEncode(payment.Data.BankCardIssuer))
-                         .Replace("{{Amount}}", payment.Data.TotalAmount.ToString("C2", new CultureInfo("tr-TR"))
+                         .Replace("{{Amount}}", payment.Data.TotalAmount.ToString("C2", new CultureInfo("tr-TR")))
                          .Replace("{{AmountInType}}", ConvertAmountToTurkishWords(payment.Data.TotalAmount))
                          .Replace("{{CreatedAt}}", order.Data.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
                          .Replace("{{MaskedCreditCard}}", WebUtility.HtmlEncode(payment.Data.MaskedCreditCard))
-                         .Replace("{{OrderCode}}", WebUtility.HtmlEncode(order.Data.Code)));
+                         .Replace("{{OrderCode}}", WebUtility.HtmlEncode(order.Data.Code));
             const string subject = "Ödeme Onayı ✅";
             await SendInternalAsync(subject, body, order.Data.Email, null, null, isHtml: true, cancellationToken);
         }
@@ -268,12 +281,12 @@ namespace Otomar.Persistance.Services
             }
 
             // Required CC/BCC from configuration
-            foreach (var requiredCc in emailOptions.GetRequiredCcList())
+            foreach (var requiredCc in emailOptions.RequiredCc)
             {
                 message.Cc.Add(MailboxAddress.Parse(requiredCc));
             }
 
-            foreach (var requiredBcc in emailOptions.GetRequiredBccList())
+            foreach (var requiredBcc in emailOptions.RequiredBcc)
             {
                 message.Bcc.Add(MailboxAddress.Parse(requiredBcc));
             }
@@ -295,8 +308,8 @@ namespace Otomar.Persistance.Services
             using var client = new SmtpClient();
 
             var secureOption = emailOptions.EnableSsl
-                ? SecureSocketOptions.SslOnConnect
-                : SecureSocketOptions.StartTlsWhenAvailable;
+                ? SecureSocketOptions.StartTls
+                : SecureSocketOptions.Auto;
 
             await client.ConnectAsync(emailOptions.Host, emailOptions.Port, secureOption, cancellationToken);
             await client.AuthenticateAsync(emailOptions.Credentials.UserName, emailOptions.Credentials.Password, cancellationToken);
