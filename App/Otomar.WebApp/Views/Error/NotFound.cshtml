@@ -1,23 +1,25 @@
 @{
     ViewData["Title"] = "Sayfa Bulunamadı";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["MetaRobots"] = "noindex, nofollow";
+    Layout = "~/Views/Shared/_ErrorLayout.cshtml";
 }
 
-<section class="section--padding">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-6 col-md-8 text-center">
-                <h1 style="font-size: 8rem; font-weight: 800; color: var(--secondary-color); margin-bottom: 0;">404</h1>
-                <h2 class="mb-15">Sayfa Bulunamadı</h2>
-                <p class="mb-30" style="font-size: 1.5rem; color: #666;">
-                    Aradığınız sayfa taşınmış, kaldırılmış veya hiç var olmamış olabilir.
-                </p>
-                <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <a href="/ana-sayfa" class="primary__btn">Ana Sayfaya Dön</a>
-                    <a href="/magaza" class="primary__btn" style="background: var(--primary-color);">Mağazaya Git</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<div class="error-icon">
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="34" cy="34" r="22" stroke="#ED1D24" stroke-width="2.5" opacity="0.4"/>
+        <line x1="50" y1="50" x2="68" y2="68" stroke="#ED1D24" stroke-width="4" stroke-linecap="round"/>
+        <path d="M28 29c0-4.5 2.7-7.5 6-7.5s6 3 6 7.5c0 3.8-3 5.5-6 8v3" stroke="#ED1D24" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="34" cy="45" r="2" fill="#ED1D24"/>
+    </svg>
+</div>
+
+<div class="error-code">404</div>
+<div class="error-line"></div>
+<h1 class="error-title">Sayfa Bulunamadı</h1>
+<p class="error-desc">
+    Aradığınız sayfa taşınmış, kaldırılmış veya hiç var olmamış olabilir.
+    Adresi kontrol edip tekrar deneyebilirsiniz.
+</p>
+<div class="error-btns">
+    <a href="/ana-sayfa" class="ebtn ebtn-red">Ana Sayfaya Dön</a>
+    <a href="/magaza" class="ebtn ebtn-ghost">Mağazaya Git</a>
+</div>

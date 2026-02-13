@@ -78,7 +78,7 @@ namespace Otomar.Persistance.Services
             catch (Exception ex)
             {
                 transaction.Rollback();
-                logger.LogError(ex, "CreateOrderAsync işleminde hata");
+                logger.LogWarning(ex, "CreateOrderAsync işleminde hata");
                 throw;
             }
         }

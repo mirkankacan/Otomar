@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Bir Hata Oluştu";
+    ViewData["Title"] = "Sunucu Hatası";
     Layout = "~/Views/Shared/_ErrorLayout.cshtml";
 }
 
@@ -11,14 +11,14 @@
     </svg>
 </div>
 
-<div class="error-code" style="font-size: clamp(3rem, 10vw, 5rem);">Hata</div>
+<div class="error-code">500</div>
 <div class="error-line"></div>
-<h1 class="error-title">Bir Şeyler Ters Gitti</h1>
+<h1 class="error-title">Sunucu Hatası</h1>
 <p class="error-desc">
-    Beklenmeyen bir hata oluştu. Lütfen sayfayı yenileyerek tekrar deneyin.
-    Sorun devam ederse bizimle iletişime geçebilirsiniz.
+    Beklenmeyen bir hata oluştu. Teknik ekibimiz bilgilendirildi.
+    Lütfen kısa bir süre sonra tekrar deneyiniz.
 </p>
 <div class="error-btns">
     <a href="/ana-sayfa" class="ebtn ebtn-red">Ana Sayfaya Dön</a>
-    <a href="/iletisim" class="ebtn ebtn-ghost">İletişim</a>
+    <a href="javascript:location.reload()" class="ebtn ebtn-ghost">Tekrar Dene</a>
 </div>

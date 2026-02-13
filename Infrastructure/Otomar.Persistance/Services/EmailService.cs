@@ -244,74 +244,66 @@ namespace Otomar.Persistance.Services
             bool isHtml,
             CancellationToken cancellationToken)
         {
-            try
+            var message = new MimeMessage();
+            message.From.Add(MailboxAddress.Parse(emailOptions.Credentials.UserName));
+
+            if (!string.IsNullOrEmpty(to))
             {
-                var message = new MimeMessage();
-                message.From.Add(MailboxAddress.Parse(emailOptions.Credentials.UserName));
-
-                if (!string.IsNullOrEmpty(to))
-                {
-                    message.To.Add(MailboxAddress.Parse(to));
-                }
-                else
-                {
-                    message.To.Add(MailboxAddress.Parse(emailOptions.Credentials.UserName));
-                }
-
-                // Optional CC/BCC from method parameters
-                if (!string.IsNullOrWhiteSpace(cc))
-                {
-                    message.Cc.Add(MailboxAddress.Parse(cc));
-                }
-
-                if (!string.IsNullOrWhiteSpace(bcc))
-                {
-                    message.Bcc.Add(MailboxAddress.Parse(bcc));
-                }
-
-                // Required CC/BCC from configuration
-                foreach (var requiredCc in emailOptions.GetRequiredCcList())
-                {
-                    message.Cc.Add(MailboxAddress.Parse(requiredCc));
-                }
-
-                foreach (var requiredBcc in emailOptions.GetRequiredBccList())
-                {
-                    message.Bcc.Add(MailboxAddress.Parse(requiredBcc));
-                }
-
-                message.Subject = subject;
-
-                var builder = new BodyBuilder();
-                if (isHtml)
-                {
-                    builder.HtmlBody = body;
-                }
-                else
-                {
-                    builder.TextBody = body;
-                }
-
-                message.Body = builder.ToMessageBody();
-
-                using var client = new SmtpClient();
-
-                var secureOption = emailOptions.EnableSsl
-                    ? SecureSocketOptions.SslOnConnect
-                    : SecureSocketOptions.StartTlsWhenAvailable;
-
-                await client.ConnectAsync(emailOptions.Host, emailOptions.Port, secureOption, cancellationToken);
-                await client.AuthenticateAsync(emailOptions.Credentials.UserName, emailOptions.Credentials.Password, cancellationToken);
-                await client.SendAsync(message, cancellationToken);
-                await client.DisconnectAsync(true, cancellationToken);
-
-                logger.LogInformation("E-posta gönderildi. Konu: {Subject}, Alıcı: {To}", subject, to);
+                message.To.Add(MailboxAddress.Parse(to));
             }
-            catch (Exception ex)
+            else
             {
-                logger.LogError(ex, "E-posta gönderilirken bir hata oluştu. Konu: {Subject}, Alıcı: {To}", subject, to);
-                throw;
+                message.To.Add(MailboxAddress.Parse(emailOptions.Credentials.UserName));
             }
+
+            // Optional CC/BCC from method parameters
+            if (!string.IsNullOrWhiteSpace(cc))
+            {
+                message.Cc.Add(MailboxAddress.Parse(cc));
+            }
+
+            if (!string.IsNullOrWhiteSpace(bcc))
+            {
+                message.Bcc.Add(MailboxAddress.Parse(bcc));
+            }
+
+            // Required CC/BCC from configuration
+            foreach (var requiredCc in emailOptions.GetRequiredCcList())
+            {
+                message.Cc.Add(MailboxAddress.Parse(requiredCc));
+            }
+
+            foreach (var requiredBcc in emailOptions.GetRequiredBccList())
+            {
+                message.Bcc.Add(MailboxAddress.Parse(requiredBcc));
+            }
+
+            message.Subject = subject;
+
+            var builder = new BodyBuilder();
+            if (isHtml)
+            {
+                builder.HtmlBody = body;
+            }
+            else
+            {
+                builder.TextBody = body;
+            }
+
+            message.Body = builder.ToMessageBody();
+
+            using var client = new SmtpClient();
+
+            var secureOption = emailOptions.EnableSsl
+                ? SecureSocketOptions.SslOnConnect
+                : SecureSocketOptions.StartTlsWhenAvailable;
+
+            await client.ConnectAsync(emailOptions.Host, emailOptions.Port, secureOption, cancellationToken);
+            await client.AuthenticateAsync(emailOptions.Credentials.UserName, emailOptions.Credentials.Password, cancellationToken);
+            await client.SendAsync(message, cancellationToken);
+            await client.DisconnectAsync(true, cancellationToken);
+
+            logger.LogInformation("E-posta gönderildi. Konu: {Subject}, Alıcı: {To}", subject, to);
         }
 
         private string LoadTemplate(string templateFileName)

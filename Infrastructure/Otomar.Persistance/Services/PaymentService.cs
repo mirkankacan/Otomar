@@ -74,7 +74,7 @@ namespace Otomar.Persistance.Services
             {
                 transaction.Rollback();
 
-                logger.LogError(ex, "InitializeVirtualPosPaymentAsync işleminde hata");
+                logger.LogWarning(ex, "InitializeVirtualPosPaymentAsync işleminde hata");
                 throw;
             }
         }
@@ -127,7 +127,7 @@ namespace Otomar.Persistance.Services
             catch (Exception ex)
             {
                 transaction.Rollback();
-                logger.LogError(ex, "InitializePurchasePaymentAsync işleminde hata");
+                logger.LogWarning(ex, "InitializePurchasePaymentAsync işleminde hata");
                 throw;
             }
         }

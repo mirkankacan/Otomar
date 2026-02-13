@@ -12,78 +12,60 @@ namespace Otomar.Persistance.Services
     {
         public async Task<ServiceResult<ClientDto>> GetClientByCodeAsync(string clientCode)
         {
-            try
+            if (string.IsNullOrEmpty(clientCode))
             {
-                if (string.IsNullOrEmpty(clientCode))
-                {
-                    return ServiceResult<ClientDto>.Error("Geçersiz Cari Kodu", "Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
-                }
-                var parameters = new DynamicParameters();
-                parameters.Add("clientCode", clientCode.Trim());
-                var query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S FROM IdvSanalPosCari WITH (NOLOCK) WHERE CARI_KOD = @clientCode";
+                return ServiceResult<ClientDto>.Error("Geçersiz Cari Kodu", "Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
+            }
+            var parameters = new DynamicParameters();
+            parameters.Add("clientCode", clientCode.Trim());
+            var query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S FROM IdvSanalPosCari WITH (NOLOCK) WHERE CARI_KOD = @clientCode";
 
-                var result = await context.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, parameters);
-                if (result == null)
-                {
-                    logger.LogWarning($"{clientCode} kodlu cari bulunamadı");
-                    return ServiceResult<ClientDto>.Error("Cari Bulunamadı", $"{clientCode} kodlu cari bulunamadı", HttpStatusCode.NotFound);
-                }
-                return ServiceResult<ClientDto>.SuccessAsOk(result);
-            }
-            catch (Exception ex)
+            var result = await context.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, parameters);
+            if (result == null)
             {
-                logger.LogError(ex, "GetClientByCodeAsync işleminde hata");
-                throw;
+                logger.LogWarning($"{clientCode} kodlu cari bulunamadı");
+                return ServiceResult<ClientDto>.Error("Cari Bulunamadı", $"{clientCode} kodlu cari bulunamadı", HttpStatusCode.NotFound);
             }
+            return ServiceResult<ClientDto>.SuccessAsOk(result);
         }
 
         public async Task<ServiceResult<ClientDto>> GetClientByTaxTcNumberAsync(string taxNumber)
         {
-            try
+            if (string.IsNullOrEmpty(taxNumber))
             {
-                if (string.IsNullOrEmpty(taxNumber))
-                {
-                    return ServiceResult<ClientDto>.Error("Geçersiz Vergi/TC Numarası", "Vergi numarası/TC kimlik numarası boş geçilemez", HttpStatusCode.BadRequest);
-                }
-                var parameters = new DynamicParameters();
-                parameters.Add("taxNumber", taxNumber.Trim());
-                var query = string.Empty;
-                if (taxNumber.Length == 10)
-                {
-                    query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S  FROM IdvSanalPosCari WITH (NOLOCK) WHERE VERGI_NUMARASI = @taxNumber";
-                }
-                else if (taxNumber.Length == 11)
-                {
-                    query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S FROM IdvSanalPosCari WITH (NOLOCK) WHERE TCKIMLIKNO = @taxNumber";
-                }
+                return ServiceResult<ClientDto>.Error("Geçersiz Vergi/TC Numarası", "Vergi numarası/TC kimlik numarası boş geçilemez", HttpStatusCode.BadRequest);
+            }
+            var parameters = new DynamicParameters();
+            parameters.Add("taxNumber", taxNumber.Trim());
+            var query = string.Empty;
+            if (taxNumber.Length == 10)
+            {
+                query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S  FROM IdvSanalPosCari WITH (NOLOCK) WHERE VERGI_NUMARASI = @taxNumber";
+            }
+            else if (taxNumber.Length == 11)
+            {
+                query = $@"SELECT TOP 1 CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S FROM IdvSanalPosCari WITH (NOLOCK) WHERE TCKIMLIKNO = @taxNumber";
+            }
 
-                var result = await context.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, parameters);
-                if (result == null)
-                {
-                    logger.LogWarning($"{taxNumber} vergi numaralı/TC kimlik numaralı cari bulunamadı");
-                    return ServiceResult<ClientDto>.Error("Cari Bulunamadı", $"{taxNumber} vergi numaralı/TC kimlik numaralı cari bulunamadı", HttpStatusCode.NotFound);
-                }
-                return ServiceResult<ClientDto>.SuccessAsOk(result);
-            }
-            catch (Exception ex)
+            var result = await context.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, parameters);
+            if (result == null)
             {
-                logger.LogError(ex, "GetClientByTaxNumberAsync işleminde hata");
-                throw;
+                logger.LogWarning($"{taxNumber} vergi numaralı/TC kimlik numaralı cari bulunamadı");
+                return ServiceResult<ClientDto>.Error("Cari Bulunamadı", $"{taxNumber} vergi numaralı/TC kimlik numaralı cari bulunamadı", HttpStatusCode.NotFound);
             }
+            return ServiceResult<ClientDto>.SuccessAsOk(result);
         }
 
         public async Task<ServiceResult<IEnumerable<TransactionDto>>> GetClientTransactionsByCodeAsync(string clientCode)
         {
-            try
+            if (string.IsNullOrEmpty(clientCode))
             {
-                if (string.IsNullOrEmpty(clientCode))
-                {
-                    return ServiceResult<IEnumerable<TransactionDto>>.Error("Geçersiz Cari Kodu", "Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
-                }
-                var parameters = new DynamicParameters();
-                parameters.Add("clientCode", clientCode.Trim());
+                return ServiceResult<IEnumerable<TransactionDto>>.Error("Geçersiz Cari Kodu", "Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
+            }
+            var parameters = new DynamicParameters();
+            parameters.Add("clientCode", clientCode.Trim());
 
-                var query = @"
+            var query = @"
                 SET DATEFORMAT DMY
                 SELECT
                     TRY_CAST(TARIH AS datetime) AS TARIH_RAW,              -- datetime olarak döner
@@ -103,39 +85,31 @@ namespace Otomar.Persistance.Services
                     ALACAK,
                     FORMAT(BAKIYE, 'c2', 'tr-TR') AS BAKIYE
                 FROM OTOMAR2026.DBO.IDF_SATIS_CARI_HAREKET(@clientCode)
-                ORDER BY TARIH_RAW DESC, INC_KEY_NUMBER DESC;";
-                var result = await context.Connection.QueryAsync<TransactionDto>(query, parameters);
-                if (!result.Any())
-                {
-                    logger.LogWarning($"{clientCode} kodlu carinin hareketleri bulunamadı");
-                    return ServiceResult<IEnumerable<TransactionDto>>.Error("Cari Hareket Bulunamadı", $"{clientCode} kodlu carinin hareketleri bulunamadı", HttpStatusCode.NotFound);
-                }
-                return ServiceResult<IEnumerable<TransactionDto>>.SuccessAsOk(result);
-            }
-            catch (Exception ex)
+                ORDER BY TARIH_RAW DESC, INC_KEY_NUMBER DESC;";
+            var result = await context.Connection.QueryAsync<TransactionDto>(query, parameters);
+            if (!result.Any())
             {
-                logger.LogError(ex, "GetClientTransactionsByCodeAsync işleminde hata");
-                throw;
+                logger.LogWarning($"{clientCode} kodlu carinin hareketleri bulunamadı");
+                return ServiceResult<IEnumerable<TransactionDto>>.Error("Cari Hareket Bulunamadı", $"{clientCode} kodlu carinin hareketleri bulunamadı", HttpStatusCode.NotFound);
             }
+            return ServiceResult<IEnumerable<TransactionDto>>.SuccessAsOk(result);
         }
 
         public async Task<ServiceResult<IEnumerable<TransactionDto>>> GetClientTransactionsByCodeAsync(string clientCode, int pageNumber, int pageSize)
         {
-            try
+            if (string.IsNullOrEmpty(clientCode))
             {
-                if (string.IsNullOrEmpty(clientCode))
-                {
-                    return ServiceResult<IEnumerable<TransactionDto>>.Error("Geçersiz Cari Kodu", "Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
-                }
-                if (pageNumber < 1) pageNumber = 1;
-                if (pageSize < 1) pageSize = 10;
-                if (pageSize > 100) pageSize = 100;
-                var parameters = new DynamicParameters();
-                parameters.Add("clientCode", clientCode.Trim());
-                parameters.Add("pageNumber", pageNumber);
-                parameters.Add("pageSize", pageSize);
+                return ServiceResult<IEnumerable<TransactionDto>>.Error("Geçersiz Cari Kodu", "Cari kodu boş geçilemez", HttpStatusCode.BadRequest);
+            }
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+            var parameters = new DynamicParameters();
+            parameters.Add("clientCode", clientCode.Trim());
+            parameters.Add("pageNumber", pageNumber);
+            parameters.Add("pageSize", pageSize);
 
-                var query = @"
+            var query = @"
         SET DATEFORMAT DMY
         SELECT
             TRY_CAST(TARIH AS datetime) AS TARIH_RAW,
@@ -159,19 +133,13 @@ namespace Otomar.Persistance.Services
         OFFSET (@pageNumber - 1) * @pageSize ROWS
         FETCH NEXT @pageSize ROWS ONLY;";
 
-                var result = await context.Connection.QueryAsync<TransactionDto>(query, parameters);
-                if (!result.Any())
-                {
-                    logger.LogWarning($"{clientCode} kodlu carinin hareketleri bulunamadı");
-                    return ServiceResult<IEnumerable<TransactionDto>>.Error("Cari Hareket Bulunamadı", $"{clientCode} kodlu carinin hareketleri bulunamadı", HttpStatusCode.NotFound);
-                }
-                return ServiceResult<IEnumerable<TransactionDto>>.SuccessAsOk(result);
-            }
-            catch (Exception ex)
+            var result = await context.Connection.QueryAsync<TransactionDto>(query, parameters);
+            if (!result.Any())
             {
-                logger.LogError(ex, "GetClientTransactionsByCodeAsync işleminde hata PageNumber: {PageNumber} PageSize: {PageSize}", pageNumber, pageSize);
-                throw;
+                logger.LogWarning($"{clientCode} kodlu carinin hareketleri bulunamadı");
+                return ServiceResult<IEnumerable<TransactionDto>>.Error("Cari Hareket Bulunamadı", $"{clientCode} kodlu carinin hareketleri bulunamadı", HttpStatusCode.NotFound);
             }
+            return ServiceResult<IEnumerable<TransactionDto>>.SuccessAsOk(result);
         }
     }
 }

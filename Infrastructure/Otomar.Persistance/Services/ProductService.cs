@@ -31,9 +31,7 @@ namespace Otomar.Persistance.Services
 
         public async Task<ServiceResult<FeaturedProductDto>> GetFeaturedProductsAsync()
         {
-            try
-            {
-                var selectColumns = @"
+            var selectColumns = @"
                       ID,
                      STOK_KODU,
                      OEM_KODU,
@@ -55,44 +53,36 @@ namespace Otomar.Persistance.Services
                      KASA_ADI,
                      STOK_BAKIYE";
 
-                var tasks = new[]
-                  {
-                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY ID DESC"),
-                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY STOK_BAKIYE DESC"),
-                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY WEB_GOSTER_TARIH DESC"),
-                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY SATIS_FIYAT ASC"),
-                        context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY SATIS_FIYAT DESC")
-                    };
-                var results = await Task.WhenAll(tasks);
-                var homePageProducts = new FeaturedProductDto
-                {
-                    Recommended = results[0],
-                    BestSeller = results[1],
-                    Latest = results[2],
-                    Lowestprice = results[3],
-                    HighestPrice = results[4]
+            var tasks = new[]
+              {
+                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY ID DESC"),
+                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY STOK_BAKIYE DESC"),
+                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY WEB_GOSTER_TARIH DESC"),
+                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY SATIS_FIYAT ASC"),
+                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY SATIS_FIYAT DESC")
                 };
-                return ServiceResult<FeaturedProductDto>.SuccessAsOk(homePageProducts);
-            }
-            catch (Exception ex)
+            var results = await Task.WhenAll(tasks);
+            var homePageProducts = new FeaturedProductDto
             {
-                logger.LogError(ex, "GetFeaturedProductsAsync işleminde hata");
-                throw;
-            }
+                Recommended = results[0],
+                BestSeller = results[1],
+                Latest = results[2],
+                Lowestprice = results[3],
+                HighestPrice = results[4]
+            };
+            return ServiceResult<FeaturedProductDto>.SuccessAsOk(homePageProducts);
         }
 
         public async Task<ServiceResult<ProductDto?>> GetProductByCodeAsync(string code)
         {
-            try
+            if (string.IsNullOrEmpty(code))
             {
-                if (string.IsNullOrEmpty(code))
-                {
-                    return ServiceResult<ProductDto?>.Error("Geçersiz Stok Kodu", "Stok kodu boş geçilemez", HttpStatusCode.BadRequest);
-                }
-                var parameters = new DynamicParameters();
-                parameters.Add("code", code.Trim());
+                return ServiceResult<ProductDto?>.Error("Geçersiz Stok Kodu", "Stok kodu boş geçilemez", HttpStatusCode.BadRequest);
+            }
+            var parameters = new DynamicParameters();
+            parameters.Add("code", code.Trim());
 
-                var query = $@"
+            var query = $@"
                  SELECT TOP 1
                      ID,
                      STOK_KODU,
@@ -117,30 +107,22 @@ namespace Otomar.Persistance.Services
                  FROM IdvStock WITH (NOLOCK)
                  WHERE STOK_KODU = @code";
 
-                var result = await context.Connection.QueryFirstOrDefaultAsync<ProductDto>(query, parameters);
-                if (result == null)
-                {
-                    logger.LogWarning($"'{code}' stok kodlu ürün bulunamadı");
-                    return ServiceResult<ProductDto?>.Error("Ürün Bulunamadı", $"'{code}' stok kodlu ürün bulunamadı", HttpStatusCode.NotFound);
-                }
-
-                return ServiceResult<ProductDto?>.SuccessAsOk(result);
-            }
-            catch (Exception ex)
+            var result = await context.Connection.QueryFirstOrDefaultAsync<ProductDto>(query, parameters);
+            if (result == null)
             {
-                logger.LogError(ex, "GetProductByCodeAsync işleminde hata");
-                throw;
+                logger.LogWarning($"'{code}' stok kodlu ürün bulunamadı");
+                return ServiceResult<ProductDto?>.Error("Ürün Bulunamadı", $"'{code}' stok kodlu ürün bulunamadı", HttpStatusCode.NotFound);
             }
+
+            return ServiceResult<ProductDto?>.SuccessAsOk(result);
         }
 
         public async Task<ServiceResult<ProductDto?>> GetProductByIdAsync(int id, IDbTransaction transaction = null)
         {
-            try
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("id", id);
+            var parameters = new DynamicParameters();
+            parameters.Add("id", id);
 
-                var query = $@"
+            var query = $@"
                  SELECT TOP 1
                      ID,
                      STOK_KODU,
@@ -165,43 +147,35 @@ namespace Otomar.Persistance.Services
                  FROM IdvStock WITH (NOLOCK)
                  WHERE ID = @id";
 
-                var result = await context.Connection.QueryFirstOrDefaultAsync<ProductDto>(query, parameters, transaction);
-                if (result == null)
-                {
-                    logger.LogWarning($"'{id}' ID'li ürün bulunamadı");
-                    return ServiceResult<ProductDto?>.Error("Ürün Bulunamadı", $"'{id}' ID'li ürün bulunamadı", HttpStatusCode.NotFound);
-                }
-
-                return ServiceResult<ProductDto?>.SuccessAsOk(result);
-            }
-            catch (Exception ex)
+            var result = await context.Connection.QueryFirstOrDefaultAsync<ProductDto>(query, parameters, transaction);
+            if (result == null)
             {
-                logger.LogError(ex, "GetProductByIdAsync işleminde hata");
-                throw;
+                logger.LogWarning($"'{id}' ID'li ürün bulunamadı");
+                return ServiceResult<ProductDto?>.Error("Ürün Bulunamadı", $"'{id}' ID'li ürün bulunamadı", HttpStatusCode.NotFound);
             }
+
+            return ServiceResult<ProductDto?>.SuccessAsOk(result);
         }
 
         public async Task<ServiceResult<PagedResult<ProductDto>>> GetProductsAsync(ProductFilterRequestDto productFilterRequestDto)
         {
-            try
+            var parameters = new DynamicParameters();
+            var whereConditions = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(productFilterRequestDto.SearchTerm))
             {
-                var parameters = new DynamicParameters();
-                var whereConditions = new List<string>();
+                var decodedSearchTerm = HttpUtility.UrlDecode(productFilterRequestDto.SearchTerm.Trim());
+                var searchParts = decodedSearchTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.SearchTerm))
+                var searchConditions = new List<string>();
+                for (int i = 0; i < searchParts.Length; i++)
                 {
-                    var decodedSearchTerm = HttpUtility.UrlDecode(productFilterRequestDto.SearchTerm.Trim());
-                    var searchParts = decodedSearchTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    var paramName = $"searchTerm{i}";
+                    parameters.Add(paramName, searchParts[i]);
 
-                    var searchConditions = new List<string>();
-                    for (int i = 0; i < searchParts.Length; i++)
+                    if (searchParts.Length == 1)
                     {
-                        var paramName = $"searchTerm{i}";
-                        parameters.Add(paramName, searchParts[i]);
-
-                        if (searchParts.Length == 1)
-                        {
-                            searchConditions.Add($@"
+                        searchConditions.Add($@"
                      (STOK_KODU = @{paramName}
                      OR URETICI_KODU = @{paramName}
                      OR OEM_KODU = @{paramName}
@@ -212,113 +186,113 @@ namespace Otomar.Persistance.Services
                      OR KASA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
                      OR MARKA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
                      OR MODEL_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%')");
-                        }
-                        else
-                        {
-                            // Multiple terms - focused search
-                            searchConditions.Add($@"
+                    }
+                    else
+                    {
+                        // Multiple terms - focused search
+                        searchConditions.Add($@"
                      (STOK_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
                      OR FATURA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
                      OR URETICI_MARKA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
                      OR HASHTAG COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'
                      OR KASA_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%')");
-                        }
                     }
-                    whereConditions.Add($"({string.Join(" AND ", searchConditions)})");
                 }
+                whereConditions.Add($"({string.Join(" AND ", searchConditions)})");
+            }
 
-                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.MainCategory))
+            if (!string.IsNullOrWhiteSpace(productFilterRequestDto.MainCategory))
+            {
+                var mainCategoryText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.MainCategory.Trim()));
+                whereConditions.Add("ANA_GRUP_ADI LIKE '%' + @mainCategory + '%'");
+                parameters.Add("mainCategory", mainCategoryText);
+            }
+
+            if (!string.IsNullOrWhiteSpace(productFilterRequestDto.SubCategory))
+            {
+                var subCategoryText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.SubCategory.Trim()));
+                whereConditions.Add("ALT_GRUP_ADI LIKE '%' + @subCategory + '%'");
+                parameters.Add("subCategory", subCategoryText);
+            }
+
+            if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Brand))
+            {
+                var brandText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Brand.Trim()));
+                whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MARKA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @brand + '%')");
+                parameters.Add("brand", brandText);
+            }
+
+            if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Model))
+            {
+                var modelText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Model.Trim()));
+                whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MODEL_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @model + '%')");
+                parameters.Add("model", modelText);
+            }
+
+            if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Year))
+            {
+                var yearText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Year.Trim()));
+                whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(KASA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @year + '%')");
+                parameters.Add("year", yearText);
+            }
+
+            if (productFilterRequestDto.MinPrice.HasValue && productFilterRequestDto.MinPrice > 0)
+            {
+                whereConditions.Add("SATIS_FIYAT >= @minPrice");
+                parameters.Add("minPrice", productFilterRequestDto.MinPrice.Value);
+            }
+
+            if (productFilterRequestDto.MaxPrice.HasValue && productFilterRequestDto.MaxPrice > 0)
+            {
+                whereConditions.Add("SATIS_FIYAT <= @maxPrice");
+                parameters.Add("maxPrice", productFilterRequestDto.MaxPrice.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Manufacturer))
+            {
+                var decodedManufacturer = HttpUtility.UrlDecode(productFilterRequestDto.Manufacturer);
+                var manufacturerList = decodedManufacturer.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(c => ConvertSlugToText(c.Trim()))
+                    .Where(c => !string.IsNullOrEmpty(c))
+                    .ToList();
+
+                if (manufacturerList.Count > 0)
                 {
-                    var mainCategoryText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.MainCategory.Trim()));
-                    whereConditions.Add("ANA_GRUP_ADI LIKE '%' + @mainCategory + '%'");
-                    parameters.Add("mainCategory", mainCategoryText);
-                }
-
-                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.SubCategory))
-                {
-                    var subCategoryText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.SubCategory.Trim()));
-                    whereConditions.Add("ALT_GRUP_ADI LIKE '%' + @subCategory + '%'");
-                    parameters.Add("subCategory", subCategoryText);
-                }
-
-                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Brand))
-                {
-                    var brandText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Brand.Trim()));
-                    whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MARKA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @brand + '%')");
-                    parameters.Add("brand", brandText);
-                }
-
-                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Model))
-                {
-                    var modelText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Model.Trim()));
-                    whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MODEL_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @model + '%')");
-                    parameters.Add("model", modelText);
-                }
-
-                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Year))
-                {
-                    var yearText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Year.Trim()));
-                    whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(KASA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @year + '%')");
-                    parameters.Add("year", yearText);
-                }
-
-                if (productFilterRequestDto.MinPrice.HasValue && productFilterRequestDto.MinPrice > 0)
-                {
-                    whereConditions.Add("SATIS_FIYAT >= @minPrice");
-                    parameters.Add("minPrice", productFilterRequestDto.MinPrice.Value);
-                }
-
-                if (productFilterRequestDto.MaxPrice.HasValue && productFilterRequestDto.MaxPrice > 0)
-                {
-                    whereConditions.Add("SATIS_FIYAT <= @maxPrice");
-                    parameters.Add("maxPrice", productFilterRequestDto.MaxPrice.Value);
-                }
-
-                if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Manufacturer))
-                {
-                    var decodedManufacturer = HttpUtility.UrlDecode(productFilterRequestDto.Manufacturer);
-                    var manufacturerList = decodedManufacturer.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(c => ConvertSlugToText(c.Trim()))
-                        .Where(c => !string.IsNullOrEmpty(c))
-                        .ToList();
-
-                    if (manufacturerList.Count > 0)
+                    var manufacturerConditions = new List<string>();
+                    for (int i = 0; i < manufacturerList.Count; i++)
                     {
-                        var manufacturerConditions = new List<string>();
-                        for (int i = 0; i < manufacturerList.Count; i++)
-                        {
-                            var paramName = $"manufacturer{i}";
-                            manufacturerConditions.Add($"URETICI_KODU LIKE '%' + @{paramName} + '%' OR URETICI_MARKA_ADI LIKE '%' + @{paramName} + '%'");
-                            parameters.Add(paramName, manufacturerList[i]);
-                        }
-                        whereConditions.Add($"({string.Join(" OR ", manufacturerConditions)})");
+                        var paramName = $"manufacturer{i}";
+                        manufacturerConditions.Add($"URETICI_KODU LIKE '%' + @{paramName} + '%' OR URETICI_MARKA_ADI LIKE '%' + @{paramName} + '%'");
+                        parameters.Add(paramName, manufacturerList[i]);
                     }
+                    whereConditions.Add($"({string.Join(" OR ", manufacturerConditions)})");
                 }
+            }
 
-                // Build final WHERE clause
-                var whereClause = whereConditions.Count > 0 ? $"WHERE {string.Join(" AND ", whereConditions)}" : "";
+            // Build final WHERE clause
+            var whereClause = whereConditions.Count > 0 ? $"WHERE {string.Join(" AND ", whereConditions)}" : "";
 
-                // Sorting
-                var decodedSortBy = HttpUtility.UrlDecode(productFilterRequestDto.OrderBy ?? "");
-                var orderByClause = decodedSortBy switch
-                {
-                    "latest" => " ORDER BY WEB_GOSTER_TARIH DESC",
-                    "bestseller" => " ORDER BY STOK_BAKIYE DESC",
-                    "cheap" => " ORDER BY SATIS_FIYAT ASC",
-                    "expensive" => " ORDER BY SATIS_FIYAT DESC",
-                    _ => " ORDER BY ID DESC"
-                };
+            // Sorting
+            var decodedSortBy = HttpUtility.UrlDecode(productFilterRequestDto.OrderBy ?? "");
+            var orderByClause = decodedSortBy switch
+            {
+                "latest" => " ORDER BY WEB_GOSTER_TARIH DESC",
+                "bestseller" => " ORDER BY STOK_BAKIYE DESC",
+                "cheap" => " ORDER BY SATIS_FIYAT ASC",
+                "expensive" => " ORDER BY SATIS_FIYAT DESC",
+                _ => " ORDER BY ID DESC"
+            };
 
-                // Pagination
-                var offset = (productFilterRequestDto.PageNumber - 1) * productFilterRequestDto.PageSize;
-                parameters.Add("offset", offset);
-                parameters.Add("pageSize", productFilterRequestDto.PageSize);
+            // Pagination
+            var offset = (productFilterRequestDto.PageNumber - 1) * productFilterRequestDto.PageSize;
+            parameters.Add("offset", offset);
+            parameters.Add("pageSize", productFilterRequestDto.PageSize);
 
-                // Get total count first (for all records)
-                var totalCountQuery = "SELECT COUNT(*) FROM IdvStock WITH (NOLOCK)";
-                var totalCount = await context.Connection.QuerySingleAsync<int>(totalCountQuery);
+            // Get total count first (for all records)
+            var totalCountQuery = "SELECT COUNT(*) FROM IdvStock WITH (NOLOCK)";
+            var totalCount = await context.Connection.QuerySingleAsync<int>(totalCountQuery);
 
-                var query = $@"
+            var query = $@"
                  SELECT
                      ID,
                      STOK_KODU,
@@ -345,25 +319,17 @@ namespace Otomar.Persistance.Services
                  {orderByClause}
                   OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
 
-                var result = await context.Connection.QueryAsync<ProductDto>(query, parameters);
+            var result = await context.Connection.QueryAsync<ProductDto>(query, parameters);
 
-                return ServiceResult<PagedResult<ProductDto>>.SuccessAsOk(new PagedResult<ProductDto>(result, productFilterRequestDto.PageNumber, productFilterRequestDto.PageSize, totalCount));
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "GetProductsAsync işleminde hata");
-                throw;
-            }
+            return ServiceResult<PagedResult<ProductDto>>.SuccessAsOk(new PagedResult<ProductDto>(result, productFilterRequestDto.PageNumber, productFilterRequestDto.PageSize, totalCount));
         }
 
         public async Task<ServiceResult<IEnumerable<SimilarProductDto?>>> GetSimilarProductsByCodeAsync(string code)
         {
-            try
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("code", code.Trim());
+            var parameters = new DynamicParameters();
+            parameters.Add("code", code.Trim());
 
-                var query = @"
+            var query = @"
             WITH ProductInfo AS (
                 SELECT KASA_ADI, ALT_GRUP_ADI, ANA_GRUP_ADI
                 FROM [AA].[dbo].[IdvStock] WITH (NOLOCK)
@@ -420,15 +386,9 @@ namespace Otomar.Persistance.Services
                 ID, STOK_KODU, STOK_ADI, URETICI_KODU, SATIS_FIYAT, DOSYA_KONUM, URETICI_MARKA_LOGO
             FROM SimilarProducts
             ORDER BY Priority";
-                var result = await context.Connection.QueryAsync<SimilarProductDto?>(query, parameters);
+            var result = await context.Connection.QueryAsync<SimilarProductDto?>(query, parameters);
 
-                return ServiceResult<IEnumerable<SimilarProductDto?>>.SuccessAsOk(result);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "GetSimilarProductsByCodeAsync işleminde hata");
-                throw;
-            }
+            return ServiceResult<IEnumerable<SimilarProductDto?>>.SuccessAsOk(result);
         }
     }
 }

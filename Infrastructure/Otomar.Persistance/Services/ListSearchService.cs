@@ -36,7 +36,7 @@ namespace Otomar.Persistance.Services
             catch (Exception ex)
             {
                 transaction.Rollback();
-                logger.LogError(ex, "CreateListSearchAnswerAsync işleminde hata");
+                logger.LogWarning(ex, "CreateListSearchAnswerAsync işleminde hata");
                 throw;
             }
         }
@@ -108,7 +108,7 @@ namespace Otomar.Persistance.Services
             catch (Exception ex)
             {
                 transaction.Rollback();
-                logger.LogError(ex, "CreateListSearchAsync işleminde hata");
+                logger.LogWarning(ex, "CreateListSearchAsync işleminde hata");
                 throw;
             }
         }

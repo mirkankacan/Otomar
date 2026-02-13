@@ -66,7 +66,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/hata/500");
     app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute("/hata/{0}");

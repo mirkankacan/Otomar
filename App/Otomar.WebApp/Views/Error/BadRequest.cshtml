@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Geçersiz İstek";
+    Layout = "~/Views/Shared/_ErrorLayout.cshtml";
+}
+
+<div class="error-icon">
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="26" stroke="#ED1D24" stroke-width="2.5"/>
+        <line x1="28" y1="28" x2="52" y2="52" stroke="#ED1D24" stroke-width="3" stroke-linecap="round"/>
+        <line x1="52" y1="28" x2="28" y2="52" stroke="#ED1D24" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+</div>
+
+<div class="error-code">400</div>
+<div class="error-line"></div>
+<h1 class="error-title">Geçersiz İstek</h1>
+<p class="error-desc">
+    Gönderilen istek sunucu tarafından işlenemedi.
+    Lütfen sayfayı yenileyerek tekrar deneyiniz.
+</p>
+<div class="error-btns">
+    <a href="/ana-sayfa" class="ebtn ebtn-red">Ana Sayfaya Dön</a>
+    <a href="javascript:history.back()" class="ebtn ebtn-ghost">Geri Dön</a>
+</div>

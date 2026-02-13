@@ -14,7 +14,11 @@ namespace Otomar.WebApp.Controllers
 
             return statusCode switch
             {
+                400 => View("BadRequest"),
+                403 => View("Forbidden"),
                 404 => View("NotFound"),
+                500 => View("ServerError"),
+                503 => View("ServiceUnavailable"),
                 _ => View("General")
             };
         }

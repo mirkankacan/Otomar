@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@ViewData["Title"] - OTOMAR Yedek Parça</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --red: #ED1D24;
+            --red-dark: #c41920;
+            --red-glow: rgba(237, 29, 36, 0.25);
+            --bg: #0a0a0a;
+            --surface: #161616;
+            --surface-border: rgba(255, 255, 255, 0.06);
+            --text: #f0f0f0;
+            --text-muted: #777;
+            --font-body: 'Open Sans', sans-serif;
+            --font-display: 'Rubik', sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Workshop grid pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+            background-size: 80px 80px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Red ambient glow */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 70% 40% at 50% -5%, rgba(237,29,36,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Page wrapper */
+        .error-wrapper {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6rem 2rem 0;
+        }
+
+        /* Logo */
+        .error-logo {
+            position: absolute;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-decoration: none;
+            z-index: 2;
+        }
+        .error-logo img {
+            height: 36px;
+            opacity: 0.85;
+            transition: opacity 0.3s ease;
+        }
+        .error-logo:hover img { opacity: 1; }
+
+        /* Main content area */
+        .error-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            max-width: 520px;
+            width: 100%;
+        }
+
+        /* Icon container */
+        .error-icon {
+            margin-bottom: 1.5rem;
+            animation: eFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+        }
+        .error-icon svg {
+            width: 88px;
+            height: 88px;
+        }
+
+        /* Big error code number */
+        .error-code {
+            font-family: var(--font-display);
+            font-size: clamp(7rem, 18vw, 11rem);
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -0.05em;
+            color: var(--red);
+            text-shadow: 0 0 100px var(--red-glow), 0 0 40px rgba(237,29,36,0.08);
+            margin-bottom: 0.75rem;
+            animation: eFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+        }
+
+        /* Red accent line */
+        .error-line {
+            width: 48px;
+            height: 3px;
+            border-radius: 3px;
+            background: var(--red);
+            margin: 0 auto 1.25rem;
+            animation: eFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+        }
+
+        /* Title */
+        .error-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.15rem, 3vw, 1.5rem);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            animation: eFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+        }
+
+        /* Description */
+        .error-desc {
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            animation: eFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.28s both;
+        }
+
+        /* Buttons */
+        .error-btns {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: eFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+        }
+        .ebtn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.75rem;
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .ebtn-red {
+            background: var(--red);
+            color: #fff;
+            box-shadow: 0 2px 16px var(--red-glow);
+        }
+        .ebtn-red:hover {
+            background: var(--red-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--red-glow);
+        }
+        .ebtn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--surface-border);
+        }
+        .ebtn-ghost:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Car scene */
+        .car-scene {
+            width: 100%;
+            max-width: 340px;
+            margin: 2rem auto 0;
+            animation: eFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+            opacity: 0.6;
+        }
+        .car-scene svg { width: 100%; height: auto; }
+
+        /* Hazard lights blink */
+        .hazard {
+            animation: hazardBlink 0.8s ease infinite;
+        }
+        @@keyframes hazardBlink {
+            0%, 42% { opacity: 0.95; }
+            48%, 92% { opacity: 0.05; }
+            100% { opacity: 0.95; }
+        }
+
+        /* Smoke puffs from hood */
+        .smoke {
+            fill: #333;
+            opacity: 0;
+        }
+        .smoke-1 { animation: smokeRise 3.5s ease-out 0s infinite; }
+        .smoke-2 { animation: smokeRise 3.5s ease-out 1s infinite; }
+        .smoke-3 { animation: smokeRise 3.5s ease-out 2s infinite; }
+        @@keyframes smokeRise {
+            0% { opacity: 0; transform: translateY(0) scale(0.6); }
+            15% { opacity: 0.35; }
+            100% { opacity: 0; transform: translateY(-28px) scale(1.8); }
+        }
+
+        /* Footer navigation */
+        .error-footer {
+            width: 100%;
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            padding: 2rem 0;
+            white-space: nowrap;
+            animation: eFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+        }
+        .error-footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: color 0.25s;
+        }
+        .error-footer a:hover { color: var(--red); }
+
+        /* Floating cog decorations */
+        .cog {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.025;
+            color: #fff;
+        }
+        .cog svg { fill: currentColor; }
+        .cog-1 { top: 6%; left: 3%; width: 160px; height: 160px; animation: cogSpin 40s linear infinite; }
+        .cog-2 { bottom: 8%; right: 5%; width: 120px; height: 120px; animation: cogSpin 30s linear infinite reverse; }
+        .cog-3 { top: 50%; left: 88%; width: 90px; height: 90px; animation: cogSpin 50s linear infinite; }
+        .cog-4 { top: 12%; right: 10%; width: 70px; height: 70px; animation: cogSpin 25s linear infinite reverse; }
+        .cog-5 { bottom: 30%; left: 6%; width: 55px; height: 55px; animation: cogSpin 35s linear infinite; }
+
+        @@keyframes cogSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @@keyframes eFadeIn {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @@media (max-width: 640px) {
+            .error-wrapper { padding: 5rem 1.5rem 0; }
+            .error-icon svg { width: 68px; height: 68px; }
+            .car-scene { max-width: 260px; margin-top: 1.5rem; }
+            .error-footer {
+                flex-wrap: wrap;
+                gap: 1rem;
+                padding: 1.5rem 0;
+            }
+            .error-btns { flex-direction: column; }
+            .ebtn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Decorative floating gears -->
+    <div class="cog cog-1">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.19-.15.24-.42.12-.64l-1.92-3.32c-.12-.22-.39-.3-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.64l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.19.15-.25.42-.12.64l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.64l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    </div>
+    <div class="cog cog-2">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.19-.15.24-.42.12-.64l-1.92-3.32c-.12-.22-.39-.3-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.64l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.19.15-.25.42-.12.64l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.64l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    </div>
+    <div class="cog cog-3">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.19-.15.24-.42.12-.64l-1.92-3.32c-.12-.22-.39-.3-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.64l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.19.15-.25.42-.12.64l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.64l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    </div>
+    <div class="cog cog-4">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.19-.15.24-.42.12-.64l-1.92-3.32c-.12-.22-.39-.3-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.64l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.19.15-.25.42-.12.64l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.64l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    </div>
+    <div class="cog cog-5">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.19-.15.24-.42.12-.64l-1.92-3.32c-.12-.22-.39-.3-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.64l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.19.15-.25.42-.12.64l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.64l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    </div>
+
+    <div class="error-wrapper">
+        <a href="/ana-sayfa" class="error-logo">
+            <img src="/assets/img/logo/otomar.png" alt="OTOMAR Yedek Parça logo" />
+        </a>
+
+        <div class="error-body">
+            @RenderBody()
+        </div>
+
+        <!-- Broken down car animation -->
+        <div class="car-scene">
+            <svg viewBox="0 0 300 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Road -->
+                <line x1="0" y1="82" x2="300" y2="82" stroke="#222" stroke-width="1"/>
+                <line x1="0" y1="82" x2="300" y2="82" stroke="#333" stroke-width="1" stroke-dasharray="14 10" stroke-dashoffset="4"/>
+
+                <!-- Car body outline -->
+                <path d="M82 64 V52 Q82 50 84 50 L98 50 L114 34 Q115 33 117 33 L183 33 Q185 33 186 34 L200 50 L216 50 Q218 50 218 52 V64"
+                      stroke="#ED1D24" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+
+                <!-- Undercarriage -->
+                <path d="M82 64 H96" stroke="#ED1D24" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M128 64 H172" stroke="#ED1D24" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M204 64 H218" stroke="#ED1D24" stroke-width="1.8" stroke-linecap="round"/>
+
+                <!-- Windows -->
+                <path d="M117 50 L127 36 L158 36 L158 50" stroke="#ED1D24" stroke-width="0.8" opacity="0.35"/>
+                <path d="M162 50 L162 36 L181 36 L195 50" stroke="#ED1D24" stroke-width="0.8" opacity="0.35"/>
+                <!-- Window divider -->
+                <line x1="160" y1="36" x2="160" y2="50" stroke="#ED1D24" stroke-width="0.6" opacity="0.2"/>
+
+                <!-- Door handle -->
+                <line x1="155" y1="53" x2="148" y2="53" stroke="#ED1D24" stroke-width="1" opacity="0.3" stroke-linecap="round"/>
+
+                <!-- Wheels -->
+                <circle cx="112" cy="68" r="13" stroke="#ED1D24" stroke-width="1.5" opacity="0.6"/>
+                <circle cx="112" cy="68" r="7" stroke="#ED1D24" stroke-width="0.8" opacity="0.25"/>
+                <circle cx="112" cy="68" r="2" fill="#ED1D24" opacity="0.3"/>
+                <circle cx="188" cy="68" r="13" stroke="#ED1D24" stroke-width="1.5" opacity="0.6"/>
+                <circle cx="188" cy="68" r="7" stroke="#ED1D24" stroke-width="0.8" opacity="0.25"/>
+                <circle cx="188" cy="68" r="2" fill="#ED1D24" opacity="0.3"/>
+
+                <!-- Hazard lights - rear -->
+                <rect x="79" y="51" width="4" height="7" rx="1" class="hazard" fill="#ED1D24"/>
+                <!-- Hazard lights - front -->
+                <rect x="217" y="51" width="4" height="7" rx="1" class="hazard" fill="#ED1D24"/>
+
+                <!-- Smoke puffs from hood -->
+                <circle cx="210" cy="28" r="3" class="smoke smoke-1"/>
+                <circle cx="216" cy="22" r="4" class="smoke smoke-2"/>
+                <circle cx="208" cy="14" r="5" class="smoke smoke-3"/>
+
+                <!-- Small exclamation above car -->
+                <line x1="150" y1="10" x2="150" y2="20" stroke="#ED1D24" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+                <circle cx="150" cy="24" r="1" fill="#ED1D24" opacity="0.4"/>
+            </svg>
+        </div>
+
+        <nav class="error-footer">
+            <a href="/ana-sayfa">Ana Sayfa</a>
+            <a href="/magaza">Mağaza</a>
+            <a href="/iletisim">İletişim</a>
+            <a href="/hakkimizda">Hakkımızda</a>
+        </nav>
+    </div>
+</body>
+</html>
