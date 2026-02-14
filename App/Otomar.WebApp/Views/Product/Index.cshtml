@@ -7,16 +7,21 @@
      var firstSubCat = Model.ALT_GRUP_ADI?.Split(';')[0].Trim() ?? "";
      var firstBrand = Model.MARKA_ADI?.Split(';')[0].Trim() ?? "";
      var firstModel = Model.MODEL_ADI?.Split(';')[0].Trim() ?? "";
-    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    var breadcrumbItems = new List<BreadcrumbItem>
     {
         new("Ana Sayfa", "/ana-sayfa"),
         new("Mağaza", "/magaza"),
-        new(firstBrand, $"/magaza/marka/{firstBrand}"),
-        new(firstModel, $"/magaza/marka/{firstBrand}/model/{firstModel}"),
-        new(firstMainCat, $"/magaza/kategori/{firstMainCat}"),
-        new(firstSubCat, $"/magaza/kategori/{firstMainCat}/{firstSubCat}"),
-        new(Model.STOK_ADI ?? "Ürün", null)
     };
+    if (!string.IsNullOrEmpty(firstBrand))
+        breadcrumbItems.Add(new(firstBrand, $"/magaza/marka/{SlugHelper.Generate(firstBrand)}"));
+    if (!string.IsNullOrEmpty(firstModel))
+        breadcrumbItems.Add(new(firstModel, $"/magaza/marka/{SlugHelper.Generate(firstBrand)}/model/{SlugHelper.Generate(firstModel)}"));
+    if (!string.IsNullOrEmpty(firstMainCat))
+        breadcrumbItems.Add(new(firstMainCat, $"/magaza/kategori/{SlugHelper.Generate(firstMainCat)}"));
+    if (!string.IsNullOrEmpty(firstSubCat))
+        breadcrumbItems.Add(new(firstSubCat, $"/magaza/kategori/{SlugHelper.Generate(firstMainCat)}/{SlugHelper.Generate(firstSubCat)}"));
+    breadcrumbItems.Add(new(Model.STOK_ADI ?? "Ürün", null));
+    ViewData["BreadcrumbItems"] = breadcrumbItems;
     var images = new List<string>();
 
     // Vitrin fotoğrafı varsa ilk sıraya ekle

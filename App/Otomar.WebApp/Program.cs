@@ -54,6 +54,12 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<RecaptchaService>();
 builder.Services.AddMemoryCache();
+
+builder.Services.AddWebOptimizer(pipeline =>
+{
+    pipeline.MinifyCssFiles("assets/css/style.css");
+    pipeline.MinifyJsFiles("assets/js/_script.js");
+});
 builder.Services.AddHostedService<FeedGeneratorService>();
 
 // Refit API Clients
@@ -116,6 +122,8 @@ app.Use(async (context, next) =>
 //    }
 //});
 
+app.UseWebOptimizer();
+
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
@@ -127,11 +135,30 @@ app.UseStaticFiles(new StaticFileOptions
 });
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path.Value == "/")
+    var path = context.Request.Path.Value ?? "";
+
+    if (path == "/")
     {
         context.Response.Redirect("/ana-sayfa", true);
         return;
     }
+
+    // Eski URL'lerden yeni URL'lere 301 redirect
+    if (path.StartsWith("/urun-detay/", StringComparison.OrdinalIgnoreCase))
+    {
+        var newPath = "/urun/" + path["/urun-detay/".Length..];
+        context.Response.StatusCode = 301;
+        context.Response.Headers.Location = newPath + context.Request.QueryString;
+        return;
+    }
+
+    if (path.Equals("/sanal-pos", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.StatusCode = 301;
+        context.Response.Headers.Location = "/odeme/sanal-pos" + context.Request.QueryString;
+        return;
+    }
+
     await next();
 });
 app.UseRouting();

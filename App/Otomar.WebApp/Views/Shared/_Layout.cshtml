@@ -118,7 +118,12 @@
     <link rel="stylesheet" href="/assets/css/vendor/bootstrap.min.css">
 
     <!-- Custom Style CSS -->
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <environment include="Development">
+        <link rel="stylesheet" href="/assets/css/style.css" />
+    </environment>
+    <environment exclude="Development">
+        <link rel="stylesheet" href="/assets/css/style.css" asp-append-version="true" />
+    </environment>
     <link rel="stylesheet" href="/assets/css/skeleton-loader.css">
 
     @await RenderSectionAsync("Seo", required: false)
@@ -866,22 +871,18 @@
                     <div class="row row-cols-1">
                         <div class="col">
                             <nav class="breadcrumb__content">
-                                <ol class="breadcrumb__content--menu d-flex flex-wrap align-items-center list-unstyled mb-0" id="breadcrumb-list" itemscope itemtype="https://schema.org/BreadcrumbList">
+                                <ol class="breadcrumb__content--menu d-flex flex-wrap align-items-center list-unstyled mb-0" id="breadcrumb-list">
                                     @for (var i = 0; i < breadcrumbItems.Count; i++)
                                     {
                                         var item = breadcrumbItems[i];
-                                        <li class="breadcrumb__content--menu__items" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                                        <li class="breadcrumb__content--menu__items">
                                             @if (!string.IsNullOrEmpty(item.Url))
                                             {
-                                                <a href="@item.Url" itemprop="item">
-                                                    <span itemprop="name">@item.Text</span>
-                                                </a>
-                                                <meta itemprop="position" content="@(i + 1)" />
+                                                <a href="@item.Url">@item.Text</a>
                                             }
                                             else
                                             {
-                                                <span itemprop="name" class="text-secondary">@item.Text</span>
-                                                <meta itemprop="position" content="@(i + 1)" />
+                                                <span class="text-secondary">@item.Text</span>
                                             }
                                         </li>
                                     }
@@ -1253,7 +1254,12 @@
     <script src="/assets/js/skeleton-loader.js"></script>
 
     <!-- Customscript js -->
-    <script src="/assets/js/_script.js"></script>
+    <environment include="Development">
+        <script src="/assets/js/_script.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="/assets/js/_script.js" asp-append-version="true"></script>
+    </environment>
     <script src="/assets/js/cart.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     <script>

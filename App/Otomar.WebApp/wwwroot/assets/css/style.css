@@ -921,10 +921,11 @@ select {
 @media only screen and (max-width: 767px) {
   #scroll__top {
     width: 7rem;
-    height:7rem;
+    height: 7rem;
     bottom: 55px;
     right: 5px;
   }
+
   #scroll__top .whatsapp-icon,
   #scroll__top .send-icon {
     width: 28px;
@@ -933,12 +934,32 @@ select {
 }
 
 @keyframes scroll__top--phone-ring {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  8% { transform: translateY(0) rotate(-5deg); }
-  16% { transform: translateY(0) rotate(5deg); }
-  24% { transform: translateY(0) rotate(-5deg); }
-  32% { transform: translateY(0) rotate(5deg); }
-  40%, 100% { transform: translateY(0) rotate(0); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+
+  8% {
+    transform: translateY(0) rotate(-5deg);
+  }
+
+  16% {
+    transform: translateY(0) rotate(5deg);
+  }
+
+  24% {
+    transform: translateY(0) rotate(-5deg);
+  }
+
+  32% {
+    transform: translateY(0) rotate(5deg);
+  }
+
+  40%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
 }
 
 #scroll__top.active {
@@ -1940,7 +1961,7 @@ body.overlay__active::before,
   font-weight: 500;
   font-family: var(--inter-fonts);
   line-height: 1.8rem;
-    padding: .375rem 0rem 0rem 0rem !important;
+  padding: .375rem 0rem 0rem 0rem !important;
 }
 
 .header__info--link svg {
@@ -4138,31 +4159,31 @@ input[type=number]::-webkit-outer-spin-button {
 
 @media only screen and (min-width: 768px) {
   .hero__slider--items.style4 {
-    height: 450px;
+    height: 350px;
   }
 }
 
 @media only screen and (min-width: 992px) {
   .hero__slider--items.style4 {
-    height: 510px;
+    height: 380px;
   }
 }
 
 @media only screen and (min-width: 1200px) {
   .hero__slider--items.style4 {
-    height: 540px;
+    height: 400px;
   }
 }
 
 @media only screen and (min-width: 1366px) {
   .hero__slider--items.style4 {
-    height: 580px;
+    height: 420px;
   }
 }
 
 @media only screen and (min-width: 1600px) {
   .hero__slider--items.style4 {
-    height: 740px;
+    height: 480px;
   }
 }
 
@@ -4170,7 +4191,7 @@ input[type=number]::-webkit-outer-spin-button {
   .hero__slider--items.style4 {
     flex-direction: column-reverse;
     height: auto;
-    padding: 4rem 0 6.5rem;
+    padding: 3rem 0 4rem;
   }
 }
 
@@ -4179,27 +4200,33 @@ input[type=number]::-webkit-outer-spin-button {
   right: 0;
 }
 
+@media only screen and (min-width: 1600px) {
+  .hero__slider--layer__style4 {
+    max-width: 580px;
+  }
+}
+
 @media only screen and (min-width: 1366px) and (max-width: 1599px) {
   .hero__slider--layer__style4 {
-    max-width: 720px;
+    max-width: 500px;
   }
 }
 
 @media only screen and (min-width: 1200px) and (max-width: 1365px) {
   .hero__slider--layer__style4 {
-    width: 600px;
+    width: 430px;
   }
 }
 
 @media only screen and (min-width: 992px) and (max-width: 1199px) {
   .hero__slider--layer__style4 {
-    width: 500px;
+    width: 360px;
   }
 }
 
 @media only screen and (min-width: 768px) and (max-width: 991px) {
   .hero__slider--layer__style4 {
-    width: 400px;
+    width: 300px;
   }
 }
 
@@ -4507,24 +4534,24 @@ input[type=number]::-webkit-outer-spin-button {
   flex-direction: column;
   justify-content: center;
   height: 100%;
-  padding: 1.2rem;
+  padding: 0.8rem;
 }
 
 @media only screen and (min-width: 1200px) {
   .categories__card--link {
-    padding: 1.5rem;
+    padding: 1rem;
   }
 }
 
 .categories__icon {
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.6rem;
 }
 
 .categories__title {
-  font-size: 1.5rem;
-  line-height: 2.4rem;
+  font-size: 1.4rem;
+  line-height: 2rem;
   font-family: var(--rubik-fonts);
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.4rem;
   transition: var(--transition);
 }
 

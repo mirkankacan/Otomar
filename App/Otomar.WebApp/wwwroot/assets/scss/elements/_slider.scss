@@ -453,41 +453,44 @@
     height: auto;
     padding: 0;
     @media only screen and (min-width: 768px) {
-        height: 450px;
+        height: 350px;
     }
     @media only screen and (min-width: 992px) {
-        height: 510px;
+        height: 380px;
     }
     @media only screen and (min-width: 1200px) {
-        height: 540px;
+        height: 400px;
     }
     @media only screen and (min-width: 1366px) {
-        height: 580px;
+        height: 420px;
     }
     @media only screen and (min-width: 1600px) {
-        height: 740px;
+        height: 480px;
     }
     @media only screen and (max-width: 767px) {
         flex-direction: column-reverse;
         height: auto;
-        padding: 4rem 0 6.5rem;
+        padding: 3rem 0 4rem;
     }
 }
 
 .hero__slider--layer__style4{
     position: absolute;
     right: 0;
+    @media only screen and (min-width: 1600px) {
+        max-width: 580px;
+    }
     @media only screen and (min-width: 1366px) and (max-width: 1599px) {
-        max-width: 720px;
+        max-width: 500px;
     }
     @media only screen and (min-width: 1200px) and (max-width: 1365px) {
-        width: 600px;
+        width: 430px;
     }
     @media only screen and (min-width: 992px) and (max-width: 1199px) {
-        width: 500px;
+        width: 360px;
     }
     @media only screen and (min-width: 768px) and (max-width: 991px) {
-        width: 400px;
+        width: 300px;
     }
     @media only screen and (max-width: 767px) {
         position: inherit;

@@ -55,11 +55,11 @@ namespace Otomar.Persistance.Services
 
             var tasks = new[]
               {
-                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY STOK_BAKIYE DESC, SATIS_FIYAT ASC"),
-                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY STOK_BAKIYE DESC"),
-                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY WEB_GOSTER_TARIH DESC"),
-                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY SATIS_FIYAT ASC"),
-                    context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) ORDER BY SATIS_FIYAT DESC")
+                 context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE (ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17') ORDER BY STOK_BAKIYE DESC, SATIS_FIYAT ASC"),
+                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE (ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17') ORDER BY STOK_BAKIYE DESC"),
+                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE (ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17') ORDER BY WEB_GOSTER_TARIH DESC"),
+                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE (ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17') ORDER BY SATIS_FIYAT ASC"),
+                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE (ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17') ORDER BY SATIS_FIYAT DESC")
                 };
             var results = await Task.WhenAll(tasks);
             var homePageProducts = new FeaturedProductDto
@@ -204,36 +204,71 @@ namespace Otomar.Persistance.Services
             if (!string.IsNullOrWhiteSpace(productFilterRequestDto.MainCategory))
             {
                 var mainCategoryText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.MainCategory.Trim()));
-                whereConditions.Add("ANA_GRUP_ADI LIKE '%' + @mainCategory + '%'");
-                parameters.Add("mainCategory", mainCategoryText);
+                var mainCatWords = mainCategoryText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var mainCatConditions = new List<string>();
+                for (int i = 0; i < mainCatWords.Length; i++)
+                {
+                    var paramName = $"mainCat{i}";
+                    mainCatConditions.Add($"ANA_GRUP_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'");
+                    parameters.Add(paramName, mainCatWords[i]);
+                }
+                whereConditions.Add($"({string.Join(" AND ", mainCatConditions)})");
             }
 
             if (!string.IsNullOrWhiteSpace(productFilterRequestDto.SubCategory))
             {
                 var subCategoryText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.SubCategory.Trim()));
-                whereConditions.Add("ALT_GRUP_ADI LIKE '%' + @subCategory + '%'");
-                parameters.Add("subCategory", subCategoryText);
+                var subCatWords = subCategoryText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var subCatConditions = new List<string>();
+                for (int i = 0; i < subCatWords.Length; i++)
+                {
+                    var paramName = $"subCat{i}";
+                    subCatConditions.Add($"ALT_GRUP_ADI COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%'");
+                    parameters.Add(paramName, subCatWords[i]);
+                }
+                whereConditions.Add($"({string.Join(" AND ", subCatConditions)})");
             }
 
             if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Brand))
             {
                 var brandText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Brand.Trim()));
-                whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MARKA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @brand + '%')");
-                parameters.Add("brand", brandText);
+                var brandWords = brandText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var brandConditions = new List<string>();
+                for (int i = 0; i < brandWords.Length; i++)
+                {
+                    var paramName = $"brand{i}";
+                    brandConditions.Add($"EXISTS (SELECT 1 FROM STRING_SPLIT(MARKA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%')");
+                    parameters.Add(paramName, brandWords[i]);
+                }
+                whereConditions.Add($"({string.Join(" AND ", brandConditions)})");
             }
 
             if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Model))
             {
                 var modelText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Model.Trim()));
-                whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(MODEL_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @model + '%')");
-                parameters.Add("model", modelText);
+                var modelWords = modelText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var modelConditions = new List<string>();
+                for (int i = 0; i < modelWords.Length; i++)
+                {
+                    var paramName = $"model{i}";
+                    modelConditions.Add($"EXISTS (SELECT 1 FROM STRING_SPLIT(MODEL_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%')");
+                    parameters.Add(paramName, modelWords[i]);
+                }
+                whereConditions.Add($"({string.Join(" AND ", modelConditions)})");
             }
 
             if (!string.IsNullOrWhiteSpace(productFilterRequestDto.Year))
             {
                 var yearText = ConvertSlugToText(HttpUtility.UrlDecode(productFilterRequestDto.Year.Trim()));
-                whereConditions.Add("EXISTS (SELECT 1 FROM STRING_SPLIT(KASA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) LIKE '%' + @year + '%')");
-                parameters.Add("year", yearText);
+                var yearWords = yearText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var yearConditions = new List<string>();
+                for (int i = 0; i < yearWords.Length; i++)
+                {
+                    var paramName = $"year{i}";
+                    yearConditions.Add($"EXISTS (SELECT 1 FROM STRING_SPLIT(KASA_ADI, ';') WHERE LTRIM(RTRIM(REPLACE(value, CHAR(160), ''))) COLLATE Latin1_General_CI_AI LIKE '%' + @{paramName} + '%')");
+                    parameters.Add(paramName, yearWords[i]);
+                }
+                whereConditions.Add($"({string.Join(" AND ", yearConditions)})");
             }
 
             if (productFilterRequestDto.MinPrice.HasValue && productFilterRequestDto.MinPrice > 0)
@@ -288,9 +323,9 @@ namespace Otomar.Persistance.Services
             parameters.Add("offset", offset);
             parameters.Add("pageSize", productFilterRequestDto.PageSize);
 
-            // Get total count first (for all records)
-            var totalCountQuery = "SELECT COUNT(*) FROM IdvStock WITH (NOLOCK)";
-            var totalCount = await context.Connection.QuerySingleAsync<int>(totalCountQuery);
+            // Get filtered count
+            var totalCountQuery = $"SELECT COUNT(*) FROM IdvStock WITH (NOLOCK) {whereClause}";
+            var totalCount = await context.Connection.QuerySingleAsync<int>(totalCountQuery, parameters);
 
             var query = $@"
                  SELECT
