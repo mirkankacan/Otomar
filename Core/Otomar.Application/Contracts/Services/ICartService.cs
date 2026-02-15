@@ -1,5 +1,6 @@
 ﻿using Otomar.Application.Common;
 using Otomar.Application.Dtos.Cart;
+using System.Data;
 
 namespace Otomar.Application.Contracts.Services
 {
@@ -23,7 +24,7 @@ namespace Otomar.Application.Contracts.Services
         /// <summary>
         /// Sepeti getirir
         /// </summary>
-        Task<ServiceResult<CartDto>> GetCartAsync(CancellationToken cancellationToken = default);
+        Task<ServiceResult<CartDto>> GetCartAsync(CancellationToken cancellationToken = default, IDbTransaction? transaction = null);
 
         /// <summary>
         /// Sepeti tamamen temizler

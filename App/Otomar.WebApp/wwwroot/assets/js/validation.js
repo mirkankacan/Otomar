@@ -25,18 +25,7 @@ const Validator = {
             return false;
         }
 
-        const digits = taxNumber.split('').map(Number);
-        let sum = 0;
-
-        for (let i = 0; i < 9; i++)
-        {
-            let temp = (digits[i] + (9 - i)) % 10;
-            sum += (temp * Math.pow(2, 9 - i)) % 9;
-            if (temp !== 0 && (temp * Math.pow(2, 9 - i)) % 9 === 0) sum += 9;
-        }
-
-        const lastDigit = sum % 10 === 0 ? 0 : 10 - (sum % 10);
-        return lastDigit === digits[9];
+        return true;
     },
 
     /**

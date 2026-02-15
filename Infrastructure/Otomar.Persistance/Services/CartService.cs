@@ -6,6 +6,7 @@ using Otomar.Application.Contracts.Services;
 using Otomar.Application.Dtos.Cart;
 using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
+using System.Data;
 using System.Net;
 using System.Text.Json;
 
@@ -229,7 +230,7 @@ namespace Otomar.Persistance.Services
         }
 
         public async Task<ServiceResult<CartDto>> GetCartAsync(
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default, IDbTransaction? transaction = null)
         {
             var cartKey = GetCartKey();
 
@@ -243,7 +244,7 @@ namespace Otomar.Persistance.Services
                 // Her ürün için güncel fiyat ve stok kontrolü
                 foreach (var item in cart.Items)
                 {
-                    var productResult = await productService.GetProductByIdAsync(item.ProductId);
+                    var productResult = await productService.GetProductByIdAsync(item.ProductId, transaction);
 
                     if (productResult.IsSuccess && productResult.Data != null)
                     {

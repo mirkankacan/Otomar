@@ -88,7 +88,7 @@ namespace Otomar.Persistance.Services
             {
                 var orderCode = OrderCodeGeneratorHelper.Generate();
 
-                var cart = await cartService.GetCartAsync(cancellationToken);
+                var cart = await cartService.GetCartAsync(cancellationToken, transaction);
                 if (!cart.IsSuccess || cart.Data == null)
                 {
                     return ServiceResult<InitializePaymentResponseDto>.Error("Sepet Bulunamadı", "Ödeme işlemi başlatılamadı sepet bulunamadı.", HttpStatusCode.BadRequest);

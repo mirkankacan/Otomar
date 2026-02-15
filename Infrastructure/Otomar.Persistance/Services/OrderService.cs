@@ -29,7 +29,7 @@ namespace Otomar.Persistance.Services
                 var orderId = NewId.NextGuid();
                 var createdBy = identityService.GetUserId();
 
-                var cart = await cartService.GetCartAsync(cancellationToken);
+                var cart = await cartService.GetCartAsync(cancellationToken, transaction);
                 if (!cart.IsSuccess || cart.Data == null)
                 {
                     return ServiceResult<Guid>.Error(title: "Sepet Bulunamadı", "Cari sipariş oluşturma işlemi tamamlanamadı sepet bulunamadı.", HttpStatusCode.BadRequest);
@@ -90,7 +90,7 @@ namespace Otomar.Persistance.Services
                 // 1. Order'ı oluştur
                 var orderId = NewId.NextGuid();
                 var userId = identityService.GetUserId() ?? null;
-                var cart = await cartService.GetCartAsync(cancellationToken);
+                var cart = await cartService.GetCartAsync(cancellationToken, transaction);
                 if (!cart.IsSuccess || cart.Data.ItemCount == 0)
                 {
                     return ServiceResult<Guid>.Error("Sepet Bulunamadı", "Satın alma işlemi tamamlanamadı sepet bulunamadı.", HttpStatusCode.BadRequest);

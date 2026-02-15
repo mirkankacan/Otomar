@@ -4,189 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OTOMAR Yedek Parça - Ödeme Hata Bilgilendirmesi</title>
-    <style>
-
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .page {
-            max-width: 800px;
-            margin: 20px auto;
-            background: #fff;
-            border: 2px solid #000;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .header {
-            text-align: center;
-            padding: 20px 0;
-            border-bottom: 1px solid #ccc;
-        }
-
-            .header img {
-                max-width: 250px;
-            }
-
-        .content {
-            margin: 20px;
-            border-bottom: 1px solid #ccc;
-        }
-
-            .content p {
-                text-align: center;
-                margin: 10px 0;
-            }
-
-        .alert-banner {
-            background-color: #fee2e2;
-            border: 1px solid #fca5a5;
-            border-radius: 6px;
-            padding: 15px;
-            margin: 20px;
-            text-align: center;
-        }
-
-            .alert-banner p {
-                margin: 5px 0;
-                color: #991b1b;
-                font-weight: bold;
-                font-size: 16px;
-            }
-
-        .info-block {
-            margin: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ccc;
-        }
-
-            .info-block:last-child {
-                border-bottom: none;
-            }
-
-            .info-block h3 {
-                margin-bottom: 10px;
-                color: #444;
-                font-size: 16px;
-            }
-
-            .info-block p {
-                margin: 5px 0;
-            }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-            table th, table td {
-                text-align: left;
-                padding: 10px;
-                border: 1px solid #ccc;
-            }
-
-            table th {
-                background-color: #f4f4f4;
-                width: 40%;
-            }
-
-        .red-text {
-            color: #dc2626;
-            font-weight: bold;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #555;
-        }
-
-            .footer a {
-                color: #000;
-                text-decoration: none;
-            }
-    </style>
 </head>
-<body>
-    <div class="page">
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; color: #333; line-height: 1.6;">
+    <table style="width: 100%; max-width: 800px; margin: 20px auto; background: #fff; border: 2px solid #000; border-spacing: 0; border-radius: 8px;">
+        <!-- Header -->
+        <tr>
+            <td style="text-align: center; padding: 20px 0; border-bottom: 1px solid #ccc;">
+                <img src="https://otomar.com.tr/assets/img/logo/otomarlogoclean.webp" alt="Otomar Logo" style="max-width: 250px; display: block; margin: 0 auto;">
+            </td>
+        </tr>
 
-        <div class="alert-banner">
-            <p>Ödeme işleminde hata oluştu!</p>
-        </div>
+        <!-- Alert Banner -->
+        <tr>
+            <td style="padding: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="background-color: #fee2e2; border: 1px solid #fca5a5; border-radius: 6px; padding: 15px; text-align: center;">
+                            <p style="margin: 0; color: #991b1b; font-weight: bold; font-size: 18px;">Ödeme işleminde hata oluştu!</p>
+                            <p style="margin: 8px 0 0; color: #991b1b; font-size: 14px;">Aşağıda detayları bulunan ödeme işleminiz başarısız olmuştur.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
 
-        <div class="info-block">
-            <h3>Sipariş Bilgileri</h3>
-            <table>
-                <tbody>
+        <!-- Sipariş Bilgileri -->
+        <tr>
+            <td style="padding: 0 20px 10px;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 0 0 10px; border-bottom: 2px solid #000; padding-bottom: 5px;">Sipariş Bilgileri</p>
+                <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <th>Sipariş Kodu</th>
-                        <td>{{OrderCode}}</td>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top; width: 40%;">Sipariş Kodu:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{OrderCode}}</td>
                     </tr>
                     <tr>
-                        <th>Tutar</th>
-                        <td>{{Amount}}</td>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">Tutar:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{Amount}}</td>
                     </tr>
                     <tr>
-                        <th>Tarih</th>
-                        <td>{{CreatedAt}}</td>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">Tarih:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{CreatedAt}}</td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
+                </table>
+            </td>
+        </tr>
 
-        <div class="info-block">
-            <h3>Kart Bilgileri</h3>
-            <table>
-                <tbody>
+        <!-- Kart Bilgileri -->
+        <tr>
+            <td style="padding: 10px 20px; border-top: 1px solid #ccc;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 10px 0; border-bottom: 2px solid #000; padding-bottom: 5px;">Kart Bilgileri</p>
+                <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <th>Kart Numarası</th>
-                        <td>{{MaskedCreditCard}}</td>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top; width: 40%;">Kart Numarası:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{MaskedCreditCard}}</td>
                     </tr>
                     <tr>
-                        <th>Kart Markası</th>
-                        <td>{{CardBrand}}</td>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">Kart Markası:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{CardBrand}}</td>
                     </tr>
                     <tr>
-                        <th>Kartı Veren Banka</th>
-                        <td>{{CardIssuer}}</td>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">Kartı Veren Banka:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{CardIssuer}}</td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
+                </table>
+            </td>
+        </tr>
 
-        <div class="info-block">
-            <h3>Hata Detayları</h3>
-            <table>
-                <tbody>
+        <!-- Hata Detayları -->
+        <tr>
+            <td style="padding: 10px 20px; border-top: 1px solid #ccc;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 10px 0; border-bottom: 2px solid #000; padding-bottom: 5px;">Hata Detayları</p>
+                <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <th>Banka Hata Kodu</th>
-                        <td class="red-text">{{BankErrorCode}}</td>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top; width: 40%;">Banka Hata Kodu:</td>
+                        <td style="padding: 8px 10px; text-align: left; color: #dc2626; font-weight: bold;">{{BankErrorCode}}</td>
                     </tr>
                     <tr>
-                        <th>Banka Hata Mesajı</th>
-                        <td class="red-text">{{BankErrMsg}}</td>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">Banka Hata Mesajı:</td>
+                        <td style="padding: 8px 10px; text-align: left; color: #dc2626; font-weight: bold;">{{BankErrMsg}}</td>
                     </tr>
                     <tr>
-                        <th>İşlem Dönüş Kodu</th>
-                        <td>{{BankProcReturnCode}}</td>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">İşlem Dönüş Kodu:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{BankProcReturnCode}}</td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
+                </table>
+            </td>
+        </tr>
 
-        <div class="footer">
-            <p>Bu e-posta otomatik oluşturulmuştur. Lütfen cevap vermeyiniz.</p>
-            <p><a href="https://otomar.com.tr">OTOMAR.com.tr</a></p>
-        </div>
-    </div>
+        <!-- Footer -->
+        <tr>
+            <td style="text-align: center; padding: 20px; font-size: 12px; color: #555; border-top: 1px solid #ccc;">
+                <p style="margin: 0;">Bu e-posta otomatik oluşturulmuştur. Lütfen cevap vermeyiniz.</p>
+                <p style="margin: 5px 0 0;"><a href="https://otomar.com.tr" style="color: #000; text-decoration: none;">OTOMAR.com.tr</a></p>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
