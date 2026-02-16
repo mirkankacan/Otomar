@@ -101,8 +101,8 @@ namespace Otomar.Persistance.Services
                 decimal totalAmount = cart.Data.Total;
 
                 var orderInsertQuery = @"
-            INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,ShippingAmount,SubTotalAmount, BillingName, BillingPhone, BillingCity, BillingDistrict, BillingStreet, ShippingName, ShippingPhone, ShippingCity,ShippingDistrict, ShippingStreet, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, IsEInvoiceUser, Email, IdentityNumber, OrderType)
-            VALUES (@Id, @Code, @BuyerId, @Status, @CreatedAt, @PaymentId, @TotalAmount, @ShippingAmount, @SubTotalAmount, @BillingName, @BillingPhone, @BillingCity, @BillingDistrict, @BillingStreet, @ShippingName, @ShippingPhone, @ShippingCity, @ShippingDistrict, @ShippingStreet, @CorporateCompanyName, @CorporateTaxNumber, @CorporateTaxOffice, @IsEInvoiceUser, @Email, @IdentityNumber, @OrderType);";
+            INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,ShippingAmount,SubTotalAmount, BillingName, BillingPhone, BillingCity, BillingDistrict, BillingStreet, ShippingName, ShippingPhone, ShippingCity,ShippingDistrict, ShippingStreet, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, IsEInvoiceUser, Email, IdentityNumber, OrderType, CartSessionId)
+            VALUES (@Id, @Code, @BuyerId, @Status, @CreatedAt, @PaymentId, @TotalAmount, @ShippingAmount, @SubTotalAmount, @BillingName, @BillingPhone, @BillingCity, @BillingDistrict, @BillingStreet, @ShippingName, @ShippingPhone, @ShippingCity, @ShippingDistrict, @ShippingStreet, @CorporateCompanyName, @CorporateTaxNumber, @CorporateTaxOffice, @IsEInvoiceUser, @Email, @IdentityNumber, @OrderType, @CartSessionId);";
 
                 var orderParameters = new DynamicParameters();
                 orderParameters.Add("Id", orderId);
@@ -112,7 +112,7 @@ namespace Otomar.Persistance.Services
                 orderParameters.Add("CreatedAt", DateTime.Now);
                 orderParameters.Add("PaymentId", null);
                 orderParameters.Add("TotalAmount", totalAmount);
-                orderParameters.Add("ShippingAmount", shippingOptions.Cost);
+                orderParameters.Add("ShippingAmount", shippingCost);
                 orderParameters.Add("SubTotalAmount", subTotalAmount);
                 orderParameters.Add("BillingName", dto.BillingAddress?.Name);
                 orderParameters.Add("BillingPhone", dto.BillingAddress?.Phone);
@@ -131,6 +131,7 @@ namespace Otomar.Persistance.Services
                 orderParameters.Add("Email", dto.Email);
                 orderParameters.Add("IdentityNumber", dto.IdentityNumber);
                 orderParameters.Add("OrderType", dto.OrderType);
+                orderParameters.Add("CartSessionId", dto.CartSessionId);
 
                 await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
 
@@ -174,8 +175,8 @@ namespace Otomar.Persistance.Services
                 decimal totalAmount = subTotalAmount;
 
                 var orderInsertQuery = @"
-            INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,SubTotalAmount, BillingName, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, Email, IdentityNumber, OrderType)
-            VALUES (@Id, @Code, @BuyerId, @Status, @CreatedAt, @PaymentId, @TotalAmount, @SubTotalAmount, @BillingName, @CorporateCompanyName, @CorporateTaxNumber, @CorporateTaxOffice, @Email, @IdentityNumber, @OrderType);";
+            INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,SubTotalAmount, BillingName, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, Email, IdentityNumber, OrderType, CartSessionId)
+            VALUES (@Id, @Code, @BuyerId, @Status, @CreatedAt, @PaymentId, @TotalAmount, @SubTotalAmount, @BillingName, @CorporateCompanyName, @CorporateTaxNumber, @CorporateTaxOffice, @Email, @IdentityNumber, @OrderType, @CartSessionId);";
 
                 var orderParameters = new DynamicParameters();
                 orderParameters.Add("Id", orderId);
@@ -193,6 +194,7 @@ namespace Otomar.Persistance.Services
                 orderParameters.Add("Email", dto.Email);
                 orderParameters.Add("IdentityNumber", dto.IdentityNumber);
                 orderParameters.Add("OrderType", dto.OrderType);
+                orderParameters.Add("CartSessionId", dto.CartSessionId);
 
                 await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
 
@@ -677,6 +679,7 @@ namespace Otomar.Persistance.Services
                     TotalAmount = firstRow.TotalAmount,
                     ShippingAmount = firstRow.ShippingAmount,
                     SubTotalAmount = firstRow.SubTotalAmount,
+                    CartSessionId = firstRow.CartSessionId,
                     BillingAddress = new AddressDto
                     {
                         Name = firstRow.BillingName,

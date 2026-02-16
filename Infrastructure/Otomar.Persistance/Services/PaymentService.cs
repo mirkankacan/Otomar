@@ -3,7 +3,6 @@ using System.Net;
 using Dapper;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
@@ -16,7 +15,7 @@ using Otomar.Persistance.Options;
 
 namespace Otomar.Persistance.Services
 {
-    public class PaymentService(IAppDbContext context, HttpClient httpClient, IHttpContextAccessor accessor, IIdentityService identityService, PaymentOptions paymentOptions, ILogger<PaymentService> logger, IDistributedCache cache, IOrderService orderService, ICartService cartService, IProductService productService, IEmailService emailService) : IPaymentService
+    public class PaymentService(IAppDbContext context, HttpClient httpClient, IHttpContextAccessor accessor, IIdentityService identityService, PaymentOptions paymentOptions, RedisOptions redisOptions, ILogger<PaymentService> logger, IOrderService orderService, ICartService cartService, IProductService productService, IEmailService emailService) : IPaymentService
     {
         public async Task<ServiceResult<InitializePaymentResponseDto>> InitializeVirtualPosPaymentAsync(InitializeVirtualPosPaymentDto dto, CancellationToken cancellationToken)
         {
@@ -46,6 +45,7 @@ namespace Otomar.Persistance.Services
                     Email = dto.Email,
                     Code = orderCode,
                     Amount = dto.Amount,
+                    CartSessionId = CartHelper.GetCartKey(accessor.HttpContext!, redisOptions),
                     Corporate = new CorporateDto()
                     {
                         CompanyName = dto.ClientName,
@@ -96,6 +96,7 @@ namespace Otomar.Persistance.Services
 
                 var amountStr = IsBankHelper.IsBankAmountConvert(cart.Data.Total);
                 dto.Order.Code = orderCode;
+                dto.Order.CartSessionId = CartHelper.GetCartKey(accessor.HttpContext!, redisOptions);
                 var parameters = BuildPaymentParameters(
                     orderCode,
                     amountStr,
@@ -119,6 +120,7 @@ namespace Otomar.Persistance.Services
                 }
 
                 transaction.Commit();
+
                 return ServiceResult<InitializePaymentResponseDto>.SuccessAsOk(new InitializePaymentResponseDto()
                 {
                     Parameters = parameters,
@@ -325,7 +327,13 @@ namespace Otomar.Persistance.Services
 
                 try
                 {
-                    await cartService.ClearCartAsync(cancellationToken);
+                    // Sipariş oluşturulurken kaydedilen cart key ile sepeti temizle
+                    if (!string.IsNullOrEmpty(order.Data.CartSessionId))
+                    {
+                        await cartService.ClearCartBySessionIdAsync(order.Data.CartSessionId, cancellationToken);
+                        logger.LogInformation("Sepet temizlendi. CartSessionId: {CartSessionId}, OrderCode: {OrderCode}", order.Data.CartSessionId, orderCode);
+                    }
+
                     switch (order.Data.OrderType)
                     {
                         case OrderType.VirtualPOS:

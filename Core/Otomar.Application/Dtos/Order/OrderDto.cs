@@ -23,5 +23,6 @@ namespace Otomar.Application.Dtos.Order
         public AddressDto? ShippingAddress { get; set; }
         public CorporateDto? Corporate { get; set; }
         public PaymentDto? Payment { get; set; }
+        public string? CartSessionId { get; set; }
     }
 }

@@ -11,18 +11,18 @@ namespace Otomar.WebApp.Controllers
 {
     [AllowAnonymous]
     [Route("odeme")]
-    public class PaymentController(IPaymentApi paymentApi, IOrderApi orderApi, IIdentityService identityService, ICartApi cartApi, ILogger<PaymentController> logger) : Controller
+    public class PaymentController(IPaymentApi paymentApi, IOrderApi orderApi, IIdentityService identityService, ICartApi cartApi, ILogger<PaymentController> logger, IHttpContextAccessor httpContextAccessor) : Controller
     {
         [HttpGet("")]
         public async Task<IActionResult> Index(CancellationToken cancellationToken = default)
         {
             try
             {
-                var isUserPaymentExempt = identityService.IsUserPaymentExempt();
-                if (isUserPaymentExempt == true)
+                if (User.Identity?.IsAuthenticated == true && identityService.IsUserPaymentExempt())
                 {
                     return RedirectToAction(nameof(ClientController.CreateClientOrder), "Client");
                 }
+
                 var cart = await cartApi.GetCartAsync(cancellationToken);
                 if (cart?.Items == null || cart.Items.Count == 0)
                 {
@@ -109,6 +109,7 @@ namespace Otomar.WebApp.Controllers
                     {
                         return Redirect($"/odeme/basarisiz/{orderCode}");
                     }
+
                     switch (order.OrderType)
                     {
                         case OrderType.VirtualPOS:

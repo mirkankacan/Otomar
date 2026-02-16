@@ -207,11 +207,7 @@ const CartManager = {
         const emptyRow = document.getElementById('payment-order-empty-row');
 
         if (!items.length) {
-            if (emptyRow) {
-                emptyRow.style.display = '';
-                emptyRow.innerHTML = '<td colspan="2" class="text-center py-4 text-muted">Sepetiniz boş. <a href="/magaza">Alışverişe devam et</a></td>';
-            }
-            tbody.querySelectorAll('tr.payment-order-item-row').forEach(function (r) { r.remove(); });
+            window.location.href = '/sepet';
             return;
         }
         if (emptyRow) emptyRow.style.display = 'none';
@@ -223,7 +219,7 @@ const CartManager = {
             const productCode = item.productCode ?? item.ProductCode ?? '';
             const unitPrice = item.unitPrice ?? item.UnitPrice ?? 0;
             const quantity = item.quantity ?? item.Quantity ?? 1;
-            const imagePath = item.imagePath ?? item.ImagePath ?? '';
+            const imagePath = (item.imagePath ?? item.ImagePath ?? '').split(';')[0];
             const lineTotal = unitPrice * quantity;
             const slug = generateSlug(productName)
             const lineTotalStr = this.formatPrice(lineTotal).replace(/^₺| ₺$/g, '').trim();
@@ -275,7 +271,7 @@ const CartManager = {
             const productCode = item.productCode ?? item.ProductCode ?? '';
             const unitPrice = item.unitPrice ?? item.UnitPrice ?? 0;
             const quantity = item.quantity ?? item.Quantity ?? 1;
-            const imagePath = item.imagePath ?? item.ImagePath ?? '';
+            const imagePath = (item.imagePath ?? item.ImagePath ?? '').split(';')[0];
             const stockQuantity = item.stockQuantity ?? item.StockQuantity ?? 999;
             const lineTotal = unitPrice * quantity;
             const priceStr = this.formatPrice(unitPrice).replace(/^₺| ₺$/g, '').trim();
@@ -332,7 +328,7 @@ const CartManager = {
             const productName = (item.productName ?? item.ProductName ?? '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             const unitPrice = item.unitPrice ?? item.UnitPrice ?? 0;
             const quantity = item.quantity ?? item.Quantity ?? 1;
-            const imagePath = item.imagePath ?? item.ImagePath ?? '';
+            const imagePath = (item.imagePath ?? item.ImagePath ?? '').split(';')[0];
             const stockQuantity = item.stockQuantity ?? item.StockQuantity ?? 999;
             const priceStr = this.formatPrice(unitPrice).replace(/^₺| ₺$/g, '').trim();
             const slug = generateSlug(productName);

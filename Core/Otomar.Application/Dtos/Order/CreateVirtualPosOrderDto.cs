@@ -9,6 +9,9 @@ namespace Otomar.Application.Dtos.Order
         [JsonIgnore]
         public string Code { get; set; }
 
+        [JsonIgnore]
+        public string? CartSessionId { get; set; }
+
         public string Email { get; set; }
         public string IdentityNumber { get; set; }
         public decimal Amount { get; set; }

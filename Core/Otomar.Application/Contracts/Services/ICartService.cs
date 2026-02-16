@@ -35,5 +35,10 @@ namespace Otomar.Application.Contracts.Services
         /// Sepet TTL'ini yeniler (kullanıcı aktifken)
         /// </summary>
         Task<ServiceResult> RefreshCartAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Belirli bir cart key ile sepeti temizler (3D callback gibi context olmayan durumlar için)
+        /// </summary>
+        Task<ServiceResult> ClearCartBySessionIdAsync(string cartSessionId, CancellationToken cancellationToken = default);
     }
 }

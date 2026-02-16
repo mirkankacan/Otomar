@@ -110,7 +110,7 @@ namespace Otomar.Persistance.Services
                     ProductName = product.STOK_ADI,
                     UnitPrice = product.SATIS_FIYAT,
                     Quantity = dto.Quantity,
-                    ImagePath = product.DOSYA_KONUM,
+                    ImagePath = product.DOSYA_KONUM?.Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(),
                     ManufacturerLogo = product.URETICI_MARKA_LOGO,
                     StockQuantity = product.STOK_BAKIYE
                 });
@@ -301,6 +301,14 @@ namespace Otomar.Persistance.Services
         {
             var cartKey = GetCartKey();
             await cache.RemoveAsync(cartKey, cancellationToken);
+
+            return ServiceResult.SuccessAsNoContent();
+        }
+
+        public async Task<ServiceResult> ClearCartBySessionIdAsync(
+            string cartSessionId, CancellationToken cancellationToken = default)
+        {
+            await cache.RemoveAsync(cartSessionId, cancellationToken);
 
             return ServiceResult.SuccessAsNoContent();
         }

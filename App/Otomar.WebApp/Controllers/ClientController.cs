@@ -8,7 +8,7 @@ using Otomar.WebApp.Services.Refit;
 namespace Otomar.WebApp.Controllers
 {
     [Route("cari")]
-    public class ClientController(IClientApi clientApi, IOrderApi orderApi, IIdentityService identityService) : Controller
+    public class ClientController(IClientApi clientApi, IOrderApi orderApi, IIdentityService identityService, ICartApi cartApi, ILogger<ClientController> logger) : Controller
     {
         [Authorize]
         [HttpGet("hesap-hareketleri")]
@@ -20,13 +20,28 @@ namespace Otomar.WebApp.Controllers
 
         [Authorize]
         [HttpGet("siparis-olustur")]
-        public IActionResult CreateClientOrder()
+        public async Task<IActionResult> CreateClientOrder(CancellationToken cancellationToken = default)
         {
             var isUserPaymentExempt = identityService.IsUserPaymentExempt();
             if (isUserPaymentExempt == false)
             {
                 return RedirectToAction(nameof(PaymentController.Index), "Payment");
             }
+
+            try
+            {
+                var cart = await cartApi.GetCartAsync(cancellationToken);
+                if (cart?.Items == null || cart.Items.Count == 0)
+                {
+                    return RedirectToAction(nameof(CartController.Index), "Cart");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Cari sipariş sayfası sepet kontrol hatası");
+                return RedirectToAction(nameof(CartController.Index), "Cart");
+            }
+
             return View();
         }
 
