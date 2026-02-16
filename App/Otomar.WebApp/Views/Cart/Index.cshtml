@@ -1,7 +1,9 @@
+@inject Otomar.WebApp.Services.Interfaces.IIdentityService IdentityService
 @{
     ViewData["Title"] = "Sepet";
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["MetaRobots"] = "noindex, nofollow";
+    var isPaymentExempt = User.Identity?.IsAuthenticated == true && IdentityService.IsUserPaymentExempt();
     ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
 {
 new("Ana Sayfa", "/ana-sayfa"),
@@ -78,8 +80,16 @@ new("Sepet", null)
                         <div class="cart__summary--footer">
                             <ul class="d-flex justify-content-center w-100">
                                 <li class="w-100">
-                                <a class="cart__summary--footer__btn primary__btn checkout w-100 text-center"
-                                        href="/odeme">Ödeme Yap</a></li>
+                                @if (isPaymentExempt)
+                                {
+                                    <a class="cart__summary--footer__btn primary__btn checkout w-100 text-center"
+                                        href="/cari/siparis-olustur">Sipariş Oluştur</a>
+                                }
+                                else
+                                {
+                                    <a class="cart__summary--footer__btn primary__btn checkout w-100 text-center"
+                                        href="/odeme">Ödeme Yap</a>
+                                }</li>
                             </ul>
                         </div>
                     </div>

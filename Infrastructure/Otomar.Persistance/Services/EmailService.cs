@@ -25,12 +25,43 @@ namespace Otomar.Persistance.Services
                 return;
             }
 
+            var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
+            var order = await orderService.GetOrderByCodeAsync(orderCode);
+
+            if (order.Data == null)
+            {
+                logger.LogWarning($"{orderCode} sipariş kodlu sipariş bulunamadı");
+                return;
+            }
+
             var body = LoadTemplate("PaymentFailedMailTemplate.html");
             if (string.IsNullOrWhiteSpace(body))
             {
                 logger.LogWarning("PaymentFailedMailTemplate.html yüklenemedi, e-posta gönderilmedi.");
                 return;
             }
+
+            var itemsTableRows = string.Join(Environment.NewLine, order.Data.Items.Select(item =>
+                     $@"
+                    <tr>
+                        <td style='padding: 10px; border: 1px solid #ccc; text-align: left;'>{WebUtility.HtmlEncode(item.ProductName)}</td>
+       <td style='padding: 10px; border: 1px solid #ccc; text-align: right;'>{item.UnitPrice.ToString("C2", new CultureInfo("tr-TR"))}</td>
+                        <td style='padding: 10px; border: 1px solid #ccc; text-align: center;'>{item.Quantity}</td>
+       <td style='padding: 10px; border: 1px solid #ccc; text-align: right;'>{(item.UnitPrice * item.Quantity).ToString("C2", new CultureInfo("tr-TR"))}</td>
+                    </tr>")) +
+                     $@"
+                <tr>
+                <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Alt Toplam</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.SubTotalAmount.ToString("C2", new CultureInfo("tr-TR"))}</td>
+            </tr>
+            <tr>
+                <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Kargo</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.ShippingAmount.Value.ToString("C2", new CultureInfo("tr-TR"))}</td>
+            </tr>
+            <tr>
+                <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Toplam</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.TotalAmount.ToString("C2", new CultureInfo("tr-TR"))}</td>
+            </tr>";
 
             body = body
                          .Replace("{{OrderCode}}", WebUtility.HtmlEncode(payment.Data.OrderCode))
@@ -41,7 +72,24 @@ namespace Otomar.Persistance.Services
                          .Replace("{{CardIssuer}}", WebUtility.HtmlEncode(payment.Data.BankCardIssuer))
                          .Replace("{{BankErrorCode}}", WebUtility.HtmlEncode(payment.Data.BankErrorCode ?? "-"))
                          .Replace("{{BankErrMsg}}", WebUtility.HtmlEncode(payment.Data.BankErrMsg ?? "-"))
-                         .Replace("{{BankProcReturnCode}}", WebUtility.HtmlEncode(payment.Data.BankProcReturnCode));
+                         .Replace("{{BankProcReturnCode}}", WebUtility.HtmlEncode(payment.Data.BankProcReturnCode))
+                         .Replace("{{Name}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Name))
+                         .Replace("{{IdentityNumber}}", WebUtility.HtmlEncode(order.Data.IdentityNumber))
+                         .Replace("{{ItemsTable}}", itemsTableRows)
+                         .Replace("{{BillingStreet}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Street))
+                         .Replace("{{BillingDistrict}}", WebUtility.HtmlEncode(order.Data.BillingAddress.District))
+                         .Replace("{{BillingCity}}", WebUtility.HtmlEncode(order.Data.BillingAddress.City))
+                         .Replace("{{BillingPhone}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Phone))
+                         .Replace("{{CompanyName}}", WebUtility.HtmlEncode(order.Data.Corporate?.CompanyName ?? string.Empty))
+                         .Replace("{{TaxOffice}}", WebUtility.HtmlEncode(order.Data.Corporate?.TaxOffice ?? string.Empty))
+                         .Replace("{{TaxNumber}}", WebUtility.HtmlEncode(order.Data.Corporate?.TaxNumber ?? string.Empty))
+                         .Replace("{{IsEInvoiceUser}}", (order.Data.Corporate?.IsEInvoiceUser ?? false) ? "Evet" : "Hayır")
+                         .Replace("{{Email}}", WebUtility.HtmlEncode(order.Data.Email))
+                         .Replace("{{ShippingName}}", WebUtility.HtmlEncode(order.Data.ShippingAddress.Name))
+                         .Replace("{{ShippingStreet}}", WebUtility.HtmlEncode(order.Data.ShippingAddress.Street))
+                         .Replace("{{ShippingDistrict}}", WebUtility.HtmlEncode(order.Data.ShippingAddress.District))
+                         .Replace("{{ShippingCity}}", WebUtility.HtmlEncode(order.Data.ShippingAddress.City))
+                         .Replace("{{ShippingPhone}}", WebUtility.HtmlEncode(order.Data.ShippingAddress.Phone));
 
             const string subject = "Ödemede Hata ❌";
             await SendInternalAsync(subject, body, null, null, null, isHtml: true, cancellationToken);
@@ -75,15 +123,15 @@ namespace Otomar.Persistance.Services
                      $@"
                 <tr>
                 <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Alt Toplam</td>
-                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.SubTotalAmount}</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.SubTotalAmount.ToString("C2", new CultureInfo("tr-TR"))}</td>
             </tr>
             <tr>
                 <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Kargo</td>
-                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.ShippingAmount}</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.ShippingAmount.Value.ToString("C2", new CultureInfo("tr-TR"))}</td>
             </tr>
             <tr>
                 <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Toplam</td>
-                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.TotalAmount}</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.TotalAmount.ToString("C2", new CultureInfo("tr-TR"))}</td>
             </tr>";
             body = body
                           .Replace("{{Name}}", WebUtility.HtmlEncode(order.Data.BillingAddress.Name))
@@ -205,16 +253,13 @@ namespace Otomar.Persistance.Services
        <td style='padding: 10px; border: 1px solid #ccc; text-align: right;'>{(item.UnitPrice * item.Quantity).ToString("C2", new CultureInfo("tr-TR"))}</td>
                     </tr>")) +
                     $@"
-                <tr>
-                <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Alt Toplam</td>
-                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.SubTotalAmount}</td>
-            </tr>
             <tr>
-                <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Toplam</td>
-                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.TotalAmount}</td>
+                <td colspan='3' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Toplam</td>
+                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.Data.TotalAmount.ToString("C2", new CultureInfo("tr-TR"))}</td>
             </tr>";
             body = body
                          .Replace("{{OrderNo}}", WebUtility.HtmlEncode(order.Data.Code))
+                         .Replace("{{ItemsTable}}", itemsTableRows)
                          .Replace("{{ClientName}}", WebUtility.HtmlEncode(order.Data.ClientName))
                          .Replace("{{DocumentNo}}", WebUtility.HtmlEncode(order.Data.DocumentNo))
                          .Replace("{{LicensePlate}}", WebUtility.HtmlEncode(order.Data.LicensePlate))
@@ -222,7 +267,7 @@ namespace Otomar.Persistance.Services
                          .Replace("{{CreatedAt}}", order.Data.CreatedAt.ToString())
                           .Replace("{{CreatedByFullName}}", WebUtility.HtmlEncode(value: order.Data.CreatedByFullName));
 
-            const string subject = "Cari Sipariş Onayı ✅";
+            const string subject = "Cari Sipariş Oluşturuldu ✅";
             await SendInternalAsync(subject, body, null, null, null, isHtml: true, cancellationToken);
         }
 

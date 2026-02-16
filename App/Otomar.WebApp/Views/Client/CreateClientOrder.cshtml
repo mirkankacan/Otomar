@@ -1,0 +1,400 @@
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Sipariş Oluştur";
+    Layout = "~/Views/Shared/_PaymentLayout.cshtml";
+
+}
+
+<!-- Start checkout page area -->
+<div class="checkout__page--area section--padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-7 col-md-6">
+                <div class="main checkout__main">
+                    <form id="clientOrderForm" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div class="checkout__content--step section__shipping--address">
+                            <div class="section__header mb-25">
+                                <h2 class="section__header--title h3">Sipariş Bilgileri</h2>
+                            </div>
+                            <div class="section__shipping--address__content">
+                                <div class="row">
+                                    <div class="col-12 mb-20">
+                                        <div class="checkout__input--list">
+                                            <label class="checkout__input--label mb-2" for="txtClientName">
+                                                Teslim Carisi Adı <span class="checkout__input--label__star">*</span>
+                                            </label>
+                                            <input class="checkout__input--field border-radius-5"
+                                                   placeholder="Teslim cari adı giriniz..."
+                                                   id="txtClientName"
+                                                   type="text">
+                                            <div class="invalid-feedback">
+                                                Ad soyad en az 2 karakter olmalıdır.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 mb-20">
+                                        <div class="checkout__input--list">
+                                            <label class="checkout__input--label mb-2" for="txtClientPhone">
+                                                Teslim Carisi Telefon Numarası <span class="checkout__input--label__star">*</span>
+                                            </label>
+                                            <input class="checkout__input--field border-radius-5"
+                                                   placeholder="+90 5xx xxx xx xx"
+                                                   id="txtClientPhone"
+                                                   type="text"
+                                                   inputmode="numeric"
+                                                   autocomplete="tel">
+                                            <div class="invalid-feedback">
+                                                Geçerli bir telefon numarası giriniz.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 mb-20">
+                                        <div class="checkout__input--list">
+                                            <label class="checkout__input--label mb-2" for="txtClientAddress">
+                                                Teslim Carisi Adres <span class="checkout__input--label__star">*</span>
+                                            </label>
+                                            <textarea class="checkout__notes--textarea__field border-radius-5"
+                                                      rows="3"
+                                                      id="txtClientAddress"
+                                                      placeholder="Teslim carisi teslimat adresi giriniz..."
+                                                      spellcheck="false"></textarea>
+                                            <div class="invalid-feedback">
+                                                Adres en az 10 karakter olmalıdır.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 mb-20">
+                                        <div class="checkout__input--list">
+                                            <label class="checkout__input--label mb-2" for="txtInsuranceCompany">
+                                                Sigorta Şirketi <span class="checkout__input--label__star">*</span>
+                                            </label>
+                                            <input class="checkout__input--field border-radius-5"
+                                                   placeholder="Sigorta şirketi giriniz..."
+                                                   id="txtInsuranceCompany"
+                                                   type="text">
+                                            <div class="invalid-feedback">
+                                                Sigorta şirketi zorunludur.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
+                                        <div class="checkout__input--list">
+                                            <label class="checkout__input--label mb-2" for="txtDocumentNo">
+                                                Doküman No <span class="checkout__input--label__star">*</span>
+                                            </label>
+                                            <input class="checkout__input--field border-radius-5"
+                                                   placeholder="Doküman no giriniz..."
+                                                   id="txtDocumentNo"
+                                                   type="text">
+                                            <div class="invalid-feedback">
+                                                Doküman no zorunludur.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
+                                        <div class="checkout__input--list">
+                                            <label class="checkout__input--label mb-2" for="txtLicensePlate">
+                                                Plaka <span class="checkout__input--label__star">*</span>
+                                            </label>
+                                            <input class="checkout__input--field border-radius-5"
+                                                   placeholder="34 ABC 123"
+                                                   id="txtLicensePlate"
+                                                   type="text"
+                                                   maxlength="10"
+                                                   autocomplete="off">
+                                            <div class="invalid-feedback">
+                                                Plaka zorunludur.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 mb-20">
+                                        <div class="checkout__input--list">
+                                            <label class="checkout__input--label mb-2" for="txtNote">
+                                                Not
+                                            </label>
+                                            <textarea class="checkout__notes--textarea__field border-radius-5"
+                                                      rows="3"
+                                                      id="txtNote"
+                                                      placeholder="Sipariş notunuz varsa giriniz..."
+                                                      spellcheck="false"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="checkout__content--step__footer d-flex align-items-center">
+                                <button class="continue__shipping--btn primary__btn border-radius-5" type="button" id="btnCreateClientOrder">
+                                    Sipariş Oluştur
+                                </button>
+                                <a class="previous__link--content" href="/sepet">Sepete Geri Dön</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-5 col-md-6">
+                <aside class="checkout__sidebar sidebar border-radius-10">
+                    <h2 class="checkout__order--summary__title text-center mb-15">Sipariş Özeti</h2>
+                    <div class="cart__table checkout__product--table">
+                        <table class="cart__table--inner">
+                            <tbody class="cart__table--body" id="client-order-tbody">
+                                <tr class="cart__table--body__items" id="client-order-empty-row">
+                                    <td colspan="2" class="text-center py-4 text-muted">Sepetiniz yükleniyor...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="checkout__total mb-20">
+                        <table class="checkout__total--table">
+                            <tbody class="checkout__total--body">
+                                <tr class="checkout__total--items">
+                                    <td class="checkout__total--title text-left">Alt Toplam</td>
+                                    <td class="checkout__total--amount text-right" id="client-order-subtotal">₺0,00</td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="checkout__total--footer">
+                                <tr class="checkout__total--footer__items">
+                                    <td class="checkout__total--footer__title checkout__total--footer__list text-left">Toplam</td>
+                                    <td class="checkout__total--footer__amount checkout__total--footer__list text-right" id="client-order-total">₺0,00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End checkout page area -->
+
+@section Scripts {
+    <script>
+        // ========== YARDIMCI FONKSİYONLAR ==========
+
+        function initPhoneMasks() {
+            if (typeof IMask === 'undefined') return;
+            var txtClientPhone = document.getElementById('txtClientPhone');
+            var phoneMaskOpts = {
+                mask: '+9\\0 Zdd ddd dd dd',
+                definitions: { 'Z': /[1-9]/, 'd': /[0-9]/ },
+                lazy: false
+            };
+            if (txtClientPhone) new IMask(txtClientPhone, phoneMaskOpts);
+        }
+
+        function setupFieldValidation(selector, validationFn) {
+            $(selector).on('blur', function () {
+                var value = $(this).val();
+                var result = validationFn(value);
+                if (!result.valid) {
+                    markFieldInvalid($(this), result.message);
+                } else {
+                    markFieldValid($(this));
+                }
+            });
+            $(selector).on('input change', function () {
+                if ($(this).hasClass('is-invalid')) {
+                    var value = $(this).val();
+                    var result = validationFn(value);
+                    if (result.valid) {
+                        markFieldValid($(this));
+                    }
+                }
+            });
+        }
+
+        function markFieldInvalid($field, message) {
+            $field.addClass('is-invalid').removeClass('is-valid');
+            var $feedback = $field.next('.invalid-feedback');
+            if ($feedback.length && message) {
+                $feedback.text(message);
+            }
+        }
+
+        function markFieldValid($field) {
+            $field.removeClass('is-invalid').addClass('is-valid');
+        }
+
+        $(document).ready(function () {
+
+
+            // Telefon maskesi
+            initPhoneMasks();
+
+            // Plaka otomatik büyük harf
+            $('#txtLicensePlate').on('input', function () {
+                var v = ($(this).val() || '').toUpperCase().slice(0, 10);
+                if ($(this).val() !== v) $(this).val(v);
+            });
+
+            // Sepet bilgilerini yükle
+            if (typeof CartManager !== 'undefined') {
+                CartManager.getCart().then(function (cart) {
+                    if (cart && cart.items && cart.items.length > 0) {
+                        renderOrderSummary(cart);
+                    } else {
+                        $('#client-order-empty-row td').text('Sepetiniz boş.');
+                    }
+                });
+            }
+
+            // ========== VALIDASYON ==========
+
+            setupFieldValidation('#txtClientName', function (value) {
+                if (Validator.isEmpty(value)) return { valid: false, message: 'Ad soyad zorunludur.' };
+                if (!Validator.isValidLength(value, 2)) return { valid: false, message: 'Ad soyad en az 2 karakter olmalıdır.' };
+                return { valid: true };
+            });
+
+            setupFieldValidation('#txtClientPhone', function (value) {
+                if (Validator.isEmpty(value)) return { valid: false, message: 'Telefon numarası zorunludur.' };
+                if (!Validator.isValidPhone(value)) return { valid: false, message: 'Geçerli bir telefon numarası giriniz.' };
+                return { valid: true };
+            });
+
+            setupFieldValidation('#txtClientAddress', function (value) {
+                if (Validator.isEmpty(value)) return { valid: false, message: 'Adres zorunludur.' };
+                if (!Validator.isValidLength(value, 10)) return { valid: false, message: 'Adres en az 10 karakter olmalıdır.' };
+                return { valid: true };
+            });
+
+            setupFieldValidation('#txtInsuranceCompany', function (value) {
+                if (Validator.isEmpty(value)) return { valid: false, message: 'Sigorta şirketi zorunludur.' };
+                return { valid: true };
+            });
+               setupFieldValidation('#txtDocumentNo', function (value) {
+        if (Validator.isEmpty(value)) return { valid: false, message: 'Doküman no zorunludur.' };
+                      if (!Validator.isValidLength(value, 2)) return { valid: false, message: 'Doküman no en az 2 karakter olmalıdır.' };
+                      return { valid: true };
+            });
+            setupFieldValidation('#txtLicensePlate', function (value) {
+                if (Validator.isEmpty(value)) return { valid: false, message: 'Plaka zorunludur.' };
+                return { valid: true };
+            });
+
+            // ========== SİPARİŞ OLUŞTUR ==========
+
+            $('#btnCreateClientOrder').on('click', async function () {
+                var isValid = validateAllFields();
+                if (!isValid) return;
+
+                var $btn = $(this);
+                setButtonLoading($btn, true);
+
+                var payload = {
+                    clientName: $('#txtClientName').val().trim(),
+                    clientAddress: $('#txtClientAddress').val().trim(),
+                    clientPhone: $('#txtClientPhone').val().trim(),
+                    insuranceCompany: $('#txtInsuranceCompany').val().trim(),
+                    documentNo: $('#txtDocumentNo').val().trim(),
+                    licensePlate: $('#txtLicensePlate').val().trim(),
+                    note: $('#txtNote').val().trim() || null
+                };
+
+                try {
+                    var result = await makeRequest('/cari/siparis-olustur', 'POST', payload);
+                    toastr.success('Siparişiniz başarıyla oluşturuldu.', 'Başarılı');
+                  
+                    setTimeout(function () {
+                        window.location.href = '/cari/siparislerim';
+                    }, 1500);
+                } catch (error) {
+                    // makeRequest zaten toastr gösteriyor
+                } finally {
+                    setButtonLoading($btn, false);
+                }
+            });
+
+            // ========== YARDIMCI FONKSİYONLAR ==========
+
+            function validateAllFields() {
+                var fields = [
+                    { selector: '#txtClientName', fn: function (v) { return !Validator.isEmpty(v) && Validator.isValidLength(v, 2); } },
+                    { selector: '#txtDocumentNo', fn: function (v) { return !Validator.isEmpty(v) && Validator.isValidLength(v, 2); } },
+                    { selector: '#txtClientPhone', fn: function (v) { return !Validator.isEmpty(v) && Validator.isValidPhone(v); } },
+                    { selector: '#txtClientAddress', fn: function (v) { return !Validator.isEmpty(v) && Validator.isValidLength(v, 10); } },
+                    { selector: '#txtInsuranceCompany', fn: function (v) { return !Validator.isEmpty(v); } },
+                    { selector: '#txtLicensePlate', fn: function (v) { return !Validator.isEmpty(v); } }
+                ];
+
+                var allValid = true;
+                fields.forEach(function (field) {
+                    var $el = $(field.selector);
+                    var value = $el.val().trim();
+                    if (!field.fn(value)) {
+                        $el.addClass('is-invalid').removeClass('is-valid');
+                        allValid = false;
+                    } else {
+                        $el.removeClass('is-invalid').addClass('is-valid');
+                    }
+                });
+
+                if (!allValid) {
+                    var $firstInvalid = $('.is-invalid:first');
+                    if ($firstInvalid.length) {
+                        $('html, body').animate({ scrollTop: $firstInvalid.offset().top - 100 }, 300);
+                        $firstInvalid.focus();
+                    }
+                }
+
+                return allValid;
+            }
+
+            function setButtonLoading($btn, loading) {
+                if (loading) {
+                    $btn.prop('disabled', true).addClass('checkout-btn--loading');
+                    $btn.data('original-text', $btn.html());
+                    $btn.html('<span class="checkout-btn-spinner"></span><span class="checkout-btn-loading-text">İşleniyor...</span>');
+                } else {
+                    $btn.prop('disabled', false).removeClass('checkout-btn--loading');
+                    $btn.html($btn.data('original-text'));
+                }
+            }
+
+            function renderOrderSummary(cart) {
+                var $tbody = $('#client-order-tbody');
+                $tbody.empty();
+
+                var subtotal = 0;
+                cart.items.forEach(function (item) {
+                    var itemTotal = item.unitPrice * item.quantity;
+                    subtotal += itemTotal;
+
+                    var imageUrl = item.imageUrl || '/assets/img/product/placeholder.webp';
+                    var productSlug = generateSlug(item.productName || '');
+                    var productUrl = '/urun/' + productSlug + '/' + item.productCode;
+
+                    $tbody.append(
+                        '<tr class="cart__table--body__items">' +
+                        '  <td class="cart__table--body__list">' +
+                        '    <div class="product__image two d-flex align-items-center">' +
+                        '      <div class="product__thumbnail border-radius-5">' +
+                        '        <a href="' + productUrl + '"><img class="border-radius-5" src="' + imageUrl + '" alt="' + (item.productName || '') + '" loading="lazy"></a>' +
+                        '        <span class="product__thumbnail--quantity">' + item.quantity + '</span>' +
+                        '      </div>' +
+                        '      <div class="product__description">' +
+                        '        <h4 class="product__description--name"><a href="' + productUrl + '">' + (item.productName || '') + '</a></h4>' +
+                        '        <span class="product__description--variant">' + (item.productCode || '') + '</span>' +
+                        '      </div>' +
+                        '    </div>' +
+                        '  </td>' +
+                        '  <td class="cart__table--body__list text-right">' +
+                        '    <span class="cart__price">' + formatTurkishLira(itemTotal) + '</span>' +
+                        '  </td>' +
+                        '</tr>'
+                    );
+                });
+
+                $('#client-order-subtotal').text(formatTurkishLira(subtotal));
+                $('#client-order-total').text(formatTurkishLira(subtotal));
+            }
+        });
+    </script>
+}

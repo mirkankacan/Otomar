@@ -18,6 +18,7 @@ namespace Otomar.Persistance.Services
         ShippingOptions shippingOptions,
         RedisOptions redisOptions,
         ILogger<CartService> logger,
+        IIdentityService identityService,
         IHttpContextAccessor httpContextAccessor) : ICartService
     {
         private readonly TimeSpan _cartExpiration = TimeSpan.FromDays(redisOptions.CartExpirationDays);
@@ -232,6 +233,9 @@ namespace Otomar.Persistance.Services
         public async Task<ServiceResult<CartDto>> GetCartAsync(
             CancellationToken cancellationToken = default, IDbTransaction? transaction = null)
         {
+            // Login sonrası session sepetini user sepetine otomatik birleştir
+            await TryMergeSessionCartAsync(cancellationToken);
+
             var cartKey = GetCartKey();
 
             var cart = await GetCartInternalAsync(cartKey, cancellationToken);
@@ -328,6 +332,34 @@ namespace Otomar.Persistance.Services
             return ServiceResult.SuccessAsNoContent();
         }
 
+        private async Task TryMergeSessionCartAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var context = httpContextAccessor.HttpContext;
+                if (context == null) return;
+
+                // Kullanıcı authenticated değilse merge gerekmez
+                if (context.User?.Identity?.IsAuthenticated != true) return;
+
+                // Session ID yoksa merge edilecek sepet yok
+                var sessionId = CartHelper.GetSessionId(context);
+                if (string.IsNullOrEmpty(sessionId)) return;
+
+                // Session sepetinde veri var mı kontrol et
+                var sessionCartKey = $"{redisOptions.InstanceName}cart:session:{sessionId}";
+                var sessionCartJson = await cache.GetStringAsync(sessionCartKey, cancellationToken);
+                if (string.IsNullOrEmpty(sessionCartJson)) return;
+
+                await CartHelper.MergeCartsOnLoginAsync(context, cache, redisOptions, shippingOptions);
+                logger.LogInformation("Session sepeti user sepetine birleştirildi. SessionId: {SessionId}", sessionId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Session sepet birleştirme sırasında hata oluştu");
+            }
+        }
+
         // Private helper methods
         private async Task<CartDto> GetCartInternalAsync(
             string cartKey,
@@ -362,6 +394,10 @@ namespace Otomar.Persistance.Services
         {
             if (itemCount == 0)
                 return 0;
+
+            if (httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated == true && identityService.IsUserPaymentExempt() == true)
+                return 0;
+
             return subTotal >= shippingOptions.Threshold ? 0 : shippingOptions.Cost;
         }
     }

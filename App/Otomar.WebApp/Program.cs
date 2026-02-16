@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Services;
+using Otomar.WebApp.Services.Interfaces;
 using Otomar.WebApp.Options;
-using Otomar.WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,7 +52,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddAuthorization();
 
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<RecaptchaService>();
+builder.Services.AddScoped<IRecaptchaService, RecaptchaService>();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddWebOptimizer(pipeline =>

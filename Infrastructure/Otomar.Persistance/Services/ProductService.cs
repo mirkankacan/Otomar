@@ -1,4 +1,5 @@
 using Dapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Otomar.Application.Common;
 using Otomar.Application.Contracts.Services;
@@ -10,8 +11,57 @@ using System.Web;
 
 namespace Otomar.Persistance.Services
 {
-    public class ProductService(IAppDbContext context, ILogger<ProductService> logger) : IProductService
+    public class ProductService(
+        IAppDbContext context,
+        ILogger<ProductService> logger,
+        IIdentityService identityService,
+        IHttpContextAccessor httpContextAccessor) : IProductService
     {
+        private async Task<List<(string FilterType, string FilterValue)>> GetUserGlobalFiltersAsync()
+        {
+            if (httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated != true)
+                return [];
+
+            var userId = identityService.GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return [];
+
+            var filters = await context.Connection.QueryAsync<(string FilterType, string FilterValue)>(
+                "SELECT FilterType, FilterValue FROM UserGlobalFilters WHERE UserId = @userId",
+                new { userId });
+
+            return filters.ToList();
+        }
+
+        private static void ApplyGlobalFilters(
+            List<string> whereConditions,
+            DynamicParameters parameters,
+            List<(string FilterType, string FilterValue)> globalFilters)
+        {
+            if (globalFilters.Count == 0) return;
+
+            var grouped = globalFilters.GroupBy(f => f.FilterType, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var group in grouped)
+            {
+                var columnName = group.Key;
+                var values = group.Select(g => g.FilterValue).Where(v => !string.IsNullOrEmpty(v)).ToList();
+                if (values.Count == 0) continue;
+
+                var paramName = $"gf_{columnName}";
+                if (values.Count == 1)
+                {
+                    whereConditions.Add($"{columnName} = @{paramName}");
+                    parameters.Add(paramName, values[0]);
+                }
+                else
+                {
+                    whereConditions.Add($"{columnName} IN @{paramName}");
+                    parameters.Add(paramName, values);
+                }
+            }
+        }
+
         // Slug'ı normal metne çeviren helper metod
         private static string ConvertSlugToText(string slug)
         {
@@ -53,13 +103,22 @@ namespace Otomar.Persistance.Services
                      KASA_ADI,
                      STOK_BAKIYE";
 
+            var baseWhere = "(ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17')";
+
+            // Global filtreler
+            var globalFilters = await GetUserGlobalFiltersAsync();
+            var parameters = new DynamicParameters();
+            var globalConditions = new List<string>();
+            ApplyGlobalFilters(globalConditions, parameters, globalFilters);
+            var globalWhere = globalConditions.Count > 0 ? " AND " + string.Join(" AND ", globalConditions) : "";
+
             var tasks = new[]
               {
-                 context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE (ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17') ORDER BY STOK_BAKIYE DESC, SATIS_FIYAT ASC"),
-                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE (ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17') ORDER BY STOK_BAKIYE DESC"),
-                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE (ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17') ORDER BY WEB_GOSTER_TARIH DESC"),
-                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE (ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17') ORDER BY SATIS_FIYAT ASC"),
-                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE (ANA_GRUP_ID NOT LIKE '%17;%' AND ANA_GRUP_ID NOT LIKE '17;%' AND ANA_GRUP_ID NOT LIKE '%;17' AND ANA_GRUP_ID <> '17') ORDER BY SATIS_FIYAT DESC")
+                 context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} AND STOK_BAKIYE > 0 ORDER BY NEWID()", parameters),
+                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} AND STOK_BAKIYE > 0 ORDER BY STOK_BAKIYE ASC", parameters),
+                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY WEB_GOSTER_TARIH DESC", parameters),
+                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY SATIS_FIYAT ASC", parameters),
+                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY SATIS_FIYAT DESC", parameters)
                 };
             var results = await Task.WhenAll(tasks);
             var homePageProducts = new FeaturedProductDto
@@ -303,6 +362,10 @@ namespace Otomar.Persistance.Services
                     whereConditions.Add($"({string.Join(" OR ", manufacturerConditions)})");
                 }
             }
+
+            // Global filtreler
+            var globalFilters = await GetUserGlobalFiltersAsync();
+            ApplyGlobalFilters(whereConditions, parameters, globalFilters);
 
             // Build final WHERE clause
             var whereClause = whereConditions.Count > 0 ? $"WHERE {string.Join(" AND ", whereConditions)}" : "";

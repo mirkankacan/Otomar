@@ -37,8 +37,7 @@ namespace Otomar.Persistance.Services
                 var subTotalAmount = cart.Data.Items.Sum(item => item.UnitPrice * item.Quantity);
                 var totalAmount = subTotalAmount;
 
-                var orderInsertQuery = @"INSERT INTO IdtClientOrders(Id, Code, ClientName, ClientAddress, ClientPhone, InsuranceCompany, DocumentNo, LicensePlate, Note, CreatedBy, CreatedAt,TotalAmount, SubTotalAmount)
-                                            VALUES(@Id, @Code, @ClientName, @ClientAddress, @ClientPhone, @InsuranceCompany, @DocumentNo, @LicensePlate, @Note, @CreatedBy, @CreatedAt,@TotalAmount,@SubTotalAmount);";
+                var orderInsertQuery = @"INSERT INTO IdtClientOrders(Id, Code, ClientName, ClientAddress, ClientPhone, InsuranceCompany, DocumentNo, LicensePlate, Note, CreatedBy, CreatedAt,TotalAmount, SubTotalAmount) VALUES(@Id, @Code, @ClientName, @ClientAddress, @ClientPhone, @InsuranceCompany, @DocumentNo, @LicensePlate, @Note, @CreatedBy, @CreatedAt,@TotalAmount,@SubTotalAmount);";
                 var orderParameters = new DynamicParameters();
                 orderParameters.Add("Id", orderId);
                 orderParameters.Add("Code", OrderCodeGeneratorHelper.Generate());
@@ -56,8 +55,8 @@ namespace Otomar.Persistance.Services
                 await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
 
                 var itemInsertQuery = @"
-                INSERT INTO IdtClientOrderItems (ProductId, ProductName, UnitPrice, Quantity, OrderId)
-                VALUES (@ProductId, @ProductName, @UnitPrice, @Quantity, @OrderId);";
+                INSERT INTO IdtClientOrderItems (ProductId, ProductName, UnitPrice, Quantity, OrderId, ProductCode)
+                VALUES (@ProductId, @ProductName, @UnitPrice, @Quantity, @OrderId, @ProductCode);";
 
                 var orderItems = cart.Data.Items.Select(item => new
                 {
@@ -65,12 +64,14 @@ namespace Otomar.Persistance.Services
                     ProductName = item.ProductName,
                     UnitPrice = item.UnitPrice,
                     Quantity = item.Quantity,
-                    OrderId = orderId
+                    OrderId = orderId,
+                    ProductCode = item.ProductCode
                 });
 
                 await context.Connection.ExecuteAsync(itemInsertQuery, orderItems, transaction);
                 logger.LogInformation($"{orderId} ID'li cari siparişi oluşturuldu");
                 transaction.Commit();
+                await cartService.ClearCartAsync(cancellationToken);
                 await emailService.SendClientOrderMailAsync(orderId, cancellationToken);
 
                 return ServiceResult<Guid>.SuccessAsCreated(orderId, $"/api/orders/client-order/{orderId}");
@@ -213,7 +214,7 @@ namespace Otomar.Persistance.Services
                 var parameters = new DynamicParameters();
                 parameters.Add("id", id);
                 string query = @"
-                SELECT TOP 1
+                SELECT
                     ICO.Id,
                     ICO.Code,
                     ICO.CreatedBy,
@@ -234,7 +235,7 @@ namespace Otomar.Persistance.Services
                     ICOI.ProductCode,
                     ICOI.UnitPrice,
                     ICOI.Quantity,
-                    ICOI.OrderId
+                    ICOI.OrderId AS ItemOrderId
                 FROM IdvClientOrders ICO WITH (NOLOCK)
                 INNER JOIN IdtClientOrderItems ICOI ON ICO.Id = ICOI.OrderId
                 WHERE ICO.Id = @id;";

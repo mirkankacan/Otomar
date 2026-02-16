@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Order;
 using Otomar.WebApp.Extensions;
-using Otomar.WebApp.Services;
+using Otomar.WebApp.Services.Interfaces;
 using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers
@@ -15,13 +15,6 @@ namespace Otomar.WebApp.Controllers
         public IActionResult Index()
         {
             return View();
-        }
-
-        [HttpPost("musteri-siparisi-olustur")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateClientOrder([FromBody] CreateClientOrderDto dto, CancellationToken cancellationToken = default)
-        {
-            return await orderApi.CreateClientOrderAsync(dto, cancellationToken).ToActionResultAsync();
         }
 
         [HttpGet("listele")]
@@ -62,29 +55,6 @@ namespace Otomar.WebApp.Controllers
             return await orderApi.GetOrdersByUserAsync(userId, cancellationToken).ToActionResultAsync();
         }
 
-        [HttpGet("cari-siparisler")]
-        public async Task<IActionResult> GetClientOrders(CancellationToken cancellationToken = default)
-        {
-            return await orderApi.GetClientOrdersAsync(cancellationToken).ToActionResultAsync();
-        }
-
-        [HttpGet("cari-siparisi/{id}")]
-        public async Task<IActionResult> GetClientOrderById(Guid id, CancellationToken cancellationToken = default)
-        {
-            return await orderApi.GetClientOrderByIdAsync(id, cancellationToken).ToActionResultAsync();
-        }
-
-        [HttpGet("cari-siparisler/kullanici/{userId}")]
-        public async Task<IActionResult> GetClientOrdersByUser(string userId, CancellationToken cancellationToken = default)
-        {
-            return await orderApi.GetClientOrdersByUserAsync(userId, cancellationToken).ToActionResultAsync();
-        }
-
-        [HttpGet("cari-siparislerim")]
-        public async Task<IActionResult> GetClientOrdersByUser(CancellationToken cancellationToken = default)
-        {
-            var userId = identityService.GetUserId();
-            return await orderApi.GetClientOrdersByUserAsync(userId, cancellationToken).ToActionResultAsync();
-        }
+     
     }
 }

@@ -31,7 +31,8 @@ namespace Otomar.WebApp.Extensions
                     c.DefaultRequestHeaders.Add("Accept", "application/json");
                     c.Timeout = timeout;
                 })
-                .AddHttpMessageHandler<CartSessionHandler>();
+                .AddHttpMessageHandler<CartSessionHandler>()
+                .AddHttpMessageHandler<BearerTokenHandler>();
 
             services.AddRefitClient<ICategoryApi>()
                 .ConfigureHttpClient(c =>
@@ -100,7 +101,8 @@ namespace Otomar.WebApp.Extensions
                     c.BaseAddress = baseAddress;
                     c.DefaultRequestHeaders.Add("Accept", "application/json");
                     c.Timeout = timeout;
-                });
+                })
+                .AddHttpMessageHandler<BearerTokenHandler>();
 
             return services;
         }

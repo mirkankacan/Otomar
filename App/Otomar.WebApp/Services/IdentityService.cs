@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Otomar.WebApp.Services.Interfaces;
 
 namespace Otomar.WebApp.Services
 {

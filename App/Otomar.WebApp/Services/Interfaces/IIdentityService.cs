@@ -1,4 +1,4 @@
-namespace Otomar.WebApp.Services
+namespace Otomar.WebApp.Services.Interfaces
 {
     public interface IIdentityService
     {

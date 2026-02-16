@@ -1,16 +1,15 @@
+using System.Collections.ObjectModel;
+using System.Data;
+using System.Net;
 using Carter;
 using Microsoft.OpenApi.Models;
 using Otomar.Persistance.Options;
 using Otomar.WebApi.Middlewares;
 using Serilog;
 using Serilog.Events;
-using Serilog.Filters;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.Email;
 using Serilog.Sinks.MSSqlServer;
-using System.Collections.ObjectModel;
-using System.Data;
-using System.Net;
 
 namespace Otomar.WebApi.Extensions
 {
@@ -19,7 +18,7 @@ namespace Otomar.WebApi.Extensions
         public static IServiceCollection AddWebApiServices(this IServiceCollection services, IConfiguration configuration, IHostBuilder host)
         {
             var connectionString = configuration.GetConnectionString("SqlConnection");
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             var emailOptions = configuration.GetSection("EmailOptions").Get<EmailOptions>();
 
             services.AddScoped<GlobalExceptionMiddleware>();
@@ -79,7 +78,7 @@ namespace Otomar.WebApi.Extensions
                     .WriteTo.Email(
                         new EmailSinkOptions
                         {
-                            From = emailOptions.Credentials.UserName,
+                            From = "Mirkan Kaçan",
                             To = emailOptions.ErrorTo,
                             Host = emailOptions.Host,
                             Port = emailOptions.Port,
@@ -87,8 +86,8 @@ namespace Otomar.WebApi.Extensions
                                 ? MailKit.Security.SecureSocketOptions.StartTls
                                 : MailKit.Security.SecureSocketOptions.Auto,
                             Credentials = new NetworkCredential(
-                                emailOptions.Credentials.UserName,
-                                emailOptions.Credentials.Password),
+                                "mirkankacan@ideaktif.com.tr",
+                                "Poj74043"),
                             Subject = new MessageTemplateTextFormatter(
                                 "[{Level:u3}] Otomar.WebApi - {Message:lj}"),
                             Body = new MessageTemplateTextFormatter(GetErrorEmailHtmlTemplate()),
@@ -178,7 +177,7 @@ namespace Otomar.WebApi.Extensions
                       </tr>
                       <tr>
                         <td style="padding:10px 0;color:#888;vertical-align:top;border-bottom:1px solid #f0f0f0;">IP Adresi</td>
-                        <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;">{ClientIp}</td>
+                        <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;">{ClientIP}</td>
                       </tr>
                     </table>
                   </div>

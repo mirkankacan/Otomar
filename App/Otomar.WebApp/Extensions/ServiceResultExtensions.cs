@@ -123,11 +123,15 @@ namespace Otomar.WebApp.Extensions
                 var data = await task;
                 return new OkObjectResult(data);
             }
+            catch (OperationCanceledException)
+            {
+                return new StatusCodeResult(499);
+            }
             catch (ApiException ex)
             {
                 var statusCode = (HttpStatusCode)ex.StatusCode;
                 var problemDetails = ex.Content;
-                
+
                 return new ObjectResult(new
                 {
                     type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
@@ -148,11 +152,15 @@ namespace Otomar.WebApp.Extensions
                 await task;
                 return new OkResult();
             }
+            catch (OperationCanceledException)
+            {
+                return new StatusCodeResult(499);
+            }
             catch (ApiException ex)
             {
                 var statusCode = (HttpStatusCode)ex.StatusCode;
                 var problemDetails = ex.Content;
-                
+
                 return new ObjectResult(new
                 {
                     type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",

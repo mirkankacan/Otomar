@@ -1,4 +1,5 @@
 using Otomar.WebApp.Options;
+using Otomar.WebApp.Services.Interfaces;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -7,7 +8,7 @@ namespace Otomar.WebApp.Services
     public class RecaptchaService(
         IHttpClientFactory httpClientFactory,
         RecaptchaOptions options,
-        ILogger<RecaptchaService> logger)
+        ILogger<RecaptchaService> logger) : IRecaptchaService
     {
         private const string VerifyUrl = "https://www.google.com/recaptcha/api/siteverify";
 

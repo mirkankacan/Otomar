@@ -1,5 +1,7 @@
+@inject Otomar.WebApp.Services.Interfaces.IIdentityService IdentityService
 @{
     var userFullName = User.FindFirst(ClaimTypes.GivenName)?.Value ?? "";
+    var isPaymentExempt = User.Identity?.IsAuthenticated == true && IdentityService.IsUserPaymentExempt();
 }
 <!doctype html>
 <html lang="tr">
@@ -827,7 +829,14 @@
             </div>
             <div class="minicart__button d-flex justify-content-center">
                 <a class="primary__btn minicart__button--link" href="/sepet">Sepeti Görüntüle</a>
-                <a class="primary__btn minicart__button--link" href="/odeme">Ödeme Yap</a>
+                @if (isPaymentExempt)
+                {
+                    <a class="primary__btn minicart__button--link" href="/cari/siparis-olustur">Sipariş Oluştur</a>
+                }
+                else
+                {
+                    <a class="primary__btn minicart__button--link" href="/odeme">Ödeme Yap</a>
+                }
             </div>
         </div>
         <!-- End offCanvas minicart -->

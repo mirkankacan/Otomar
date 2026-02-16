@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Otomar.WebApp.Options;
-using Otomar.WebApp.Services;
+using Otomar.WebApp.Services.Interfaces;
 
 namespace Otomar.WebApp.Filters
 {
@@ -20,7 +20,7 @@ namespace Otomar.WebApp.Filters
                 return;
             }
 
-            var recaptchaService = context.HttpContext.RequestServices.GetRequiredService<RecaptchaService>();
+            var recaptchaService = context.HttpContext.RequestServices.GetRequiredService<IRecaptchaService>();
 
             // Token'ı al: FormData veya JSON body
             string? token = null;

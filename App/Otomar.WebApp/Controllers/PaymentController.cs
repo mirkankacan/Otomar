@@ -1,22 +1,28 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.WebApp.Dtos.Payment;
 using Otomar.WebApp.Enums;
+using Otomar.WebApp.Services.Interfaces;
 using Otomar.WebApp.Services.Refit;
 using Refit;
-using System.Text.Json;
 
 namespace Otomar.WebApp.Controllers
 {
     [AllowAnonymous]
     [Route("odeme")]
-    public class PaymentController(IPaymentApi paymentApi, IOrderApi orderApi, ICartApi cartApi, ILogger<PaymentController> logger) : Controller
+    public class PaymentController(IPaymentApi paymentApi, IOrderApi orderApi, IIdentityService identityService, ICartApi cartApi, ILogger<PaymentController> logger) : Controller
     {
         [HttpGet("")]
         public async Task<IActionResult> Index(CancellationToken cancellationToken = default)
         {
             try
             {
+                var isUserPaymentExempt = identityService.IsUserPaymentExempt();
+                if (isUserPaymentExempt == true)
+                {
+                    return RedirectToAction(nameof(ClientController.CreateClientOrder), "Client");
+                }
                 var cart = await cartApi.GetCartAsync(cancellationToken);
                 if (cart?.Items == null || cart.Items.Count == 0)
                 {
