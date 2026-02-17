@@ -141,7 +141,7 @@ var swiper = new Swiper(".hero__slider--activation", {
     speed: 500,
     spaceBetween: 30,
     autoplay: {
-        delay: 4000,  // 4 saniyede bir ge?i?
+        delay: 10000,  // 10 saniyede bir ge?i?
         disableOnInteraction: false,  // Kullan?c? t?klad???nda durmas?n
         pauseOnMouseEnter: true,  // Mouse ?zerine gelince dursun
     },

@@ -3,19 +3,23 @@
 @{
     ViewData["Title"] = Model.STOK_ADI;
     Layout = "~/Views/Shared/_Layout.cshtml";
-     var firstMainCat = Model.ANA_GRUP_ADI?.Split(';')[0].Trim() ?? "";
-     var firstSubCat = Model.ALT_GRUP_ADI?.Split(';')[0].Trim() ?? "";
-     var firstBrand = Model.MARKA_ADI?.Split(';')[0].Trim() ?? "";
-     var firstModel = Model.MODEL_ADI?.Split(';')[0].Trim() ?? "";
+     var mainCatParts = (Model.ANA_GRUP_ADI ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+     var subCatParts = (Model.ALT_GRUP_ADI ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+     var brandParts = (Model.MARKA_ADI ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+     var modelParts = (Model.MODEL_ADI ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+     var singleBrand = brandParts.Count == 1 ? brandParts[0] : null;
+     var singleModel = modelParts.Count == 1 ? modelParts[0] : null;
+     var firstMainCat = mainCatParts.Count > 0 ? mainCatParts[0] : null;
+     var firstSubCat = subCatParts.Count > 0 ? subCatParts[0] : null;
     var breadcrumbItems = new List<BreadcrumbItem>
     {
         new("Ana Sayfa", "/ana-sayfa"),
         new("Mağaza", "/magaza"),
     };
-    if (!string.IsNullOrEmpty(firstBrand))
-        breadcrumbItems.Add(new(firstBrand, $"/magaza/marka/{SlugHelper.Generate(firstBrand)}"));
-    if (!string.IsNullOrEmpty(firstModel))
-        breadcrumbItems.Add(new(firstModel, $"/magaza/marka/{SlugHelper.Generate(firstBrand)}/model/{SlugHelper.Generate(firstModel)}"));
+    if (!string.IsNullOrEmpty(singleBrand))
+        breadcrumbItems.Add(new(singleBrand, $"/magaza/marka/{SlugHelper.Generate(singleBrand)}"));
+    if (!string.IsNullOrEmpty(singleBrand) && !string.IsNullOrEmpty(singleModel))
+        breadcrumbItems.Add(new(singleModel, $"/magaza/marka/{SlugHelper.Generate(singleBrand)}/model/{SlugHelper.Generate(singleModel)}"));
     if (!string.IsNullOrEmpty(firstMainCat))
         breadcrumbItems.Add(new(firstMainCat, $"/magaza/kategori/{SlugHelper.Generate(firstMainCat)}"));
     if (!string.IsNullOrEmpty(firstSubCat))

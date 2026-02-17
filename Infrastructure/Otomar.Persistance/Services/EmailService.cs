@@ -316,8 +316,7 @@ namespace Otomar.Persistance.Services
             CancellationToken cancellationToken)
         {
             var message = new MimeMessage();
-            message.From.Add(MailboxAddress.Parse(emailOptions.Credentials.UserName));
-
+            message.From.Add(new MailboxAddress("OTOMAR Yedek Parça", emailOptions.Credentials.UserName));
             if (!string.IsNullOrEmpty(to))
             {
                 message.To.Add(MailboxAddress.Parse(to));

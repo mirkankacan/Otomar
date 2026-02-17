@@ -12,7 +12,6 @@ namespace Otomar.Application.Dtos.Order
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public OrderType OrderType { get; set; }
-
         public string? Email { get; set; }
         public string? IdentityNumber { get; set; }
         public decimal TotalAmount { get; set; }

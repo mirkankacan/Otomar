@@ -112,22 +112,19 @@ namespace Otomar.Persistance.Services
             ApplyGlobalFilters(globalConditions, parameters, globalFilters);
             var globalWhere = globalConditions.Count > 0 ? " AND " + string.Join(" AND ", globalConditions) : "";
 
-            var tasks = new[]
-              {
-                 context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} AND STOK_BAKIYE > 0 ORDER BY NEWID()", parameters),
-                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} AND STOK_BAKIYE > 0 ORDER BY STOK_BAKIYE ASC", parameters),
-                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY WEB_GOSTER_TARIH DESC", parameters),
-                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY SATIS_FIYAT ASC", parameters),
-                context.Connection.QueryAsync<ProductDto>($"SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY SATIS_FIYAT DESC", parameters)
-                };
-            var results = await Task.WhenAll(tasks);
+            var sql = $@"
+                SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY WEB_GOSTER_TARIH DESC;
+                SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} AND STOK_BAKIYE > 0 ORDER BY STOK_BAKIYE ASC;
+                SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY SATIS_FIYAT ASC;
+                SELECT TOP 8 {selectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY SATIS_FIYAT DESC;";
+
+            using var multi = await context.Connection.QueryMultipleAsync(sql, parameters);
             var homePageProducts = new FeaturedProductDto
             {
-                Recommended = results[0],
-                BestSeller = results[1],
-                Latest = results[2],
-                Lowestprice = results[3],
-                HighestPrice = results[4]
+                Latest = await multi.ReadAsync<ProductDto>(),
+                BestSeller = await multi.ReadAsync<ProductDto>(),
+                Lowestprice = await multi.ReadAsync<ProductDto>(),
+                HighestPrice = await multi.ReadAsync<ProductDto>()
             };
             return ServiceResult<FeaturedProductDto>.SuccessAsOk(homePageProducts);
         }

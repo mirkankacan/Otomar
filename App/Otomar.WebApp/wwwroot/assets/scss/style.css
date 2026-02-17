@@ -11425,4 +11425,19 @@ details > summary::-webkit-details-marker {
   .newsletter__popup--dontshow__again--text {
     font-size: 1.6rem;
   }
-}/*# sourceMappingURL=style.css.map */
+}
+
+/* GLightbox - büyük görsellerin viewport'a sığması */
+.glightbox-container .gslide-image img {
+  max-width: 100vw;
+  max-height: 100vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+.glightbox-container .gslide-media {
+  max-width: 100vw;
+  max-height: 100vh;
+  overflow: hidden;
+}
+/*# sourceMappingURL=style.css.map */
