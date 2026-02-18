@@ -1,4 +1,4 @@
-@model Otomar.WebApp.Dtos.Order.OrderDto?
+@model Otomar.Contracts.Dtos.Order.OrderDto?
 @using System.Globalization
 @{
     Layout = "~/Views/Shared/_PaymentLayout.cshtml";
@@ -159,11 +159,11 @@ else
                             </svg>
                         </span>
                         <span>Ödeme başarısız</span>
-                        @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                        @if (Model.OrderType == Otomar.Contracts.Enums.OrderType.Purchase)
                         {
                             <span>— Sipariş #@Model.Code</span>
                         }
-                        else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                        else if (Model.OrderType == Otomar.Contracts.Enums.OrderType.VirtualPOS)
                         {
                             <span>— Ödeme #@Model.Code</span>
                         }
@@ -171,7 +171,7 @@ else
                     <p class="failed-greeting">Merhaba @customerName</p>
 
                     <div class="failed-card failed-card--danger">
-                        @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                        @if (Model.OrderType == Otomar.Contracts.Enums.OrderType.Purchase)
                         {
                             <h2 class="failed-card-title">Sipariş ödemesi alınamadı</h2>
                             <p class="failed-address mb-0">
@@ -188,7 +188,7 @@ else
                             }
 
                         }
-                        else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                        else if (Model.OrderType == Otomar.Contracts.Enums.OrderType.VirtualPOS)
                         {
                             <h2 class="failed-card-title">Sanal POS ödemesi tamamlanamadı</h2>
                             <p class="failed-address mb-0">
@@ -197,7 +197,7 @@ else
                         }
                     </div>
 
-                    @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase && (hasShipping || hasBilling))
+                    @if (Model.OrderType == Otomar.Contracts.Enums.OrderType.Purchase && (hasShipping || hasBilling))
                     {
                         <div class="failed-card-title">Kayıtlı adresler</div>
                         <div class="row">
@@ -247,11 +247,11 @@ else
                     <p class="failed-help">
                         Yardım mı lazım? <a href="/iletisim">Bize ulaşın</a>.
                     </p>
-                    @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                    @if (Model.OrderType == Otomar.Contracts.Enums.OrderType.Purchase)
                     {
                         <a href="/odeme" class="failed-btn failed-btn-primary">Ödemeyi Tekrar Dene</a>
                     }
-                    else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                    else if (Model.OrderType == Otomar.Contracts.Enums.OrderType.VirtualPOS)
                     {
                         <a href="/odeme/sanal-pos" class="failed-btn failed-btn-primary">Ödemeyi Tekrar Dene</a>
                     }
@@ -260,7 +260,7 @@ else
 
                 <div class="col-lg-5 col-md-6">
                     <aside class="checkout__sidebar sidebar border-radius-10">
-                        @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                        @if (Model.OrderType == Otomar.Contracts.Enums.OrderType.Purchase)
                         {
                             <h2 class="checkout__order--summary__title text-center mb-15">Sipariş Özeti</h2>
                             <div class="cart__table checkout__product--table">
@@ -315,7 +315,7 @@ else
                             </div>
 
                         }
-                        else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                        else if (Model.OrderType == Otomar.Contracts.Enums.OrderType.VirtualPOS)
                         {
                             <h2 class="checkout__order--summary__title text-center mb-15">Ödeme Özeti</h2>
 

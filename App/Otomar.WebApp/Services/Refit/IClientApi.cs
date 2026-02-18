@@ -1,4 +1,4 @@
-using Otomar.WebApp.Dtos.Client;
+using Otomar.Contracts.Dtos.Client;
 using Refit;
 
 namespace Otomar.WebApp.Services.Refit

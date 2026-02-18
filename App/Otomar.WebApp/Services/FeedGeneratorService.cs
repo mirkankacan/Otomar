@@ -3,7 +3,7 @@ using System.Text;
 using System.Xml.Linq;
 using Microsoft.Extensions.Caching.Memory;
 using Otomar.WebApp.Dtos;
-using Otomar.WebApp.Dtos.Product;
+using Otomar.Contracts.Dtos.Product;
 using Otomar.WebApp.Helpers;
 using Otomar.WebApp.Services.Refit;
 

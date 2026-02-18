@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Otomar.WebApp.Dtos.Cart;
+using Otomar.Contracts.Dtos.Cart;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Services.Refit;
 

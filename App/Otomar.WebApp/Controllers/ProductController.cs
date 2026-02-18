@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Otomar.WebApp.Dtos.Product;
+using Otomar.Contracts.Dtos.Product;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Helpers;
 using Otomar.WebApp.Services.Refit;

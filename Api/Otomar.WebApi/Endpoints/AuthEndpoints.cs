@@ -1,7 +1,7 @@
 using Carter;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.Application.Contracts.Services;
-using Otomar.Application.Dtos.Auth;
+using Otomar.Contracts.Dtos.Auth;
 using Otomar.WebApi.Extensions;
 
 namespace Otomar.WebApi.Endpoints

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Otomar.WebApp.Dtos.Auth;
+using Otomar.Contracts.Dtos.Auth;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 

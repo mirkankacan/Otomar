@@ -1,5 +1,5 @@
-﻿using Otomar.Application.Common;
-using Otomar.Application.Dtos.Cart;
+﻿using Otomar.Contracts.Common;
+using Otomar.Contracts.Dtos.Cart;
 using System.Data;
 
 namespace Otomar.Application.Contracts.Services

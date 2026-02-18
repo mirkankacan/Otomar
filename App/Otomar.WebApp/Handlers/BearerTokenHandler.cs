@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Otomar.WebApp.Dtos.Auth;
+using Otomar.Contracts.Dtos.Auth;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Services.Refit;
 using System.Net;

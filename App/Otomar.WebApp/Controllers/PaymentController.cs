@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Otomar.WebApp.Dtos.Payment;
-using Otomar.WebApp.Enums;
+using Otomar.Contracts.Dtos.Payment;
+using Otomar.Contracts.Enums;
 using Otomar.WebApp.Services.Interfaces;
 using Otomar.WebApp.Services.Refit;
 using Refit;

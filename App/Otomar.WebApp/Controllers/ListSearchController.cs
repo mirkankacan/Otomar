@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Otomar.WebApp.Dtos.ListSearch;
+using Otomar.Contracts.Dtos.ListSearch;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Filters;
 using Otomar.WebApp.Services.Refit;

@@ -1,5 +1,5 @@
-﻿using Otomar.Application.Common;
-using Otomar.Application.Dtos.ListSearch;
+﻿using Otomar.Contracts.Common;
+using Otomar.Contracts.Dtos.ListSearch;
 
 namespace Otomar.Application.Contracts.Services
 {

@@ -1,4 +1,4 @@
-using Otomar.WebApp.Dtos.Cart;
+using Otomar.Contracts.Dtos.Cart;
 using Refit;
 
 namespace Otomar.WebApp.Services.Refit

@@ -1,10 +1,10 @@
 using Dapper;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Otomar.Application.Common;
+using Otomar.Contracts.Common;
 using Otomar.Application.Contracts.Services;
-using Otomar.Application.Dtos.ListSearch;
-using Otomar.Domain.Enums;
+using Otomar.Contracts.Dtos.ListSearch;
+using Otomar.Contracts.Enums;
 using Otomar.Persistance.Data;
 using System.Net;
 

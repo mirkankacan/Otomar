@@ -1,11 +1,11 @@
 using Dapper;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Otomar.Application.Common;
+using Otomar.Contracts.Common;
 using Otomar.Application.Contracts.Services;
-using Otomar.Application.Dtos.Order;
-using Otomar.Application.Dtos.Payment;
-using Otomar.Domain.Enums;
+using Otomar.Contracts.Dtos.Order;
+using Otomar.Contracts.Dtos.Payment;
+using Otomar.Contracts.Enums;
 using Otomar.Persistance.Data;
 using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
@@ -79,7 +79,7 @@ namespace Otomar.Persistance.Services
             catch (Exception ex)
             {
                 transaction.Rollback();
-                logger.LogWarning(ex, "CreateOrderAsync işleminde hata");
+                logger.LogWarning(ex, "CreateClientOrderAsync işleminde hata");
                 throw;
             }
         }
@@ -158,7 +158,7 @@ namespace Otomar.Persistance.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "CreateOrderAsync işleminde hata");
+                logger.LogError(ex, "CreatePurchaseOrderAsync işleminde hata");
                 throw;
             }
         }
@@ -175,8 +175,8 @@ namespace Otomar.Persistance.Services
                 decimal totalAmount = subTotalAmount;
 
                 var orderInsertQuery = @"
-            INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,SubTotalAmount, BillingName, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, Email, IdentityNumber, OrderType, CartSessionId)
-            VALUES (@Id, @Code, @BuyerId, @Status, @CreatedAt, @PaymentId, @TotalAmount, @SubTotalAmount, @BillingName, @CorporateCompanyName, @CorporateTaxNumber, @CorporateTaxOffice, @Email, @IdentityNumber, @OrderType, @CartSessionId);";
+            INSERT INTO IdtOrders (Id, Code, BuyerId, Status, CreatedAt, PaymentId,TotalAmount,SubTotalAmount, BillingName, CorporateCompanyName, CorporateTaxNumber, CorporateTaxOffice, Email, IdentityNumber, OrderType)
+            VALUES (@Id, @Code, @BuyerId, @Status, @CreatedAt, @PaymentId, @TotalAmount, @SubTotalAmount, @BillingName, @CorporateCompanyName, @CorporateTaxNumber, @CorporateTaxOffice, @Email, @IdentityNumber, @OrderType);";
 
                 var orderParameters = new DynamicParameters();
                 orderParameters.Add("Id", orderId);
@@ -194,7 +194,6 @@ namespace Otomar.Persistance.Services
                 orderParameters.Add("Email", dto.Email);
                 orderParameters.Add("IdentityNumber", dto.IdentityNumber);
                 orderParameters.Add("OrderType", dto.OrderType);
-                orderParameters.Add("CartSessionId", dto.CartSessionId);
 
                 await context.Connection.ExecuteAsync(orderInsertQuery, orderParameters, transaction);
 
@@ -204,7 +203,7 @@ namespace Otomar.Persistance.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "CreateOrderAsync işleminde hata");
+                logger.LogError(ex, "CreateVirtualPosOrderAsync işleminde hata");
                 throw;
             }
         }

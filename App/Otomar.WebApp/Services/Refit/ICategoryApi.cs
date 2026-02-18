@@ -1,4 +1,4 @@
-using Otomar.WebApp.Dtos.Category;
+using Otomar.Contracts.Dtos.Category;
 using Refit;
 
 namespace Otomar.WebApp.Services.Refit

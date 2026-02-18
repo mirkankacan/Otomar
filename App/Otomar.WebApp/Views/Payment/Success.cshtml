@@ -1,4 +1,4 @@
-@model Otomar.WebApp.Dtos.Order.OrderDto
+@model Otomar.Contracts.Dtos.Order.OrderDto
 @using System.Globalization
 @{
 
@@ -126,11 +126,11 @@
                             <path d="M20 6L9 17l-5-5" />
                         </svg>
                     </span>
-                    @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                    @if (Model.OrderType == Otomar.Contracts.Enums.OrderType.Purchase)
                     {
                         <span>Sipariş #@Model.Code</span>
                     }
-                    else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                    else if (Model.OrderType == Otomar.Contracts.Enums.OrderType.VirtualPOS)
                     {
                         <span>Ödeme #@Model.Code</span>
                     }
@@ -139,7 +139,7 @@
                 <p class="thankyou-greeting">Teşekkürler @customerName!</p>
 
                 <div class="thankyou-card">
-                    @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                    @if (Model.OrderType == Otomar.Contracts.Enums.OrderType.Purchase)
                     {
                         <h2 class="thankyou-card-title">Siparişiniz onaylandı</h2>
                         <p class="thankyou-address mb-0">
@@ -157,7 +157,7 @@
 
                         </p>
                     }
-                    else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                    else if (Model.OrderType == Otomar.Contracts.Enums.OrderType.VirtualPOS)
                     {
                         <h2 class="thankyou-card-title">Ödemeniz onaylandı</h2>
                         <text> Sanal POS ödemenizi aldık. </text>
@@ -165,7 +165,7 @@
 
                 </div>
 
-                @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                @if (Model.OrderType == Otomar.Contracts.Enums.OrderType.Purchase)
                 {
 
                     <div class="thankyou-card-title">Müşteri bilgileri</div>
@@ -237,7 +237,7 @@
 
             <div class="col-lg-5 col-md-6">
                 <aside class="checkout__sidebar sidebar border-radius-10">
-                    @if (Model.OrderType == Otomar.WebApp.Enums.OrderType.Purchase)
+                    @if (Model.OrderType == Otomar.Contracts.Enums.OrderType.Purchase)
                     {
                         <h2 class="checkout__order--summary__title text-center mb-15">Sipariş Özeti</h2>
                         <div class="cart__table checkout__product--table">
@@ -292,7 +292,7 @@
                         </div>
 
                     }
-                    else if (Model.OrderType == Otomar.WebApp.Enums.OrderType.VirtualPOS)
+                    else if (Model.OrderType == Otomar.Contracts.Enums.OrderType.VirtualPOS)
                     {
                         <h2 class="checkout__order--summary__title text-center mb-15">Ödeme Özeti</h2>
 

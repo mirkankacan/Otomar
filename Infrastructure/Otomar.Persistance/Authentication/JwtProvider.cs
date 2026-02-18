@@ -1,9 +1,9 @@
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using Otomar.Application.Common;
+using Otomar.Contracts.Common;
 using Otomar.Application.Contracts.Providers;
-using Otomar.Application.Dtos.Auth;
+using Otomar.Contracts.Dtos.Auth;
 using Otomar.Domain.Entities;
 using Otomar.Persistance.Options;
 using System.IdentityModel.Tokens.Jwt;
