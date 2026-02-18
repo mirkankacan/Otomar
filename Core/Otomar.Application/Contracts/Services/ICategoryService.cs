@@ -1,5 +1,5 @@
-﻿using Otomar.Application.Common;
-using Otomar.Application.Dtos.Category;
+﻿using Otomar.Contracts.Common;
+using Otomar.Contracts.Dtos.Category;
 
 namespace Otomar.Application.Contracts.Services
 {

@@ -1,4 +1,4 @@
-﻿using Otomar.Application.Dtos.Payment;
+﻿using Otomar.Contracts.Dtos.Payment;
 using Otomar.Persistance.Options;
 using System.Globalization;
 using System.Text;

@@ -1,5 +1,5 @@
-using Otomar.WebApp.Common;
-using Otomar.WebApp.Dtos.Product;
+using Otomar.Contracts.Common;
+using Otomar.Contracts.Dtos.Product;
 using Refit;
 
 namespace Otomar.WebApp.Services.Refit

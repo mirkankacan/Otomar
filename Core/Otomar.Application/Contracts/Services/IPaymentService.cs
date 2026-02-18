@@ -1,5 +1,5 @@
-﻿using Otomar.Application.Common;
-using Otomar.Application.Dtos.Payment;
+﻿using Otomar.Contracts.Common;
+using Otomar.Contracts.Dtos.Payment;
 
 namespace Otomar.Application.Contracts.Services
 {

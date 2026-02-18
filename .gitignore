@@ -373,3 +373,7 @@ FodyWeavers.xsd
 Foto/
 **/Foto/
 /App/Otomar.WebApp/wwwroot/ListSearch/OTOMAR-4A600000
+
+# Claude Code local settings
+.claude/
+CLAUDE.md

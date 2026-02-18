@@ -1,8 +1,8 @@
 using Dapper;
 using Microsoft.Extensions.Logging;
-using Otomar.Application.Common;
+using Otomar.Contracts.Common;
 using Otomar.Application.Contracts.Services;
-using Otomar.Application.Dtos.Category;
+using Otomar.Contracts.Dtos.Category;
 using Otomar.Persistance.Data;
 using System.Net;
 

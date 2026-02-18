@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Otomar.Application.Common;
-using Otomar.Domain.Enums;
+using Otomar.Contracts.Common;
+using Otomar.Contracts.Enums;
 
 namespace Otomar.Application.Contracts.Services
 {

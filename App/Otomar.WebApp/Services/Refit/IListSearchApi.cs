@@ -1,4 +1,4 @@
-using Otomar.WebApp.Dtos.ListSearch;
+using Otomar.Contracts.Dtos.ListSearch;
 using Refit;
 
 namespace Otomar.WebApp.Services.Refit

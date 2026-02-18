@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Otomar.WebApp.Common;
+using Otomar.Contracts.Common;
 using Refit;
 using System.Net;
 using System.Net.Http;

@@ -1,4 +1,4 @@
-using Otomar.WebApp.Dtos.Payment;
+using Otomar.Contracts.Dtos.Payment;
 using Refit;
 
 namespace Otomar.WebApp.Services.Refit

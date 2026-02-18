@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
-using Otomar.Application.Dtos.Cart;
+using Otomar.Contracts.Dtos.Cart;
 using Otomar.Persistance.Options;
 using System.Security.Claims;
 using System.Text.Json;

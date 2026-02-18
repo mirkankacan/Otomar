@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using Otomar.Application.Common;
+using Otomar.Contracts.Common;
 using Otomar.Application.Contracts.Services;
-using Otomar.Application.Dtos.Cart;
+using Otomar.Contracts.Dtos.Cart;
 using Otomar.Persistance.Helpers;
 using Otomar.Persistance.Options;
 using System.Data;

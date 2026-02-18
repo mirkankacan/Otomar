@@ -1,7 +1,7 @@
 using Carter;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.Application.Contracts.Services;
-using Otomar.Application.Dtos.ListSearch;
+using Otomar.Contracts.Dtos.ListSearch;
 using Otomar.WebApi.Extensions;
 
 namespace Otomar.WebApi.Endpoints

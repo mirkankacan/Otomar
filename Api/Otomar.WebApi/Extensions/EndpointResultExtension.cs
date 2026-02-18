@@ -1,4 +1,4 @@
-﻿using Otomar.Application.Common;
+﻿using Otomar.Contracts.Common;
 using System.Net;
 
 namespace Otomar.WebApi.Extensions

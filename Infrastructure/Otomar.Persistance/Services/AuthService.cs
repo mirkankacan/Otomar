@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Otomar.Application.Common;
+using Otomar.Contracts.Common;
 using Otomar.Application.Contracts.Providers;
 using Otomar.Application.Contracts.Services;
-using Otomar.Application.Dtos.Auth;
+using Otomar.Contracts.Dtos.Auth;
 using Otomar.Domain.Entities;
 using System.Net;
 

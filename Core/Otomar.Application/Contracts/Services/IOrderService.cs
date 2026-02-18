@@ -1,5 +1,5 @@
-using Otomar.Application.Common;
-using Otomar.Application.Dtos.Order;
+using Otomar.Contracts.Common;
+using Otomar.Contracts.Dtos.Order;
 using System.Data;
 
 namespace Otomar.Application.Contracts.Services

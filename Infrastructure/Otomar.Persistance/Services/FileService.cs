@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Otomar.Application.Common;
+using Otomar.Contracts.Common;
 using Otomar.Application.Contracts.Services;
-using Otomar.Domain.Enums;
+using Otomar.Contracts.Enums;
 using Otomar.Persistance.Options;
 
 namespace Otomar.Persistance.Services
