@@ -63,7 +63,7 @@
         ? (firstImage.StartsWith("http") ? firstImage : $"{ogBaseUrl}{(firstImage.StartsWith("/") ? "" : "/")}{firstImage}")
         : null;
 
-    var productSlug = Otomar.WebApp.Helpers.SlugHelper.Generate(Model.STOK_ADI ?? "");
+    var productSlug = Otomar.Shared.Helpers.SlugHelper.Generate(Model.STOK_ADI ?? "");
     ViewData["CanonicalUrl"] = $"https://otomar.com.tr/urun/{productSlug}/{Model.STOK_KODU}";
 }
 @section Seo{

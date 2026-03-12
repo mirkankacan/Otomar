@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.Shared.Dtos.Product;
 using Otomar.WebApp.Extensions;
-using Otomar.WebApp.Helpers;
+using Otomar.Shared.Helpers;
 using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers
@@ -26,7 +26,7 @@ namespace Otomar.WebApp.Controllers
 
             if (!requestSlug.Equals(responseSlug, StringComparison.OrdinalIgnoreCase))
             {
-                // Doðru URL'ye 301 (Permanent Redirect) ile yönlendir
+                // Doï¿½ru URL'ye 301 (Permanent Redirect) ile yï¿½nlendir
                 return RedirectPermanent($"/urun/{responseSlug}/{stockCode}");
             }
 

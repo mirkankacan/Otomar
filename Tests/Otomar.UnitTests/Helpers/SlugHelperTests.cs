@@ -1,5 +1,5 @@
 using FluentAssertions;
-using Otomar.WebApp.Helpers;
+using Otomar.Shared.Helpers;
 
 namespace Otomar.UnitTests.Helpers;
 

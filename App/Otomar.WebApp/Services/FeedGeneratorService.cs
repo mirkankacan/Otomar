@@ -4,7 +4,7 @@ using System.Xml.Linq;
 using Microsoft.Extensions.Caching.Memory;
 using Otomar.WebApp.Dtos;
 using Otomar.Shared.Dtos.Product;
-using Otomar.WebApp.Helpers;
+using Otomar.Shared.Helpers;
 using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Services
