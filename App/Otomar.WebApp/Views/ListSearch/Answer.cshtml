@@ -1,0 +1,781 @@
+@model Otomar.Shared.Dtos.ListSearch.ListSearchDto
+@using Otomar.WebApp.Models
+@{
+    ViewData["Title"] = "Sorgu Cevaplama";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["MetaRobots"] = "noindex, nofollow";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    {
+        new("Ana Sayfa", "/ana-sayfa"),
+        new("Liste Sorgular", "/liste-sorgu"),
+        new(ViewData["Title"] as string ?? "Sorgu Cevaplama", null)
+    };
+}
+@Html.AntiForgeryToken()
+
+@section Styles {
+<style>
+    .account__wrapper { width: 100% !important; }
+    .answer-page { max-width: 1100px; margin: 0 auto; }
+
+    /* Info card */
+    .info-card {
+        background: var(--body-background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 1.75rem;
+        margin-bottom: 2rem;
+    }
+    .info-card__title {
+        font-size: 1.4rem;
+        font-weight: var(--headings-weight);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--foreground-sub-color);
+        margin-bottom: 1.25rem;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 1rem 1.75rem;
+    }
+    .info-field label {
+        display: block;
+        font-size: 1.2rem;
+        color: var(--foreground-sub-color);
+        margin-bottom: 0.25rem;
+    }
+    .info-field span { font-size: 1.4rem; font-weight: 500; }
+
+    /* Part card */
+    .part-card {
+        background: var(--body-background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        margin-bottom: 1.5rem;
+        overflow: visible;
+    }
+    .part-card__header {
+        background: var(--bg-offwhite-color);
+        padding: 1.1rem 1.75rem;
+        border-bottom: 1px solid var(--border-color);
+        border-radius: 14px 14px 0 0;
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.75rem;
+    }
+    .part-card__header__num {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        min-width: 20px;
+    }
+    .part-card__header__title { font-size: 1.5rem; font-weight: var(--headings-weight); }
+    .part-card__header__meta { font-size: 1.3rem; color: var(--foreground-sub-color); }
+    .part-card__header__badge {
+        margin-left: auto;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2e7d32;
+        background: rgba(46, 125, 50, 0.1);
+        padding: 0.25rem 0.7rem;
+        border-radius: 6px;
+    }
+    .part-card__body { padding: 1.75rem; }
+
+    /* Answer grid */
+    .answer-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem 1.75rem;
+    }
+    .answer-grid--full { grid-column: 1 / -1; }
+    @@media (max-width: 640px) { .answer-grid { grid-template-columns: 1fr; } }
+
+    /* Form fields */
+    .form-field label {
+        display: block;
+        font-size: 1.3rem;
+        color: var(--foreground-sub-color);
+        margin-bottom: 0.4rem;
+    }
+    .form-field input[type="text"],
+    .form-field input[type="number"],
+    .form-field textarea {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        font-size: 1.4rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--body-background-color);
+        color: var(--foreground-color);
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+    .form-field input:focus, .form-field textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 220,53,69), 0.08);
+    }
+    .form-field textarea { resize: vertical; min-height: 75px; }
+
+    /* Autocomplete dropdown */
+    .search-wrapper { position: relative; }
+    .search-results {
+        position: absolute;
+        top: calc(100% + 2px);
+        left: 0;
+        right: 0;
+        z-index: 200;
+        background: var(--body-background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        max-height: 240px;
+        overflow-y: auto;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        display: none;
+    }
+    .search-results__item {
+        padding: 0.85rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 1.3rem;
+        transition: background 0.15s;
+    }
+    .search-results__item:last-child { border-bottom: none; }
+    .search-results__item:hover, .search-results__item:focus { background: var(--bg-offwhite-color); outline: none; }
+    .search-results__item__top { display: flex; justify-content: space-between; align-items: center; }
+    .search-results__item__code { font-weight: 600; color: var(--foreground-color); }
+    .search-results__item__price { font-weight: 700; color: var(--secondary-color); }
+    .search-results__item__name { color: var(--foreground-color); margin-top: 0.3rem; font-size: 1.4rem; font-weight: 500; }
+    .search-results__item__meta { color: var(--foreground-sub-color); margin-top: 0.2rem; font-size: 1.1rem; }
+    .search-results__empty { padding: 1rem; color: var(--foreground-sub-color); font-size: 1.3rem; text-align: center; }
+
+    /* KDV toggle */
+    .kdv-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-top: 2.25rem;
+    }
+    .kdv-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--primary-color);
+        flex-shrink: 0;
+    }
+    .kdv-row label { font-size: 1.4rem; cursor: pointer; margin: 0; user-select: none; }
+
+    /* Submit */
+    .btn-submit-answer {
+        background: var(--secondary-color);
+        color: var(--text-white-color);
+        border: none;
+        padding: 1.2rem 3.5rem;
+        font-size: 1.6rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .btn-submit-answer:hover { opacity: 0.88; }
+    .btn-submit-answer:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .field-error { border-color: #dc3545 !important; }
+
+    /* ── Özet Modal ── */
+    .answer-modal-overlay {
+        position: fixed; inset: 0; z-index: 9999;
+        background: rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center;
+        padding: 1rem;
+    }
+    .answer-modal {
+        background: var(--body-background-color);
+        border-radius: 14px;
+        width: 100%; max-width: 900px;
+        max-height: 90vh;
+        display: flex; flex-direction: column;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    }
+    .answer-modal__header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 1.25rem 1.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .answer-modal__title { font-size: 1.6rem; font-weight: var(--headings-weight); margin: 0; }
+    .answer-modal__close {
+        background: none; border: none; font-size: 2.2rem; line-height: 1;
+        color: var(--foreground-sub-color); cursor: pointer; padding: 0;
+    }
+    .answer-modal__close:hover { color: var(--foreground-color); }
+    .answer-modal__body { padding: 1.5rem 1.75rem; overflow-y: auto; flex: 1; }
+    .answer-modal__table { width: 100%; border-collapse: collapse; font-size: 1.3rem; }
+    .answer-modal__table th,
+    .answer-modal__table td {
+        padding: 0.75rem 0.85rem; text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .answer-modal__table th {
+        font-weight: var(--headings-weight); color: var(--foreground-sub-color);
+        background: var(--bg-offwhite-color); white-space: nowrap;
+    }
+    .answer-modal__table tr:last-child td { border-bottom: none; }
+    .answer-modal__total-label {
+        text-align: right; font-weight: 700; font-size: 1.5rem;
+        padding: 1rem 0.85rem; border-top: 2px solid var(--border-color);
+    }
+    .answer-modal__total-value {
+        font-weight: 700; font-size: 1.6rem; color: var(--secondary-color);
+        padding: 1rem 0.85rem; border-top: 2px solid var(--border-color);
+    }
+    .answer-modal__footer {
+        display: flex; gap: 1rem; justify-content: flex-end;
+        padding: 1.25rem 1.75rem;
+        border-top: 1px solid var(--border-color);
+    }
+    .answer-modal__btn {
+        padding: 0.85rem 2rem; font-size: 1.4rem;
+        border-radius: 8px; cursor: pointer; border: none;
+        transition: opacity 0.2s;
+    }
+    .answer-modal__btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .answer-modal__btn--cancel {
+        background: transparent; color: var(--foreground-sub-color);
+        border: 1px solid var(--border-color);
+    }
+    .answer-modal__btn--cancel:hover { border-color: var(--foreground-color); color: var(--foreground-color); }
+    .answer-modal__btn--confirm { background: var(--secondary-color); color: #fff; }
+    .answer-modal__btn--confirm:hover { opacity: 0.88; }
+</style>
+}
+
+<section class="my__account--section section--padding">
+    <div class="container">
+        <div class="account__wrapper">
+            <div class="account__content answer-page">
+                <h2 class="account__content--title h3 mb-20">
+                    Sorgu Cevaplama &mdash; <span style="color: var(--primary-color);">@Model.RequestNo</span>
+                </h2>
+
+                <!-- Talep / Araç Bilgileri -->
+                <div class="info-card">
+                    <div class="info-card__title">Talep Bilgileri</div>
+                    <div class="info-grid">
+                        <div class="info-field"><label>Ad Soyad</label><span>@(Model.NameSurname ?? "—")</span></div>
+                        <div class="info-field"><label>Firma</label><span>@(Model.CompanyName ?? "—")</span></div>
+                        <div class="info-field"><label>Telefon</label><span>@(Model.PhoneNumber ?? "—")</span></div>
+                        <div class="info-field"><label>E-posta</label><span>@(Model.Email ?? "—")</span></div>
+                        <div class="info-field"><label>Marka</label><span>@(Model.Brand ?? "—")</span></div>
+                        <div class="info-field"><label>Model</label><span>@(Model.Model ?? "—")</span></div>
+                        <div class="info-field"><label>Versiyon</label><span>@(Model.Year ?? "—")</span></div>
+                        <div class="info-field"><label>Motor</label><span>@(Model.Engine ?? "—")</span></div>
+                        <div class="info-field"><label>Plaka</label><span>@(Model.LicensePlate ?? "—")</span></div>
+                        <div class="info-field"><label>Şasi No</label><span>@(Model.ChassisNumber ?? "—")</span></div>
+                        @if (!string.IsNullOrEmpty(Model.Note))
+                        {
+                            <div class="info-field" style="grid-column: 1 / -1;">
+                                <label>Not</label><span>@Model.Note</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Parça Cevap Formları -->
+                @for (int i = 0; i < Model.Parts.Count; i++)
+                {
+                    var part = Model.Parts[i];
+                    var ans = part.Answer;
+
+                    <div class="part-card"
+                         data-part-index="@i"
+                         data-list-search-id="@Model.Id"
+                         data-part-id="@part.Id">
+
+                        <div class="part-card__header">
+                            <span class="part-card__header__num">#@(i + 1)</span>
+                            <span class="part-card__header__title">@part.Definition</span>
+                            <span class="part-card__header__meta">Talep Adeti: <b>@part.Quantity</b></span>
+                            @if (!string.IsNullOrEmpty(part.Note))
+                            {
+                                <span class="part-card__header__meta">Not: @part.Note</span>
+                            }
+                            @if (ans != null)
+                            {
+                                <span class="part-card__header__badge">&#10003; Cevaplanmış</span>
+                            }
+                        </div>
+
+                        <div class="part-card__body">
+                            <div class="answer-grid">
+
+                                <!-- Ürün Ara -->
+                                <div class="form-field answer-grid--full">
+                                    <label>Ürün Ara <span class="checkout__input--label__star">*</span></label> 
+                                    <div class="search-wrapper">
+                                        <input type="text"
+                                               class="field-search"
+                                               placeholder="Stok kodu veya üretici kodu ile ara..."
+                                               autocomplete="off"
+                                               value="@(ans?.StockCode ?? "")" />
+                                        <div class="search-results" role="listbox" aria-label="Ürün arama sonuçları"></div>
+                                    </div>
+                                    <input type="hidden" class="field-stock-code" value="@(ans?.StockCode ?? "")" />
+                                    <input type="hidden" class="field-oem-code" value="@(ans?.OemCode ?? "")" />
+                                </div>
+
+                                <!-- Stok Adı -->
+                                <div class="form-field answer-grid--full">
+                                    <label>Stok Adı <span class="checkout__input--label__star">*</span></label>
+                                    <input type="text"
+                                           class="field-stock-name"
+                                           placeholder="Stok adı (arama sonucunda otomatik dolar)"
+                                           value="@(ans?.StockName ?? "")" />
+                                </div>
+
+                                <!-- Birim Fiyat -->
+                                <div class="form-field">
+                                    <label>Birim Fiyat (₺) <span class="checkout__input--label__star">*</span></label>
+                                    <input type="text"
+                                           class="field-unit-price"
+                                           inputmode="decimal"
+                                           placeholder="0,00"
+                                           value="@(ans != null ? ans.UnitPrice.ToString("N2", new System.Globalization.CultureInfo("tr-TR")) : "")" />
+                                </div>
+
+                                <!-- Adet -->
+                                <div class="form-field">
+                                    <label>
+                                        Adet <span class="checkout__input--label__star">*</span>
+                                    </label>
+                                    <input type="number"
+                                           class="field-quantity"
+                                           placeholder="1"
+                                           min="1"
+                                           value="@(ans != null ? ans.Quantity : part.Quantity)" />
+                                </div>
+
+                                <!-- KDV -->
+                                <div class="form-field">
+                                    <div class="kdv-row">
+                                        <input type="checkbox"
+                                               class="field-kdv-included"
+                                               id="kdv-@i"
+                                               @(ans?.KdvIncluded == true ? "checked" : "") />
+                                        <label for="kdv-@i">Fiyata KDV Dahil</label>
+                                    </div>
+                                </div>
+
+                                <!-- Açıklama -->
+                                <div class="form-field">
+                                    <label>Açıklama</label>
+                                    <textarea class="field-description"
+                                              placeholder="Opsiyonel açıklama...">@(ans?.Description ?? "")</textarea>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="d-flex justify-content-end mt-2 mb-30">
+                    <button type="button" id="btn-submit-answer" class="btn-submit-answer w-100">
+                        Cevapları Kaydet
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Özet Onay Modalı -->
+<div class="answer-modal-overlay" id="answerSummaryModal" style="display:none;">
+    <div class="answer-modal">
+        <div class="answer-modal__header">
+            <h3 class="answer-modal__title">Cevap Özeti</h3>
+            <button type="button" class="answer-modal__close" id="btnCloseModal">&times;</button>
+        </div>
+        <div class="answer-modal__body">
+            <div class="table-responsive">
+                <table class="answer-modal__table" id="summaryTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Parça Tanımı</th>
+                            <th>Stok Kodu</th>
+                            <th>Stok Adı</th>
+                            <th>Birim Fiyat</th>
+                            <th>Adet</th>
+                            <th>KDV</th>
+                            <th>Toplam</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="7" class="answer-modal__total-label">Genel Toplam</td>
+                            <td class="answer-modal__total-value" id="summaryGrandTotal">₺0,00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <div class="answer-modal__footer">
+            <button type="button" class="answer-modal__btn answer-modal__btn--cancel" id="btnCancelModal">Geri Dön</button>
+            <button type="button" class="answer-modal__btn answer-modal__btn--confirm" id="btnConfirmModal">Onayla ve Gönder</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    var SEARCH_DELAY = 400;
+    var MIN_CHARS = 2;
+    var IS_ALREADY_ANSWERED = @(Model.Parts.All(p => p.Answer != null) ? "true" : "false");
+
+    /* ── Yardımcı ── */
+    function esc(s) {
+        if (!s) return '';
+        return String(s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function fmt(val) {
+        var n = parseFloat(val);
+        return isNaN(n) ? '' : n.toFixed(2);
+    }
+
+    /* ProductDto field accessor — case-insensitive key lookup.
+       API stoK_KODU, oeM_KODU gibi karışık case döner. */
+    function prop(obj, key) {
+        if (obj[key] !== undefined && obj[key] !== null) return obj[key];
+        var keyLower = key.toLowerCase();
+        var keys = Object.keys(obj);
+        for (var i = 0; i < keys.length; i++) {
+            if (keys[i].toLowerCase() === keyLower) return obj[keys[i]];
+        }
+        return '';
+    }
+
+    /* ── Türk formatı → number ── */
+    function parseTrPrice(val) {
+        if (!val) return NaN;
+        return parseFloat(String(val).replace(/\./g, '').replace(',', '.'));
+    }
+
+    function fmtTrPrice(num) {
+        var n = parseFloat(num);
+        if (isNaN(n)) return '';
+        return n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /* ── ; ile ayrılmış değerden unique ilkini al ── */
+    function uniqueFirst(val) {
+        if (!val) return '';
+        var parts = String(val).split(';').map(function(s) { return s.trim(); }).filter(Boolean);
+        var seen = {};
+        for (var i = 0; i < parts.length; i++) {
+            if (!seen[parts[i]]) { seen[parts[i]] = true; return parts[i]; }
+        }
+        return parts[0] || '';
+    }
+
+    /* ── Dropdown ── */
+    function buildDropdown($results, items, $card) {
+        $results.empty();
+
+        if (!items || !items.length) {
+            $results.append('<div class="search-results__empty">Sonuç bulunamadı</div>');
+            $results.show();
+            return;
+        }
+
+        items.forEach(function (p) {
+            var stockCode    = prop(p, 'STOK_KODU');
+            var oemCode      = prop(p, 'OEM_KODU');
+            var producerCode = prop(p, 'URETICI_KODU');
+            var stockName    = prop(p, 'STOK_ADI');
+            var price        = prop(p, 'SATIS_FIYAT');
+            var producerBrand = prop(p, 'URETICI_MARKA_ADI');
+            var mainGroup    = uniqueFirst(prop(p, 'ANA_GRUP_ADI'));
+            var subGroup     = uniqueFirst(prop(p, 'ALT_GRUP_ADI'));
+            var groupText    = [producerBrand, mainGroup, subGroup].filter(Boolean).join(' › ');
+
+            var codeDisplay = esc(stockCode);
+            if (producerCode && producerCode !== stockCode) {
+                codeDisplay += ' <span style="color:var(--foreground-sub-color);font-weight:400;">/ ' + esc(producerCode) + '</span>';
+            }
+
+            var $item = $('<div class="search-results__item" role="option" tabindex="-1">').html(
+                '<div class="search-results__item__top">' +
+                    '<span class="search-results__item__code">' + codeDisplay + '</span>' +
+                    '<span class="search-results__item__price">₺' + fmt(price) + '</span>' +
+                '</div>' +
+                '<div class="search-results__item__name">' + esc(stockName) + '</div>' +
+                (groupText ? '<div class="search-results__item__meta">' + esc(groupText) + '</div>' : '')
+            );
+
+            $item.on('mousedown', function (e) {
+                e.preventDefault();
+                fillPart($card, {
+                    stockCode: stockCode,
+                    oemCode:   oemCode,
+                    stockName: stockName,
+                    price:     price
+                });
+                $results.hide();
+            });
+
+            $results.append($item);
+        });
+
+        $results.show();
+    }
+
+    /* ── Alan doldurma ── */
+    function fillPart($card, product) {
+        $card.find('.field-search').val(product.stockCode || '');
+        $card.find('.field-stock-code').val(product.stockCode || '');
+        $card.find('.field-oem-code').val(product.oemCode || '');
+        $card.find('.field-stock-name').val(product.stockName || '');
+        if (product.price !== '' && product.price != null) {
+            var priceEl = $card.find('.field-unit-price')[0];
+            var mask = priceEl._priceMask;
+            if (mask) {
+                mask.unmaskedValue = parseFloat(product.price).toFixed(2);
+            } else {
+                priceEl.value = fmtTrPrice(product.price);
+            }
+        }
+    }
+
+    /* ── Arama bağlama ── */
+    function attachSearch($input, $results, $card) {
+        var timer;
+
+        $input.on('input', function () {
+            clearTimeout(timer);
+            var term = $input.val().trim();
+
+            if (term.length < MIN_CHARS) {
+                $results.hide();
+                return;
+            }
+
+            timer = setTimeout(async function () {
+                try {
+                    var url = '/urun/listele?SearchTerm=' + encodeURIComponent(term) + '&PageSize=8';
+                    var response = await makeRequest(url, 'GET');
+                    var items = (response && (response.data || response.Data)) || [];
+                    buildDropdown($results, items, $card);
+                } catch (_) {
+                    $results.hide();
+                }
+            }, SEARCH_DELAY);
+        });
+
+        $input.on('blur', function () {
+            setTimeout(function () { $results.hide(); }, 160);
+        });
+
+        $input.on('focus', function () {
+            if ($results.children().length) $results.show();
+        });
+    }
+
+    /* ── Payload toplama ── */
+    function buildPayload() {
+        var dtos    = [];
+        var skipped = [];
+
+        $('.part-card').each(function () {
+            var $card        = $(this);
+            var partDef      = $card.find('.part-card__header__title').text().trim();
+            var stockCode    = $card.find('.field-stock-code').val().trim();
+            var stockName    = $card.find('.field-stock-name').val().trim();
+            var priceEl      = $card.find('.field-unit-price')[0];
+            var unitPriceRaw = priceEl._priceMask ? priceEl._priceMask.unmaskedValue : $(priceEl).val().trim();
+            var quantityRaw  = $card.find('.field-quantity').val().trim();
+            var unitPrice    = parseFloat(unitPriceRaw);
+            var quantity     = parseInt(quantityRaw, 10);
+
+            var hasPrice = unitPriceRaw && !isNaN(unitPrice) && unitPrice > 0;
+            var hasQty   = quantityRaw && !isNaN(quantity) && quantity >= 1;
+
+            /* Dört alan da doluysa → cevap olarak ekle */
+            if (stockCode && stockName && hasPrice && hasQty) {
+                $card.find('.field-error').removeClass('field-error');
+                dtos.push({
+                    listSearchId:    $card.data('list-search-id'),
+                    listSearchPartId: parseInt($card.data('part-id'), 10),
+                    stockCode:   stockCode,
+                    oemCode:     $card.find('.field-oem-code').val().trim() || null,
+                    stockName:   stockName,
+                    description: $card.find('.field-description').val().trim() || null,
+                    unitPrice:   unitPrice,
+                    quantity:    quantity,
+                    kdvIncluded: $card.find('.field-kdv-included').is(':checked')
+                });
+            } else {
+                /* Eksik satır → atla ve uyar */
+                var rowNum = $card.data('part-index') + 1;
+                skipped.push(rowNum + '. sıradaki "' + (partDef || 'Parça') + '"');
+            }
+        });
+
+        if (skipped.length) {
+            skipped.forEach(function (name) {
+                toastr.warning(name + ' parça tanımlı talep cevaplanmadı.', 'Cevaplanmayan Talep');
+            });
+            return null;
+        }
+
+        if (!dtos.length) return null;
+
+        return dtos;
+    }
+
+    /* ── Init ── */
+    $('.part-card').each(function () {
+        var $card = $(this);
+
+        /* Tek arama input'u */
+        var $searchInput  = $card.find('.field-search');
+        var $searchResults = $searchInput.closest('.search-wrapper').find('.search-results');
+        attachSearch($searchInput, $searchResults, $card);
+
+        /* Birim fiyat IMask (Türk para formatı: 1.234,56) */
+        var priceEl = $card.find('.field-unit-price')[0];
+        if (priceEl && typeof IMask !== 'undefined') {
+            priceEl._priceMask = new IMask(priceEl, {
+                mask: Number,
+                scale: 2,
+                signed: false,
+                thousandsSeparator: '.',
+                padFractionalZeros: true,
+                radix: ',',
+                mapToRadix: ['.']
+            });
+        }
+    });
+
+    /* ── Modal helpers ── */
+    var pendingDtos = null;
+
+    function openSummaryModal(dtos, readOnly) {
+        pendingDtos = readOnly ? null : dtos;
+        $('#btnConfirmModal').toggle(!readOnly);
+        $('#btnCancelModal').toggle(!readOnly);
+        $('.answer-modal__footer').toggle(!readOnly);
+        var $tbody = $('#summaryTable tbody').empty();
+        var grandTotal = 0;
+
+        dtos.forEach(function (dto, i) {
+            var $card = $('.part-card').eq(i);
+            var partDef = $card.find('.part-card__header__title').text().trim();
+            var rowTotal = dto.unitPrice * dto.quantity;
+            grandTotal += rowTotal;
+
+            $tbody.append(
+                '<tr>' +
+                '<td>' + (i + 1) + '</td>' +
+                '<td>' + esc(partDef) + '</td>' +
+                '<td>' + esc(dto.stockCode || '—') + '</td>' +
+                '<td>' + esc(dto.stockName || '—') + '</td>' +
+                '<td>₺' + fmtTrPrice(dto.unitPrice) + '</td>' +
+                '<td>' + dto.quantity + '</td>' +
+                '<td>' + (dto.kdvIncluded ? 'Dahil' : 'Hariç') + '</td>' +
+                '<td style="font-weight:700;color:var(--secondary-color);">₺' + fmtTrPrice(rowTotal) + '</td>' +
+                '</tr>'
+            );
+        });
+
+        $('#summaryGrandTotal').text('₺' + fmtTrPrice(grandTotal));
+        $('#answerSummaryModal').fadeIn(200);
+    }
+
+    function closeModal() {
+        $('#answerSummaryModal').fadeOut(150);
+        pendingDtos = null;
+    }
+
+    var savedDtos = null;
+
+    function buildDtosFromDom() {
+        var dtos = [];
+        $('.part-card').each(function () {
+            var $card    = $(this);
+            var priceEl  = $card.find('.field-unit-price')[0];
+            var rawPrice = priceEl._priceMask ? priceEl._priceMask.unmaskedValue : $(priceEl).val().trim();
+            var unitPrice = parseFloat(rawPrice);
+            var quantity  = parseInt($card.find('.field-quantity').val().trim(), 10);
+            if (isNaN(unitPrice) || isNaN(quantity)) return;
+            dtos.push({
+                listSearchId:    $card.data('list-search-id'),
+                listSearchPartId: parseInt($card.data('part-id'), 10),
+                stockCode:   $card.find('.field-stock-code').val().trim() || null,
+                oemCode:     $card.find('.field-oem-code').val().trim()   || null,
+                stockName:   $card.find('.field-stock-name').val().trim() || null,
+                description: $card.find('.field-description').val().trim() || null,
+                unitPrice:   unitPrice,
+                quantity:    quantity,
+                kdvIncluded: $card.find('.field-kdv-included').is(':checked')
+            });
+        });
+        return dtos;
+    }
+
+    function lockForm(dtos) {
+        savedDtos = dtos || buildDtosFromDom();
+        $('.part-card').find(
+            '.field-search, .field-stock-name, .field-unit-price, .field-quantity, .field-description'
+        ).prop('readonly', true).css('opacity', '0.7');
+        $('.part-card').find('.field-kdv-included').prop('disabled', true);
+        $('#btn-submit-answer')
+            .prop('disabled', false)
+            .prop('readonly', false)
+            .text('Özeti Gör')
+            .off('click')
+            .on('click', function () { openSummaryModal(savedDtos, true); });
+    }
+
+    /* ── Submit: önce modal aç ── */
+    $('#btn-submit-answer').on('click', function () {
+        var dtos = buildPayload();
+        if (!dtos) return;
+        openSummaryModal(dtos, false);
+    });
+
+    /* ── Modal: Geri Dön / Kapat ── */
+    $('#btnCancelModal, #btnCloseModal').on('click', closeModal);
+    $('#answerSummaryModal').on('click', function (e) {
+        if (e.target === this) closeModal();
+    });
+
+    /* ── Modal: Onayla ve Gönder ── */
+    $('#btnConfirmModal').on('click', async function () {
+        if (!pendingDtos) return;
+        var $btn = $(this).prop('disabled', true).text('Gönderiliyor...');
+        $('#btn-submit-answer').prop('disabled', true);
+
+        try {
+            await makeRequest('/liste-sorgu/cevapla', 'POST', pendingDtos);
+            toastr.success('Cevaplar başarıyla kaydedildi.', 'Başarılı');
+            closeModal();
+            lockForm(pendingDtos);
+        } catch (_) {
+            $btn.prop('disabled', false).text('Onayla ve Gönder');
+            $('#btn-submit-answer').prop('disabled', false);
+        }
+    });
+
+    /* ── Sayfa yüklendiğinde zaten cevaplanmışsa kilitle (tüm binding'lerden sonra) ── */
+    if (IS_ALREADY_ANSWERED) lockForm();
+
+})();
+</script>
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skeleton Loader Template</title>
+    
+    <!-- CSS dosyalarınızı buraya ekleyin -->
+    <link rel="stylesheet" href="../css/skeleton-loader.css">
+    <link rel="stylesheet" href="../css/style.css">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+</head>
+<body>
+    <!-- Container - dinamik içerik buraya yüklenecek -->
+    <section class="section--padding">
+        <div class="container">
+            <div class="row" id="content-container">
+                <!-- Skeleton loader veya dinamik içerik buraya gelecek -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Skeleton Loader JS -->
+    <script src="skeleton-loader.js"></script>
+    <!-- HTTP Client JS -->
+    <script src="http-client.js"></script>
+    
+    <script>
+        $(document).ready(function () {
+            // Skeleton loader'ları göster - Sürekli çalışan test modu
+            
+            // Ürün kartları için:
+            SkeletonLoader.showProductSkeleton('content-container', 8);
+            
+            // Kategori kartları için:
+            // SkeletonLoader.showCategorySkeleton('content-container', 6);
+            
+            // Genel amaçlı kartlar için:
+            // SkeletonLoader.showCardSkeleton('content-container', 4, {
+            //     colClass: 'col-lg-3 col-md-6 col-12',
+            //     hasImage: true,
+            //     imageHeight: '200px',
+            //     lineCount: 3,
+            //     hasButton: true
+            // });
+            
+            // Liste için:
+            // SkeletonLoader.showListSkeleton('content-container', 5, {
+            //     hasAvatar: true,
+            //     lineCount: 2
+            // });
+            
+            // Tablo için (tbody id'si verin):
+            // SkeletonLoader.showTableSkeleton('table-body', 5, 4);
+            
+            // Form için:
+            // SkeletonLoader.showFormSkeleton('form-container', 4);
+        });
+    </script>
+</body>
+</html>

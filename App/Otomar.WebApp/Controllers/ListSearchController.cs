@@ -1,0 +1,150 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Otomar.Shared.Dtos.ListSearch;
+using Otomar.WebApp.Extensions;
+using Otomar.WebApp.Filters;
+using Otomar.WebApp.Services.Interfaces;
+using Otomar.WebApp.Services.Refit;
+
+namespace Otomar.WebApp.Controllers
+{
+    [Authorize]
+    [Route("liste-sorgu")]
+    public class ListSearchController(IListSearchApi listSearchApi, IHttpClientFactory httpClientFactory, IIdentityService identityService) : Controller
+    {
+        [HttpGet("")]
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        [HttpGet("olustur")]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost("olustur")]
+        [ValidateAntiForgeryToken]
+        [ValidateRecaptcha("list_search")]
+        public async Task<IActionResult> CreateListSearch(
+       [FromForm] CreateListSearchDto dto,
+       CancellationToken cancellationToken = default)
+        {
+            using var content = new MultipartFormDataContent();
+
+            // Ana alanları ekle
+            content.Add(new StringContent(dto.NameSurname), "NameSurname");
+
+            if (!string.IsNullOrEmpty(dto.CompanyName))
+                content.Add(new StringContent(dto.CompanyName), "CompanyName");
+
+            content.Add(new StringContent(dto.PhoneNumber), "PhoneNumber");
+            content.Add(new StringContent(dto.ChassisNumber), "ChassisNumber");
+
+            if (!string.IsNullOrEmpty(dto.Email))
+                content.Add(new StringContent(dto.Email), "Email");
+
+            content.Add(new StringContent(dto.Brand), "Brand");
+            content.Add(new StringContent(dto.Model), "Model");
+            content.Add(new StringContent(dto.Year), "Year");
+
+            if (!string.IsNullOrEmpty(dto.Engine))
+                content.Add(new StringContent(dto.Engine), "Engine");
+
+            if (!string.IsNullOrEmpty(dto.LicensePlate))
+                content.Add(new StringContent(dto.LicensePlate), "LicensePlate");
+
+            if (!string.IsNullOrEmpty(dto.Note))
+                content.Add(new StringContent(dto.Note), "Note");
+
+            // Parts'ları ekle
+            for (int i = 0; i < dto.Parts.Count; i++)
+            {
+                var part = dto.Parts[i];
+
+                content.Add(new StringContent(part.Definition), $"Parts[{i}].Definition");
+
+                if (!string.IsNullOrEmpty(part.Note))
+                    content.Add(new StringContent(part.Note), $"Parts[{i}].Note");
+
+                content.Add(new StringContent(part.Quantity.ToString()), $"Parts[{i}].Quantity");
+
+                if (part.PartImages != null && part.PartImages.Any())
+                {
+                    foreach (var (image, j) in part.PartImages.Select((img, idx) => (img, idx)))
+                    {
+                        if (image != null && image.Length > 0)
+                        {
+                            using var memoryStream = new MemoryStream();
+                            await image.CopyToAsync(memoryStream, cancellationToken);
+                            var bytes = memoryStream.ToArray();
+
+                            var byteArrayContent = new ByteArrayContent(bytes);
+                            byteArrayContent.Headers.ContentType =
+                                new System.Net.Http.Headers.MediaTypeHeaderValue(image.ContentType);
+
+                            content.Add(byteArrayContent, $"Parts[{i}].PartImages[{j}]", image.FileName);
+                        }
+                    }
+                }
+            }
+
+            var client = httpClientFactory.CreateClient("OtomarApi");
+            using var response = await client.PostAsync("api/listsearches", content, cancellationToken);
+
+            return await response.ToActionResultAsync(cancellationToken);
+        }
+
+        [HttpGet("listele")]
+        public async Task<IActionResult> GetListSearches(CancellationToken cancellationToken = default)
+        {
+            return await listSearchApi.GetListSearchesAsync(cancellationToken).ToActionResultAsync();
+        }
+
+        [HttpGet("listele/paged")]
+        public async Task<IActionResult> GetListSearchesPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+        {
+            return await listSearchApi.GetListSearchesPagedAsync(pageNumber, pageSize, cancellationToken).ToActionResultAsync();
+        }
+
+        [HttpGet("kullanici/{userId}")]
+        public async Task<IActionResult> GetListSearchesByUser(string userId, CancellationToken cancellationToken = default)
+        {
+            return await listSearchApi.GetListSearchesByUserAsync(userId, cancellationToken).ToActionResultAsync();
+        }
+
+        [HttpGet("talep-no/{requestNo}")]
+        public async Task<IActionResult> Detail(string requestNo, CancellationToken cancellationToken = default)
+        {
+            var listSearch = await listSearchApi.GetListSearchByRequestNoAsync(requestNo, cancellationToken);
+            return View("Detail", listSearch);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetListSearchById(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await listSearchApi.GetListSearchByIdAsync(id, cancellationToken).ToActionResultAsync();
+        }
+
+        [HttpGet("cevapla/{requestNo}")]
+        public async Task<IActionResult> Answer(string requestNo, CancellationToken cancellationToken = default)
+        {
+            if (User.Identity?.IsAuthenticated == true && identityService.GetUserRole() == "Admin")
+            {
+                var listSearch = await listSearchApi.GetListSearchByRequestNoAsync(requestNo, cancellationToken);
+                return View(listSearch);
+            }
+            return RedirectToAction(nameof(HomeController.Index), "Home");
+        }
+
+        [HttpPost("cevapla")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateListSearchAnswer(
+            [FromBody] List<CreateListSearchAnswerDto> dtos,
+            CancellationToken cancellationToken = default)
+        {
+            return await listSearchApi.CreateListSearchAnswerAsync(dtos, cancellationToken).ToActionResultAsync();
+        }
+    }
+}

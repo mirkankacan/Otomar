@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Sunucu Hatası";
+    Layout = "~/Views/Shared/_ErrorLayout.cshtml";
+}
+
+<div class="error-icon">
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M40 10L72 66H8Z" stroke="#ED1D24" stroke-width="2.5" stroke-linejoin="round"/>
+        <line x1="40" y1="30" x2="40" y2="48" stroke="#ED1D24" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="40" cy="56" r="2.5" fill="#ED1D24"/>
+    </svg>
+</div>
+
+<div class="error-code">500</div>
+<div class="error-line"></div>
+<h1 class="error-title">Sunucu Hatası</h1>
+<p class="error-desc">
+    Beklenmeyen bir hata oluştu. Teknik ekibimiz bilgilendirildi.
+    Lütfen kısa bir süre sonra tekrar deneyiniz.
+</p>
+<div class="error-btns">
+    <a href="/ana-sayfa" class="ebtn ebtn-red">Ana Sayfaya Dön</a>
+    <a href="javascript:location.reload()" class="ebtn ebtn-ghost">Tekrar Dene</a>
+</div>

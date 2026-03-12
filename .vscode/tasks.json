@@ -1,0 +1,39 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build: WebApi",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Api/Otomar.WebApi/Otomar.WebApi.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build: WebApp",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/App/Otomar.WebApp/Otomar.WebApp.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build: All",
+            "dependsOn": ["build: WebApi", "build: WebApp"],
+            "dependsOrder": "parallel",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}

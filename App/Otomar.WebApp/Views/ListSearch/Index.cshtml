@@ -1,0 +1,479 @@
+@using Otomar.WebApp.Models
+@{
+    ViewData["Title"] = "Liste Sorgular";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["MetaRobots"] = "noindex, nofollow";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    {
+        new("Ana Sayfa", "/ana-sayfa"),
+        new(ViewData["Title"] as string ?? "Liste Sorgular", null)
+    };
+    var isAdmin = User.IsInRole("Admin");
+}
+@Html.AntiForgeryToken()
+
+@section Styles {
+<style>
+    .account__wrapper { width: 100% !important; }
+    #listsearches-scroll-sentinel { height: 1px; visibility: hidden; }
+
+    .listsearch-page__list { list-style: none; padding: 0; margin: 0; }
+    .listsearch-page__list__item { margin-bottom: 1.25rem; }
+
+    /* ── Row card ── */
+    .order-row {
+        background: var(--body-background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    .order-row:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .order-row--expanded { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+
+    /* ── Summary: CSS Grid for column alignment ── */
+    .order-row__summary {
+        display: grid;
+        grid-template-columns: 160px 120px 1fr 180px 130px 120px auto;
+        align-items: center;
+        column-gap: 1.5rem;
+        padding: 1.25rem 1.75rem;
+        cursor: pointer;
+        user-select: none;
+        outline: none;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .order-row__summary--admin {
+        grid-template-columns: 160px 120px 1fr 180px 130px 120px auto auto;
+    }
+    .order-row__summary:focus-visible { box-shadow: inset 0 0 0 2px var(--secondary-color); }
+
+    .order-row__summary__cell { font-size: 1.5rem; color: var(--foreground-color); }
+    .order-row__summary__cell--label {
+        color: var(--foreground-sub-color);
+        font-size: 1.2rem;
+        margin-bottom: 0.4rem;
+        display: block;
+    }
+    .order-row__summary__cell b { font-weight: var(--headings-weight); }
+
+    .order-row__summary__action { display: flex; align-items: center; }
+    .order-row__summary__toggle { display: flex; align-items: center; }
+    .order-row__summary__toggle__icon {
+        width: 32px; height: 32px;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--primary-color);
+    }
+    .order-row__summary__toggle__icon svg {
+        width: 12px; height: 12px;
+        transition: transform 0.3s ease;
+    }
+    .order-row--expanded .order-row__summary__toggle__icon svg { transform: rotate(180deg); }
+
+    /* ── Detail ── */
+    .order-row__detail {
+        max-height: 0; overflow: hidden; opacity: 0;
+        padding: 0 1.75rem;
+        border-top: 1px solid transparent;
+        transition: max-height 0.4s ease-out, opacity 0.3s ease, border-color 0.25s ease, padding 0.3s ease;
+    }
+    .order-row--expanded .order-row__detail {
+        max-height: 9999px; opacity: 1;
+        padding: 0 1.75rem 1.75rem;
+        border-top-color: var(--border-color);
+    }
+    .order-row__detail__inner { padding-top: 2rem; }
+
+    .order-detail-section {
+        margin-bottom: 1.75rem; padding-bottom: 1.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .order-detail-section:last-of-type { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+    .order-detail-section-title {
+        font-size: 1.4rem; font-weight: var(--headings-weight);
+        text-transform: uppercase; letter-spacing: 0.04em;
+        color: var(--foreground-sub-color); margin-bottom: 1.15rem;
+    }
+    .order-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1.15rem 1.75rem;
+    }
+    .order-detail-field { font-size: 1.3rem; }
+    .order-detail-field label { display: block; color: var(--foreground-sub-color); font-size: 1.2rem; margin-bottom: 0.35rem; }
+    .order-detail-field span { font-weight: 500; color: var(--foreground-color); font-size: 1.4rem; }
+
+    /* ── Parts table ── */
+    .order-detail-items-table { width: 100%; border-collapse: collapse; }
+    .order-detail-items-table th,
+    .order-detail-items-table td {
+        padding: 0.9rem 1.2rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 1.3rem;
+    }
+    .order-detail-items-table th {
+        font-weight: var(--headings-weight);
+        color: var(--foreground-sub-color);
+        background: var(--bg-offwhite-color);
+    }
+    .order-detail-items-table tr:last-child td { border-bottom: none; }
+
+    /* ── Status badge ── */
+    .listsearch-status-badge {
+        display: inline-block; padding: 0.35rem 0.75rem;
+        border-radius: 8px; font-size: 1.3rem; font-weight: var(--headings-weight);
+        white-space: nowrap;
+    }
+    .listsearch-status-badge.beklemede { background: rgba(255,152,0,0.12); color: #e65100; }
+    .listsearch-status-badge.cevaplandi { background: rgba(46,125,50,0.12); color: #2e7d32; }
+
+    /* ── Admin: Cevapla button ── */
+    .btn-cevapla {
+        display: inline-block;
+        padding: 0.5rem 1.1rem; font-size: 1.3rem;
+        border-radius: 8px; border: 1px solid var(--secondary-color);
+        background: transparent; color: var(--secondary-color);
+        cursor: pointer; white-space: nowrap;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+        line-height:30px;
+    }
+    .btn-cevapla:hover { background: var(--secondary-color); color: #fff; }
+
+    /* ── Sipariş button ── */
+    .btn-siparis {
+        display: inline-block;
+        padding: 0.5rem 1.1rem; font-size: 1.3rem;
+        border-radius: 8px; border: 1px solid var(--secondary-color);
+        background: transparent; color: var(--secondary-color);
+        cursor: pointer; white-space: nowrap;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+            line-height: 30px;
+    }
+    .btn-siparis:hover { background: var(--secondary-color); color: #fff; }
+
+    @@media (max-width: 900px) {
+        .order-row__summary,
+        .order-row__summary--admin {
+            grid-template-columns: 1fr 1fr;
+            row-gap: 0.75rem;
+        }
+        .order-row__summary__toggle { grid-column: 2; justify-self: end; }
+    }
+</style>
+}
+
+<section class="my__account--section section--padding">
+    <div class="container">
+        <div class="my__account--section__inner border-radius-10 d-flex">
+            <div class="account__wrapper">
+                <div class="account__content">
+                    <h2 class="account__content--title h3 mb-20">Tüm Liste Sorgular</h2>
+                    <div class="account__table--area">
+                        <div id="listsearches-loading" class="text-center py-5 text-secondary">Liste sorguları yükleniyor...</div>
+                        <div id="listsearches-empty" class="text-center py-5 text-secondary" style="display:none;">Henüz liste sorgusu bulunmuyor.</div>
+                        <div id="listsearches-wrapper" style="display:none;">
+                            <ul class="listsearch-page__list" id="listsearches-list"></ul>
+                            <div id="listsearches-scroll-sentinel" aria-hidden="true"></div>
+                            <div id="listsearches-infinite-scroll-loader" class="text-center py-4" style="display:none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Yükleniyor...</span>
+                                </div>
+                                <p class="mt-2 text-muted mb-0">Daha fazla kayıt yükleniyor...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+(function () {
+    var IS_ADMIN      = @(isAdmin ? "true" : "false");
+    var PAGE_SIZE     = 10;
+
+    var currentPage   = 0;
+    var hasMore       = true;
+    var loadingMore   = false;
+
+    /* ───────── Util ───────── */
+    function esc(s) {
+        if (s == null || s === '') return '';
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function val(t, key) {
+        if (!t) return '';
+        var v = t[key];
+        if (v !== undefined && v !== null) return String(v);
+        var p = key.charAt(0).toUpperCase() + key.slice(1);
+        return (t[p] !== undefined && t[p] !== null) ? String(t[p]) : '';
+    }
+    function formatDate(d) {
+        if (!d) return '';
+        var dt = new Date(d);
+        if (isNaN(dt)) return esc(d);
+        return ('0'+dt.getDate()).slice(-2)+'.'+('0'+(dt.getMonth()+1)).slice(-2)+'.'+dt.getFullYear();
+    }
+    function fmt2(v) {
+        var n = parseFloat(v);
+        return isNaN(n) ? '—' : n.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+    function statusText(s) {
+        if (s === 0 || String(s).toLowerCase() === 'notanswered') return 'Beklemede';
+        if (s === 1 || String(s).toLowerCase() === 'answered')    return 'Cevaplandı';
+        return esc(String(s));
+    }
+    function statusCls(s) {
+        if (s === 0 || String(s).toLowerCase() === 'notanswered') return 'beklemede';
+        if (s === 1 || String(s).toLowerCase() === 'answered')    return 'cevaplandi';
+        return '';
+    }
+    /* ───────── Detail: talep bilgileri ───────── */
+    function buildInfoSectionHtml(row) {
+        var fields = [
+            ['Ad Soyad',     val(row,'nameSurname')],
+            ['Firma',        val(row,'companyName')],
+            ['Telefon',      val(row,'phoneNumber')],
+            ['E-posta',      val(row,'email')],
+            ['Marka',        val(row,'brand')],
+            ['Model',        val(row,'model')],
+            ['Versiyon',     val(row,'year')],
+            ['Motor',        val(row,'engine')],
+            ['Plaka',        val(row,'licensePlate')],
+            ['Şasi No',      val(row,'chassisNumber')],
+            ['Talep Tarihi', formatDate(row.createdAt||row.CreatedAt)]
+        ];
+        var html = '<div class="order-detail-section"><div class="order-detail-section-title">Talep Bilgileri</div><div class="order-detail-grid">';
+        fields.forEach(function(f) {
+            html += '<div class="order-detail-field"><label>'+f[0]+'</label><span>'+(esc(f[1])||'—')+'</span></div>';
+        });
+        var note = esc(val(row,'note'));
+        if (note) html += '<div class="order-detail-field" style="grid-column:1/-1"><label>Not</label><span>'+note+'</span></div>';
+        html += '</div></div>';
+        return html;
+    }
+
+    /* ───────── Detail: parça listesi ───────── */
+    function buildPartsTableHtml(parts) {
+        if (!parts || !parts.length) return '';
+
+        var hasAnyAnswer = parts.some(function(p) {
+            return (p.answer || p.Answer);
+        });
+
+        var html = '<div class="order-detail-section"><div class="order-detail-section-title">Parça Talepleri</div><div class="table-responsive"><table class="order-detail-items-table"><thead><tr>';
+
+        if (hasAnyAnswer) {
+            html += '<th>Tanım</th><th>Talep Adeti</th><th>Stok Kodu</th><th>Stok Adı</th><th>Birim Fiyat</th><th>Adet</th><th>KDV</th><th>Toplam</th><th>Açıklama</th>';
+        } else {
+            html += '<th>Tanım</th><th>Not</th><th>Adet</th><th>Görseller</th>';
+        }
+        html += '</tr></thead><tbody>';
+
+        var grandTotal = 0;
+
+        parts.forEach(function(p) {
+            var ans    = p.answer || p.Answer;
+            var def    = esc(val(p,'definition'));
+            var pNote  = esc(val(p,'note'));
+            var qty    = p.quantity !== undefined ? p.quantity : (p.Quantity !== undefined ? p.Quantity : '—');
+            var imgs   = p.partImages || p.PartImages || [];
+            var imgLinks = '';
+            if (Array.isArray(imgs) && imgs.length) {
+                imgs.forEach(function(u) {
+                    if (u) imgLinks += '<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Parça görseli" loading="lazy" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border-color);margin-right:6px;"/></a>';
+                });
+            }
+
+            if (hasAnyAnswer) {
+                var aStockCode = ans ? esc(val(ans,'stockCode'))  : '—';
+                var aStockName = ans ? esc(val(ans,'stockName'))  : '—';
+                var aPriceNum  = ans ? parseFloat(ans.unitPrice !== undefined ? ans.unitPrice : ans.UnitPrice) : NaN;
+                var aPrice     = !isNaN(aPriceNum) ? fmt2(aPriceNum) : '—';
+                var aQtyNum    = ans ? parseInt(ans.quantity !== undefined ? ans.quantity : ans.Quantity, 10) : NaN;
+                var aQty       = !isNaN(aQtyNum) ? aQtyNum : '—';
+                var aKdv       = ans ? ((ans.kdvIncluded||ans.KdvIncluded) ? 'Dahil' : 'Hariç') : '—';
+                var aDesc      = ans ? esc(val(ans,'description')) : '—';
+                var rowTotal   = (!isNaN(aPriceNum) && !isNaN(aQtyNum)) ? aPriceNum * aQtyNum : 0;
+                grandTotal += rowTotal;
+                var rowTotalStr = rowTotal > 0 ? '₺'+fmt2(rowTotal) : '—';
+                html += '<tr><td>'+def+'</td><td>'+qty+'</td><td>'+(aStockCode||'—')+'</td><td>'+(aStockName||'—')+'</td><td>₺'+aPrice+'</td><td>'+aQty+'</td><td>'+aKdv+'</td><td style="font-weight:700;color:var(--secondary-color);">'+rowTotalStr+'</td><td>'+(aDesc||'—')+'</td></tr>';
+            } else {
+                html += '<tr><td>'+(def||'—')+'</td><td>'+(pNote||'—')+'</td><td>'+qty+'</td><td>'+(imgLinks||'—')+'</td></tr>';
+            }
+        });
+
+        html += '</tbody>';
+        if (hasAnyAnswer && grandTotal > 0) {
+            html += '<tfoot><tr style="border-top:2px solid var(--border-color);"><td colspan="7" style="text-align:right;font-weight:700;font-size:1.4rem;padding:0.9rem 1.2rem;">Genel Toplam</td><td style="font-weight:700;font-size:1.5rem;color:var(--secondary-color);padding:0.9rem 1.2rem;">₺'+fmt2(grandTotal)+'</td><td></td></tr></tfoot>';
+        }
+        html += '</table></div></div>';
+        return html;
+    }
+
+    /* ───────── Build detail HTML ───────── */
+    function buildDetailHtml(row) {
+        var parts = row.parts || row.Parts || [];
+
+        var html = '';
+        html += buildInfoSectionHtml(row);
+        html += buildPartsTableHtml(parts);
+
+        return html;
+    }
+
+    /* ───────── Row rendering ───────── */
+    var chevron = '<svg xmlns="http://www.w3.org/2000/svg" width="12.355" height="8.394" viewBox="0 0 12.355 8.394"><path d="M15.138,8.59l-3.961,3.952L7.217,8.59,6,9.807l5.178,5.178,5.178-5.178Z" transform="translate(-6 -8.59)" fill="currentColor"/></svg>';
+
+    function renderRows(items) {
+        if (!items || !items.length) return;
+
+        $.each(items, function(_, row) {
+            var id          = row.id || row.Id;
+            var requestNo   = esc(val(row,'requestNo'));
+            var plate       = esc(val(row,'licensePlate') || '—');
+            var brand       = val(row,'brand'); var model = val(row,'model'); var year = val(row,'year');
+            var vehicle     = esc([brand,model,year].filter(Boolean).join(' / ') || '—');
+            var chassis     = esc(val(row,'chassisNumber') || '—');
+            var statusVal   = row.status !== undefined ? row.status : row.Status;
+            var statusTxt   = statusText(statusVal);
+            var statusCss   = statusCls(statusVal);
+            var dateStr     = formatDate(row.createdAt || row.CreatedAt);
+            var isAnswered  = (statusVal === 1 || String(statusVal).toLowerCase() === 'answered');
+            var detailHtml  = buildDetailHtml(row);
+            var hasAction = (IS_ADMIN && !isAnswered) || isAnswered;
+            var summaryClass = hasAction ? 'order-row__summary order-row__summary--admin' : 'order-row__summary';
+
+            var actionCell = '';
+            if (IS_ADMIN && !isAnswered) {
+                actionCell = '<div class="order-row__summary__action"><a href="/liste-sorgu/cevapla/'+encodeURIComponent(requestNo)+'" class="btn-cevapla">Cevapla</a></div>';
+            } else if (isAnswered) {
+                actionCell = '<div class="order-row__summary__action"><button type="button" class="btn-siparis" data-id="'+id+'" data-request-no="'+requestNo+'">Sipariş</button></div>';
+            }
+
+            var card =
+                '<li class="listsearch-page__list__item">'+
+                '<div class="order-row" data-id="'+id+'" role="button" tabindex="0" aria-expanded="false">'+
+                '<div class="'+summaryClass+'" >'+
+                '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Talep No</span><b>'+requestNo+'</b></div>'+
+                '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Plaka</span>'+plate+'</div>'+
+                '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Araç / Model / Versiyon</span>'+vehicle+'</div>'+
+                '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Şasi</span>'+chassis+'</div>'+
+                '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Talep Durumu</span><span class="listsearch-status-badge '+statusCss+'">'+statusTxt+'</span></div>'+
+                '<div class="order-row__summary__cell"><span class="order-row__summary__cell--label">Talep Tarihi</span>'+dateStr+'</div>'+
+                actionCell+
+                '<div class="order-row__summary__toggle"><div class="order-row__summary__toggle__icon">'+chevron+'</div></div>'+
+                '</div>'+
+                '<div class="order-row__detail" aria-hidden="true"><div class="order-row__detail__inner">'+detailHtml+'</div></div>'+
+                '</div></li>';
+
+            var $card = $(card);
+            $('#listsearches-list').append($card);
+        });
+
+        bindRowEvents();
+    }
+
+    /* ───────── Event delegation ───────── */
+    function bindRowEvents() {
+        /* Satır toggle */
+        $(document).off('click.lsrow').on('click.lsrow', '.order-row__summary', function(e) {
+            if ($(e.target).closest('.btn-cevapla').length) return;
+            var $row = $(this).closest('.order-row');
+            var expanded = $row.attr('aria-expanded') === 'true';
+            $row.toggleClass('order-row--expanded').attr('aria-expanded', !expanded);
+            $row.find('.order-row__detail').attr('aria-hidden', expanded);
+        });
+
+        /* Klavye */
+        $(document).off('keydown.lsrow').on('keydown.lsrow', '.order-row', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                $(this).find('.order-row__summary').trigger('click');
+            }
+        });
+
+        /* Cevapla linki: <a> tag olduğu için navigasyon doğal çalışır, event propagation'ı durdur */
+        $(document).off('click.cevapla').on('click.cevapla', '.btn-cevapla', function(e) {
+            e.stopPropagation();
+        });
+
+        /* Sipariş butonu */
+        $(document).off('click.siparis').on('click.siparis', '.btn-siparis', async function(e) {
+            e.stopPropagation();
+            var $btn = $(this);
+            var requestNo = $btn.data('request-no');
+
+            $btn.prop('disabled', true).text('Ekleniyor...');
+            try {
+                await makeRequest('/sepet/liste-sorgudan-ekle/' + encodeURIComponent(requestNo), 'POST');
+                toastr.success('Ürünler sepete eklendi. Sepete yönlendiriliyorsunuz...');
+                setTimeout(function() { window.location.href = '/sepet'; }, 1200);
+            } catch (err) {
+                toastr.error(err?.responseJSON?.detail || err?.responseJSON?.title || 'Sepete eklenirken bir hata oluştu');
+                $btn.prop('disabled', false).text('Sipariş');
+            }
+        });
+    }
+
+    /* ───────── Infinite scroll / Loading ───────── */
+    async function loadPage(page) {
+        if (loadingMore || !hasMore) return;
+        loadingMore = true;
+        $('#listsearches-infinite-scroll-loader').show();
+        try {
+            var url = '/liste-sorgu/listele/paged?pageNumber='+page+'&pageSize='+PAGE_SIZE;
+            var resp  = await makeRequest(url, 'GET');
+            var items = Array.isArray(resp) ? resp : (resp && (resp.data || resp.Data || []));
+            if (items && items.length) {
+                renderRows(items);
+                currentPage = page;
+            }
+            if (!items || items.length < PAGE_SIZE) hasMore = false;
+        } catch(_) {
+            hasMore = false;
+        } finally {
+            loadingMore = false;
+            $('#listsearches-infinite-scroll-loader').hide();
+        }
+    }
+
+    function setupInfiniteScroll() {
+        var sentinel = document.getElementById('listsearches-scroll-sentinel');
+        if (!sentinel) return;
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting && !loadingMore && hasMore) loadPage(currentPage + 1);
+            });
+        }, { rootMargin: '0px', threshold: 0 });
+        observer.observe(sentinel);
+    }
+
+    async function init() {
+        try {
+            var url = '/liste-sorgu/listele/paged?pageNumber=1&pageSize='+PAGE_SIZE;
+            var resp  = await makeRequest(url, 'GET');
+            var items = Array.isArray(resp) ? resp : (resp && (resp.data || resp.Data || []));
+            $('#listsearches-loading').hide();
+            if (!items || !items.length) { $('#listsearches-empty').show(); return; }
+            currentPage = 1;
+            hasMore = items.length >= PAGE_SIZE;
+            $('#listsearches-wrapper').show();
+            renderRows(items);
+            setupInfiniteScroll();
+        } catch(_) {
+            $('#listsearches-loading').hide();
+            $('#listsearches-empty').text('Liste sorguları yüklenirken bir hata oluştu.').show();
+        }
+    }
+
+    $(function() { init(); });
+})();
+</script>
+}

@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.SignalR" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.UI" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
+		<PackageReference Include="Dapper" Version="2.1.72" />
+		<PackageReference Include="Humanizer.Core.tr" Version="3.0.10" />
+		<PackageReference Include="IdentityModel" Version="5.2.0" />
+		<PackageReference Include="KubernetesClient" Version="19.0.2" />
+		<PackageReference Include="MailKit" Version="4.15.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.4" />
+
+
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.4" />
+
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.4">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.4" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.4" />
+		<PackageReference Include="NewId" Version="4.0.1" />
+		<PackageReference Include="StackExchange.Redis" Version="2.11.8" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\core\Otomar.Application\Otomar.Application.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="MailTemplates\*.html" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+</Project>

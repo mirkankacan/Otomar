@@ -1,0 +1,24 @@
+namespace Otomar.Shared.Dtos.Cart
+{
+    public class CartItemDto
+    {
+        public int ProductId { get; set; }
+        public string ProductCode { get; set; }
+        public string ProductName { get; set; }
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+        public string ImagePath { get; set; }
+        public string ManufacturerLogo { get; set; }
+        public decimal? StockQuantity { get; set; }
+
+        /// <summary>
+        /// Liste sorgusu cevabından gelen teklif fiyatı. Null ise UnitPrice stok fiyatıdır.
+        /// </summary>
+        public decimal? OverridePrice { get; set; }
+
+        /// <summary>
+        /// Teklif fiyatının kaynağı olan ListSearchAnswer ID'si.
+        /// </summary>
+        public Guid? ListSearchAnswerId { get; set; }
+    }
+}

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ödeme Hata Bilgilendirmesi • OTOMAR Yedek Parça</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; color: #333; line-height: 1.6;">
+    <table style="width: 100%; max-width: 800px; margin: 20px auto; background: #fff; border: 2px solid #000; padding: 20px; border-spacing: 0;">
+        <!-- Header -->
+        <tr>
+            <td style="text-align: center; padding: 20px 0; border-bottom: 1px solid #ccc;">
+                <img src="https://otomar.com.tr/assets/img/logo/otomarlogoclean.webp" alt="Otomar Logo" style="max-width: 250px; display: block; margin: 0 auto;">
+            </td>
+        </tr>
+
+        <!-- Alert Banner -->
+        <tr>
+            <td style="padding: 10px 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="background-color: #fee2e2; border: 1px solid #fca5a5; border-radius: 6px; padding: 15px; text-align: center;">
+                            <p style="margin: 0; color: #991b1b; font-weight: bold; font-size: 18px;">Ödeme işleminde hata oluştu!</p>
+                            <p style="margin: 8px 0 0; color: #991b1b; font-size: 14px;">Aşağıda detayları bulunan ödeme işlemi başarısız olmuştur.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Müşteri Bilgisi -->
+        <tr>
+            <td style="padding: 10px 20px; border-bottom: 1px solid #ccc;">
+                <p style="text-align: center; margin: 10px 0;">Sayın <strong>{{Name}}</strong>,</p>
+            </td>
+        </tr>
+
+        <!-- Hata Detayları -->
+        <tr>
+            <td style="padding: 10px 20px; border-bottom: 1px solid #ccc;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 0 0 10px;">Hata Detayları</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top; width: 40%;">Banka Hata Kodu:</td>
+                        <td style="padding: 8px 10px; text-align: left; color: #dc2626; font-weight: bold;">{{BankErrorCode}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">Banka Hata Mesajı:</td>
+                        <td style="padding: 8px 10px; text-align: left; color: #dc2626; font-weight: bold;">{{BankErrMsg}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">İşlem Dönüş Kodu:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{BankProcReturnCode}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Sipariş Bilgileri -->
+        <tr>
+            <td style="padding: 10px 20px; border-bottom: 1px solid #ccc;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 0 0 10px;">Sipariş Bilgileri</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top; width: 40%;">Sipariş Kodu:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{OrderCode}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">Tutar:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{Amount}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">Tarih:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{CreatedAt}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Kart Bilgileri -->
+        <tr>
+            <td style="padding: 10px 20px; border-bottom: 1px solid #ccc;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 0 0 10px;">Kart Bilgileri</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top; width: 40%;">Kart Numarası:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{MaskedCreditCard}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">Kart Markası:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{CardBrand}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 10px; font-weight: bold; text-align: left; vertical-align: top;">Kartı Veren Banka:</td>
+                        <td style="padding: 8px 10px; text-align: left;">{{CardIssuer}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Products -->
+        <tr>
+            <td style="padding: 10px 20px; border-bottom: 1px solid #ccc;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 0 0 10px;">Ürünler</p>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 10px; background-color: #f4f4f4; text-align: center; border: 1px solid #ccc;">Ürün Adı</th>
+                            <th style="padding: 10px; background-color: #f4f4f4; text-align: center; border: 1px solid #ccc;">Kodu</th>
+                            <th style="padding: 10px; background-color: #f4f4f4; text-align: center; border: 1px solid #ccc;">Fiyat</th>
+                            <th style="padding: 10px; background-color: #f4f4f4; text-align: center; border: 1px solid #ccc;">Adet</th>
+                            <th style="padding: 10px; background-color: #f4f4f4; text-align: center; border: 1px solid #ccc;">Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ItemsTable}}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Billing Information -->
+        <tr>
+            <td style="padding: 10px 20px; border-bottom: 1px solid #ccc;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 0 0 10px;">Fatura Bilgileri</p>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">TC Kimlik No:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{IdentityNumber}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Kişi Adı:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{Name}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Adres:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{BillingStreet}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Semt / İlçe:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{BillingDistrict}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Şehir:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{BillingCity}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Telefon:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{BillingPhone}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Firma Adı:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{CompanyName}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Vergi Dairesi:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{TaxOffice}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Vergi No:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{TaxNumber}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">E-Fatura Mükellefi:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{IsEInvoiceUser}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">E-Posta:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{Email}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Delivery Information -->
+        <tr>
+            <td style="padding: 10px 20px; border-bottom: 1px solid #ccc;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 0 0 10px;">Teslimat Bilgileri</p>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Firma / Kişi Adı:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{ShippingName}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Adres:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{ShippingStreet}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Semt / İlçe:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{ShippingDistrict}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Şehir:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{ShippingCity}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Telefon:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{ShippingPhone}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+            <td style="text-align: center; padding: 20px; font-size: 12px; color: #555;">
+                <p style="margin: 0;">Bu e-posta otomatik oluşturulmuştur. Lütfen cevap vermeyiniz.</p>
+                <p style="margin: 5px 0 0;"><a href="https://otomar.com.tr" style="color: #000; text-decoration: none;">OTOMAR.com.tr</a></p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

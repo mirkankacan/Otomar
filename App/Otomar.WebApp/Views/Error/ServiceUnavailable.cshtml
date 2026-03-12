@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Geçici Olarak Kullanılamıyor";
+    Layout = "~/Views/Shared/_ErrorLayout.cshtml";
+}
+
+<div class="error-icon">
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 14l-6 6 10 10-22 22 6 6 22-22 10 10 6-6" stroke="#ED1D24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M48 66l6-6-10-10 22-22-6-6-22 22-10-10-6 6" stroke="#ED1D24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/>
+    </svg>
+</div>
+
+<div class="error-code">503</div>
+<div class="error-line"></div>
+<h1 class="error-title">Geçici Olarak Kullanılamıyor</h1>
+<p class="error-desc">
+    Sistemimiz şu anda bakımdadır. Kısa süre içinde
+    tekrar hizmetinizde olacağız. Anlayışınız için teşekkürler.
+</p>
+<div class="error-btns">
+    <a href="javascript:location.reload()" class="ebtn ebtn-red">Tekrar Dene</a>
+    <a href="/ana-sayfa" class="ebtn ebtn-ghost">Ana Sayfaya Dön</a>
+</div>

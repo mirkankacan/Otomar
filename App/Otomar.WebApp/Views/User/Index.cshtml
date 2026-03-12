@@ -1,0 +1,617 @@
+@{
+    ViewData["Title"] = "Hesabım";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["MetaRobots"] = "noindex, nofollow";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+{
+new("Ana Sayfa", "/ana-sayfa"),
+new(ViewData["Title"] as string ?? "Hesabım", null),
+};
+}
+@section Styles {
+    <style>
+        /* Sipariş kartları – style.css :root değişkenleri ile */
+        .orders-page__order-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .orders-page__order-list__item {
+            margin-bottom: 1.25rem;
+        }
+
+        .order-row {
+            background: var(--body-background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .order-row:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .order-row--expanded {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .order-row__summary {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            padding: 1.5rem 1.75rem;
+            cursor: pointer;
+            user-select: none;
+            outline: none;
+        }
+
+        .order-row__summary:focus-visible {
+            box-shadow: inset 0 0 0 2px var(--secondary-color);
+        }
+
+        .order-row__summary__images {
+            flex-shrink: 0;
+            width: 72px;
+            height: 72px;
+            background: var(--bg-offwhite-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .order-row__summary__images .image__item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .order-row__summary__images .image__placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--foreground-sub-color);
+            font-size: 2.4rem;
+        }
+
+        .order-row__summary__order-data {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .order-row__summary__order-number {
+            font-size: 1.2rem;
+            color: var(--foreground-sub-color);
+        }
+
+        .order-row__summary__order-number b {
+            color: var(--foreground-color);
+            font-weight: var(--headings-weight);
+            font-size: 1.25rem;
+        }
+
+        .order-row__summary__progress-bar {
+            flex-shrink: 0;
+            margin-top: 0.5rem;
+        }
+
+        .order-row-summary__single-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.15rem;
+            color: var(--foreground-color);
+        }
+
+        .order-row-summary__single-status svg,
+        .order-row__status-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+        }
+
+        .order-row__summary__toggle__icon .order-row__chevron {
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .order-row--expanded .order-row__summary__toggle__icon .order-row__chevron {
+            transform: rotate(180deg);
+        }
+
+        .order-row__summary__price-and-date {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.4rem;
+            flex-shrink: 0;
+        }
+
+        .order-row__summary__price-and-date span {
+            font-size: 1.15rem;
+            color: var(--foreground-sub-color);
+        }
+
+        .order-row__summary__price-and-date b {
+            font-size: 1.4rem;
+            color: var(--foreground-color);
+        }
+
+        .order-row__summary__toggle {
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .order-row__summary__toggle {
+            flex-shrink: 0;
+        }
+
+        .order-row__summary__toggle__icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+        }
+
+        .order-row__summary__toggle__icon svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Detay açılış animasyonu */
+        .order-row__detail {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            padding: 0 1.75rem;
+            border-top: 1px solid transparent;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease, border-color 0.25s ease, padding 0.3s ease;
+        }
+
+        .order-row--expanded .order-row__detail {
+            max-height: 2000px;
+            opacity: 1;
+            padding: 0 1.75rem 1.75rem;
+            border-top-color: var(--border-color);
+        }
+
+        .order-row__detail__inner {
+            padding-top: 1.75rem;
+        }
+
+        .order-detail-section {
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .order-detail-section:last-of-type {
+            border-bottom: 0;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .order-detail-section-title {
+            font-size: 1.1rem;
+            font-weight: var(--headings-weight);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--foreground-sub-color);
+            margin-bottom: 1.15rem;
+        }
+
+        .order-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.15rem 1.75rem;
+        }
+
+        .order-detail-field {
+            font-size: 1.25rem;
+        }
+
+        .order-detail-field label {
+            display: block;
+            color: var(--foreground-sub-color);
+            font-size: 1rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .order-detail-field span {
+            font-weight: 500;
+            color: var(--foreground-color);
+            font-size: 1.2rem;
+        }
+
+        .order-detail-items-table {
+            width: 100%;
+            font-size: 1.2rem;
+            border-collapse: collapse;
+        }
+
+        .order-detail-items-table th,
+        .order-detail-items-table td {
+            padding: 0.9rem 1.2rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .order-detail-items-table th {
+            font-weight: var(--headings-weight);
+            font-size: 1.15rem;
+            color: var(--foreground-sub-color);
+            background: var(--bg-offwhite-color);
+        }
+
+        .order-detail-items-table .text-end {
+            text-align: right;
+        }
+
+        .order-detail-items-table .text-center {
+            text-align: center;
+        }
+
+        .order-detail-address-block {
+            font-size: 1.2rem;
+            line-height: 1.65;
+            color: var(--foreground-color);
+            padding: 1.2rem 1.5rem;
+            background: var(--bg-offwhite-color);
+            border-radius: 10px;
+        }
+
+        .order-detail-totals {
+            font-size: 1.25rem;
+        }
+
+        .order-detail-totals .row-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+        }
+
+        .order-detail-totals .row-total.final {
+            font-weight: var(--headings-weight);
+            font-size: 1.35rem;
+            padding-top: 0.9rem;
+            margin-top: 0.4rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .order-detail-badge {
+            display: inline-block;
+            padding: 0.45rem 0.8rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: var(--headings-weight);
+        }
+
+        .order-detail-badge.sanal-pos {
+            background: var(--bg-offwhite-color);
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
+        }
+
+        .order-detail-badge.siparis {
+            background: var(--bg-offwhite-color);
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
+        }
+    </style>
+}
+<!-- my account section start -->
+<section class="my__account--section section--padding">
+    <div class="container">
+        <div class="my__account--section__inner border-radius-10 d-flex">
+            <div class="account__left--sidebar">
+                <h2 class="account__content--title mb-20">Hesabım</h2>
+                <ul class="account__menu">
+                    <li class="account__menu--list active"><a href="/hesabim">Sipariş Geçmişi</a></li>
+                    <li class="account__menu--list"><a href="/liste-sorgu">Liste Sorgular</a></li>
+                    <li class="account__menu--list"><a href="/cari/hesap-hareketleri">Cari Hesap Hareketleri</a></li>
+                    <li class="account__menu--list"><a href="/profilim">Kullanıcı Bilgileri</a></li>
+                    <li class="account__menu--list"><a href="javascript:void(0)" onclick="logout()">Çıkış Yap</a></li>
+                </ul>
+            </div>
+            <div class="account__wrapper">
+                <div class="account__content">
+                    <h2 class="account__content--title h3 mb-20">Sipariş Geçmişi</h2>
+                    <div class="account__table--area">
+                        <div id="orders-loading" class="text-center py-5 text-secondary">Siparişler yükleniyor...</div>
+                        <div id="orders-empty" class="text-center py-5 text-secondary" style="display: none;">Henüz
+                            siparişiniz bulunmuyor.</div>
+                        <div class="orders-page__groups__item" id="orders-wrapper" style="display: none;">
+                            <ul class="orders-page__order-list" id="orders-list"></ul>
+                            <div id="orders-scroll-sentinel" style="height: 1px; visibility: hidden;"
+                                aria-hidden="true"></div>
+                            <div id="orders-infinite-scroll-loader" class="text-center py-4" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Yükleniyor...</span>
+                                </div>
+                                <p class="mt-2 text-muted mb-0">Daha fazla sipariş yükleniyor...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- my account section end -->
+
+@section Scripts {
+    <script>
+        // Infinite scroll: /siparis/siparislerim/paged
+        var ordersCurrentPage = 0;
+        var ordersTotalPages = 0;
+        var ordersLoadingMore = false;
+        var ORDERS_PAGE_SIZE = 10;
+
+        $(function () {
+            loadFirstPage();
+        });
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            var d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            var day = ('0' + d.getDate()).slice(-2);
+            var month = ('0' + (d.getMonth() + 1)).slice(-2);
+            var year = d.getFullYear();
+            var hours = ('0' + d.getHours()).slice(-2);
+            var minutes = ('0' + d.getMinutes()).slice(-2);
+            return day + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
+        }
+
+        function escapeHtml(s) {
+            if (s == null || s === '') return '';
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function renderOrderRows(orders) {
+            if (!orders || !orders.length) return;
+            var chevronSvg = '<svg class="order-row__chevron" xmlns="http://www.w3.org/2000/svg" width="12.355" height="8.394" viewBox="0 0 12.355 8.394"><path d="M15.138,8.59l-3.961,3.952L7.217,8.59,6,9.807l5.178,5.178,5.178-5.178Z" transform="translate(-6 -8.59)" fill="currentColor"/></svg>';
+            $.each(orders, function (i, order) {
+                var code = order.code || order.Code || '—';
+                var orderType = order.orderType != null ? order.orderType : order.OrderType;
+                var turLabel = orderType === 0 ? 'Sanal POS' : (orderType === 1 ? 'Sipariş' : '—');
+                var statusLabel = orderType === 0 ? 'Ödeme Onaylandı' : (orderType === 1 ? 'Sipariş Onaylandı' : 'Sipariş Onaylandı');
+                var date = formatDate(order.createdAt || order.CreatedAt);
+                var total = formatTurkishLira(order.totalAmount != null ? order.totalAmount : order.TotalAmount);
+                var id = order.id || order.Id;
+                var orderNumberFormatted = escapeHtml(String(code || id)).replace(/\s/g, ' ');
+                var detailHtml = buildOrderDetailHtml(order);
+                var card = '<li class="orders-page__order-list__item">' +
+                    '<div class="order-row" data-order-id="' + escapeHtml(String(id)) + '" role="button" tabindex="0" aria-expanded="false" aria-label="' + orderNumberFormatted + ' numaralı sipariş">' +
+                    '<div class="order-row__summary">' +
+                    '<div class="order-row__summary__images"><div class="image__placeholder"><i class="fa-solid fa-receipt"></i></div></div>' +
+                    '<div class="order-row__summary__order-data">' +
+                    '<div class="order-row__summary__order-number"><small>Sipariş No: <b>' + orderNumberFormatted + '</b></small></div>' +
+                    '<div class="order-row__summary__progress-bar"><div class="order-row-summary"><div class="order-row-summary__single-status order-row-summary__single-status--completed">' +
+                    '<svg class="order-row__status-icon" width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 0a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm3.36 5.36L6.8 9.92 4.64 7.76l-1.28 1.28 3.44 3.44 5.12-5.12-1.28-1.28z" fill="#5AD363"/></svg>' +
+                    '<span>' + escapeHtml(statusLabel) + '</span></div></div></div>' +
+                    '</div>' +
+                    '<div class="order-row__summary__price-and-date"><span>' + escapeHtml(date) + '</span><b>' + escapeHtml(total) + '</b></div>' +
+                    '<div class="order-row__summary__toggle"><div class="order-row__summary__toggle__icon">' + chevronSvg + '</div></div>' +
+                    '</div>' +
+                    '<div class="order-row__detail" aria-hidden="true"><div class="order-row__detail__inner">' + detailHtml + '</div></div>' +
+                    '</div></li>';
+                $('#orders-list').append(card);
+            });
+            $(document).off('click', '.order-row__summary').on('click', '.order-row__summary', function (e) {
+                var $row = $(this).closest('.order-row');
+                if (!$row.length) return;
+                var expanded = $row.attr('aria-expanded') === 'true';
+                $row.toggleClass('order-row--expanded').attr('aria-expanded', !expanded);
+                $row.find('.order-row__detail').attr('aria-hidden', expanded);
+            });
+            $(document).off('keydown', '.order-row').on('keydown', '.order-row', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    $(this).find('.order-row__summary').trigger('click');
+                }
+            });
+        }
+
+        async function loadMoreOrders() {
+            if (ordersLoadingMore || ordersCurrentPage >= ordersTotalPages) {
+                $('#orders-infinite-scroll-loader').hide();
+                return;
+            }
+            var nextPage = ordersCurrentPage + 1;
+            ordersLoadingMore = true;
+            $('#orders-infinite-scroll-loader').show();
+            try {
+                var paged = await makeRequest('/siparis/siparislerim/paged?pageNumber=' + nextPage + '&pageSize=' + ORDERS_PAGE_SIZE, 'GET');
+                var items = Array.isArray(paged) ? paged : (paged.Data || paged.data || []);
+                var totalPages = paged.TotalPages != null ? paged.TotalPages : paged.totalPages;
+                var pageNumber = paged.PageNumber != null ? paged.PageNumber : paged.pageNumber;
+                if (Array.isArray(items) && items.length > 0) {
+                    renderOrderRows(items);
+                    ordersCurrentPage = pageNumber != null ? pageNumber : nextPage;
+                }
+                if (totalPages != null) ordersTotalPages = totalPages;
+            } catch (e) {
+                // makeRequest hata fırlatır
+            } finally {
+                ordersLoadingMore = false;
+                $('#orders-infinite-scroll-loader').hide();
+            }
+        }
+
+        function setupInfiniteScroll() {
+            // Son sipariş (sentinel) ekranda görünür görünmez yeni istek at
+            var sentinel = document.getElementById('orders-scroll-sentinel');
+            if (!sentinel) return;
+            if (typeof IntersectionObserver === 'undefined') {
+                $(window).on('scroll.ordersInfinite', function () {
+                    if (ordersLoadingMore || ordersTotalPages <= 0 || ordersCurrentPage >= ordersTotalPages) return;
+                    var rect = sentinel.getBoundingClientRect();
+                    if (rect.top <= window.innerHeight) void loadMoreOrders();
+                });
+                return;
+            }
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (!entry.isIntersecting) return;
+                    if (ordersLoadingMore || ordersTotalPages <= 0 || ordersCurrentPage >= ordersTotalPages) return;
+                    void loadMoreOrders();
+                });
+            }, { root: null, rootMargin: '0px', threshold: 0 });
+            observer.observe(sentinel);
+        }
+
+        async function loadFirstPage() {
+            try {
+                var paged = await makeRequest('/siparis/siparislerim/paged?pageNumber=1&pageSize=' + ORDERS_PAGE_SIZE, 'GET');
+                var items = Array.isArray(paged) ? paged : (paged.Data || paged.data || []);
+                var totalCount = paged.TotalCount != null ? paged.TotalCount : paged.totalCount;
+                var totalPages = paged.TotalPages != null ? paged.TotalPages : paged.totalPages;
+                var pageNumber = paged.PageNumber != null ? paged.PageNumber : paged.pageNumber;
+
+                $('#orders-loading').hide();
+                if (!items.length && (totalCount == null || totalCount === 0)) {
+                    $('#orders-empty').show();
+                    return;
+                }
+                ordersCurrentPage = pageNumber != null ? pageNumber : 1;
+                ordersTotalPages = totalPages != null ? totalPages : (totalCount != null ? Math.ceil(totalCount / ORDERS_PAGE_SIZE) : 1);
+
+                $('#orders-wrapper').show();
+                $('#orders-list').empty();
+                renderOrderRows(items);
+                setupInfiniteScroll();
+            } catch (e) {
+                $('#orders-loading').hide();
+                $('#orders-empty').text('Siparişler yüklenirken bir hata oluştu.').show();
+            }
+        }
+
+        function getOrderTypeLabel(orderType) {
+            var t = orderType != null ? orderType : -1;
+            return t === 0 ? 'Sanal POS' : (t === 1 ? 'Sipariş' : '—');
+        }
+
+        function buildOrderDetailHtml(order) {
+            var code = order.code || order.Code || '—';
+            var orderType = order.orderType != null ? order.orderType : order.OrderType;
+            var typeLabel = getOrderTypeLabel(orderType);
+            var typeClass = orderType === 0 ? 'sanal-pos' : 'siparis';
+            var createdAt = formatDate(order.createdAt || order.CreatedAt);
+            var total = formatTurkishLira(order.totalAmount != null ? order.totalAmount : order.TotalAmount);
+            var subTotal = formatTurkishLira(order.subTotalAmount != null ? order.subTotalAmount : order.SubTotalAmount);
+            var shippingAmountVal = order.shippingAmount != null ? order.shippingAmount : order.ShippingAmount;
+            if (shippingAmountVal === '' || shippingAmountVal === null || shippingAmountVal === undefined || Number(shippingAmountVal) === 0 || isNaN(Number(shippingAmountVal))) {
+                shippingAmountVal = 0;
+            }
+            var shipping = formatTurkishLira(shippingAmountVal);
+            var email = order.email || order.Email || '';
+            var identityNumber = order.identityNumber || order.IdentityNumber || '';
+
+            var html = '';
+
+            // Genel bilgiler
+            html += '<div class="order-detail-section">';
+            html += '<div class="order-detail-section-title">Genel Bilgiler</div>';
+            html += '<div class="order-detail-grid">';
+            html += '<div class="order-detail-field"><label>Sipariş No</label><span>#' + code + '</span></div>';
+            html += '<div class="order-detail-field"><label>Tür</label><span><span class="order-detail-badge ' + typeClass + '">' + typeLabel + '</span></span></div>';
+            html += '<div class="order-detail-field"><label>Tarih</label><span>' + createdAt + '</span></div>';
+            html += '<div class="order-detail-field"><label>E-posta</label><span>' + (email || '—') + '</span></div>';
+            html += '<div class="order-detail-field"><label>TC / Vergi No</label><span>' + (identityNumber || '—') + '</span></div>';
+            html += '</div></div>';
+
+            // Ürünler (Items)
+            var items = order.items || order.Items || [];
+            if (items.length > 0) {
+                html += '<div class="order-detail-section">';
+                html += '<div class="order-detail-section-title">Ürünler</div>';
+                html += '<div class="table-responsive"><table class="order-detail-items-table">';
+                html += '<thead><tr><th>Ürün</th><th>Stok Kodu</th><th class="text-end">Birim Fiyat</th><th class="text-center">Adet</th><th class="text-end">Tutar</th></tr></thead><tbody>';
+                $.each(items, function (i, item) {
+                    var name = (item.productName || item.ProductName || '—').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    var pcode = (item.productCode || item.ProductCode || '—').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    var unitPrice = item.unitPrice != null ? item.unitPrice : item.UnitPrice;
+                    var qty = item.quantity != null ? item.quantity : item.Quantity;
+                    var lineTotal = (unitPrice || 0) * (qty || 0);
+                    html += '<tr><td>' + name + '</td><td>' + pcode + '</td><td class="text-end">' + formatTurkishLira(unitPrice) + '</td><td class="text-center">' + qty + '</td><td class="text-end">' + formatTurkishLira(lineTotal) + '</td></tr>';
+                });
+                html += '</tbody></table></div></div>';
+            }
+
+            // Adresler
+            var billing = order.billingAddress || order.BillingAddress;
+            var shippingAddr = order.shippingAddress || order.ShippingAddress;
+            if (billing && (billing.name || billing.Name || billing.street || billing.Street || billing.city || billing.City || billing.phone || billing.Phone)) {
+                html += '<div class="order-detail-section">';
+                html += '<div class="order-detail-section-title">Fatura Adresi</div>';
+                html += '<div class="order-detail-address-block">';
+                html += (billing.name || billing.Name || '') + '<br>';
+                if (billing.street || billing.Street) html += (billing.street || billing.Street) + '<br>';
+                if (billing.district || billing.District || billing.city || billing.City) html += (billing.district || billing.District || '') + ' ' + (billing.city || billing.City || '') + '<br>';
+                if (billing.phone || billing.Phone) html += (billing.phone || billing.Phone || '');
+                html += '</div></div>';
+            }
+            if (shippingAddr && (shippingAddr.name || shippingAddr.Name || shippingAddr.street || shippingAddr.Street || shippingAddr.city || shippingAddr.City || shippingAddr.phone || shippingAddr.Phone)) {
+                html += '<div class="order-detail-section">';
+                html += '<div class="order-detail-section-title">Teslimat Adresi</div>';
+                html += '<div class="order-detail-address-block">';
+                html += (shippingAddr.name || shippingAddr.Name || '') + '<br>';
+                if (shippingAddr.street || shippingAddr.Street) html += (shippingAddr.street || shippingAddr.Street) + '<br>';
+                if (shippingAddr.district || shippingAddr.District || shippingAddr.city || shippingAddr.City) html += (shippingAddr.district || shippingAddr.District || '') + ' ' + (shippingAddr.city || shippingAddr.City || '') + '<br>';
+                if (shippingAddr.phone || shippingAddr.Phone) html += (shippingAddr.phone || shippingAddr.Phone || '');
+                html += '</div></div>';
+            }
+
+            // Kurumsal
+            var corp = order.corporate || order.Corporate;
+            if (corp && (corp.companyName || corp.CompanyName || corp.taxNumber || corp.TaxNumber || corp.taxOffice || corp.TaxOffice)) {
+                var cName = corp.companyName || corp.CompanyName || '';
+                var taxNo = corp.taxNumber || corp.TaxNumber || '';
+                var taxOff = corp.taxOffice || corp.TaxOffice || '';
+                html += '<div class="order-detail-section">';
+                html += '<div class="order-detail-section-title">Kurumsal Bilgi</div>';
+                html += '<div class="order-detail-address-block">' + cName;
+                if (taxNo) html += '<br>Vergi No: ' + taxNo;
+                if (taxOff) html += (taxNo ? ' / ' : '<br>') + 'Vergi Dairesi: ' + taxOff;
+                html += '</div></div>';
+            }
+
+            // Ödeme
+            var payment = order.payment || order.Payment;
+            if (payment && (payment.maskedCreditCard || payment.MaskedCreditCard || payment.bankCardBrand || payment.BankCardBrand || payment.bankCardIssuer || payment.BankCardIssuer)) {
+                var mask = payment.maskedCreditCard || payment.MaskedCreditCard || '';
+                var brand = payment.bankCardBrand || payment.BankCardBrand || '';
+                var issuer = payment.bankCardIssuer || payment.BankCardIssuer || '';
+                html += '<div class="order-detail-section">';
+                html += '<div class="order-detail-section-title">Ödeme</div>';
+                html += '<div class="order-detail-address-block">';
+                if (mask) html += 'Kart: ' + mask + '<br>';
+                if (brand) html += 'Marka: ' + brand + (issuer ? '<br>Banka: ' + issuer : '');
+                else if (issuer) html += 'Banka: ' + issuer;
+                html += '</div></div>';
+            }
+
+            // Toplamlar
+            html += '<div class="order-detail-section">';
+            html += '<div class="order-detail-section-title">Toplamlar</div>';
+            html += '<div class="order-detail-totals">';
+            html += '<div class="row-total"><span>Alt Toplam</span><span>' + subTotal + '</span></div>';
+            if (orderType !== 0) {
+                html += '<div class="row-total"><span>Kargo</span><span>' + shipping + '</span></div>';
+            }
+            html += '<div class="row-total final"><span>Genel Toplam</span><span>' + total + '</span></div>';
+            html += '</div></div>';
+
+            return html;
+        }
+    </script>
+}

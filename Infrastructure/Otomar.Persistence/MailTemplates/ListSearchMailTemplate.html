@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste Sorgu Talebi • OTOMAR Yedek Parça</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; color: #333; line-height: 1.6;">
+    <table style="width: 100%; max-width: 800px; margin: 20px auto; background: #fff; border: 2px solid #000; padding: 20px; border-spacing: 0;">
+        <!-- Header -->
+        <tr>
+            <td style="text-align: center; padding: 20px 0; border-bottom: 1px solid #ccc;">
+                <img src="https://otomar.com.tr/assets/img/logo/otomarlogoclean.webp" alt="Otomar Logo" style="max-width: 250px; display: block; margin: 0 auto;">
+            </td>
+        </tr>
+
+        <!-- List Search Details -->
+        <tr>
+            <td style="padding: 10px 20px; border-bottom: 1px solid #ccc;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 0 0 10px;">Liste Sorgu Talebi Detayları</p>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Talep No:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{RequestNo}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Ad Soyad:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{NameSurname}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Firma:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{CompanyName}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Telefon:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{PhoneNumber}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">E-posta:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{Email}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Şasi No:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{ChassisNumber}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Marka:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{Brand}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Model:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{Model}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Yıl:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{Year}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Motor:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{Engine}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Plaka:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{LicensePlate}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Not:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{Note}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;">Oluşturma Tarihi:</td>
+                        <td style="padding: 5px 10px; text-align: left;">{{CreatedAt}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Talep Edilen Parçalar -->
+        <tr>
+            <td style="padding: 10px 20px; border-bottom: 1px solid #ccc;">
+                <p style="font-weight: bold; color: #444; font-size: 16px; margin: 0 0 10px;">Talep Edilen Parçalar</p>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 10px; background-color: #f4f4f4; text-align: center; border: 1px solid #ccc;">#</th>
+                            <th style="padding: 10px; background-color: #f4f4f4; text-align: left; border: 1px solid #ccc;">Parça Tanımı</th>
+                            <th style="padding: 10px; background-color: #f4f4f4; text-align: center; border: 1px solid #ccc;">Adet</th>
+                            <th style="padding: 10px; background-color: #f4f4f4; text-align: left; border: 1px solid #ccc;">Not</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ItemsTable}}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+
+        <!-- CTA -->
+        <tr>
+            <td style="padding: 10px 20px; border-bottom: 1px solid #ccc;text-align:center">
+                <a href="{{RedirectUrl}}" style="display: inline-block; padding: 12px 28px; background-color: #ff0000; color: #fff; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 6px;">Cevaplamak İçin Tıklayınız</a>
+            </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+            <td style="text-align: center; padding: 20px; font-size: 12px; color: #555;">
+                <p style="margin: 0;">Bu e-posta otomatik oluşturulmuştur. Lütfen cevap vermeyiniz.</p>
+                <p style="margin: 5px 0 0;"><a href="https://otomar.com.tr" style="color: #000; text-decoration: none;">OTOMAR.com.tr</a></p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

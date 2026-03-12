@@ -1,0 +1,398 @@
+@model Otomar.Shared.Dtos.ListSearch.ListSearchDto
+@using Otomar.Shared.Enums
+@using Otomar.WebApp.Models
+@{
+    ViewData["Title"] = $"Talep No: {Model.RequestNo}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["MetaRobots"] = "noindex, nofollow";
+    ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
+    {
+        new("Ana Sayfa", "/ana-sayfa"),
+        new("Liste Sorgular", "/liste-sorgu"),
+        new(Model.RequestNo, null)
+    };
+    var isAdmin = User.IsInRole("Admin");
+    var isAnswered = Model.Status == ListSearchStatus.Answered;
+    var answeredParts = Model.Parts.Where(p => p.Answer != null).ToList();
+}
+@Html.AntiForgeryToken()
+
+@section Styles {
+<style>
+    .account__wrapper { width: 100% !important; }
+    .detail-page { max-width: 1100px; margin: 0 auto; }
+
+    /* Info card */
+    .info-card {
+        background: var(--body-background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 1.75rem;
+        margin-bottom: 2rem;
+    }
+    .info-card__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+    .info-card__title {
+        font-size: 1.4rem;
+        font-weight: var(--headings-weight);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--foreground-sub-color);
+        margin: 0;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 1rem 1.75rem;
+    }
+    .info-field label {
+        display: block;
+        font-size: 1.2rem;
+        color: var(--foreground-sub-color);
+        margin-bottom: 0.25rem;
+    }
+    .info-field span { font-size: 1.4rem; font-weight: 500; }
+
+    /* Status badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .status-badge svg { width: 14px; height: 14px; }
+    .status-badge--answered {
+        background: rgba(22, 163, 74, 0.1);
+        color: #16a34a;
+    }
+    .status-badge--not-answered {
+        background: rgba(217, 119, 6, 0.1);
+        color: #d97706;
+    }
+
+    /* Part card */
+    .part-card {
+        background: var(--body-background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    .part-card__header {
+        background: var(--bg-offwhite-color);
+        padding: 1.1rem 1.75rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.75rem;
+    }
+    .part-card__header__num {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        min-width: 20px;
+    }
+    .part-card__header__title { font-size: 1.5rem; font-weight: var(--headings-weight); }
+    .part-card__header__meta { font-size: 1.3rem; color: var(--foreground-sub-color); }
+    .part-card__header__badge {
+        margin-left: auto;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2e7d32;
+        background: rgba(46, 125, 50, 0.1);
+        padding: 0.25rem 0.7rem;
+        border-radius: 6px;
+    }
+    .part-card__body { padding: 1.75rem; }
+
+    /* Answer detail grid */
+    .answer-detail {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem 1.75rem;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        margin-top: 1rem;
+    }
+    .answer-detail__title {
+        grid-column: 1 / -1;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #16a34a;
+        margin-bottom: 0.25rem;
+    }
+    .answer-detail label {
+        display: block;
+        font-size: 1.1rem;
+        color: var(--foreground-sub-color);
+        margin-bottom: 0.2rem;
+    }
+    .answer-detail span { font-size: 1.3rem; font-weight: 500; }
+    .answer-detail .price { color: var(--secondary-color); font-weight: 700; }
+
+    /* Part images */
+    .part-images {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+    .part-images img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .part-images img:hover { transform: scale(1.05); }
+
+    /* Totals */
+    .totals-card {
+        background: var(--body-background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 1.5rem 1.75rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .totals-card__label {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--foreground-sub-color);
+    }
+    .totals-card__value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--secondary-color);
+    }
+
+    /* Action buttons */
+    .detail-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+    }
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1.4rem;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 600;
+        transition: opacity 0.2s;
+    }
+    .btn-action:hover { opacity: 0.88; text-decoration: none; }
+    .btn-action svg { width: 18px; height: 18px; }
+    .btn-action--primary {
+        background: var(--secondary-color);
+        color: var(--text-white-color);
+    }
+    .btn-action--outline {
+        background: transparent;
+        border: 1px solid var(--secondary-color);
+        color: var(--secondary-color);
+    }
+    .btn-action--outline:hover { background: var(--secondary-color); color: #fff; }
+
+    @@media (max-width: 640px) {
+        .info-grid { grid-template-columns: 1fr 1fr; }
+        .answer-detail { grid-template-columns: 1fr 1fr; }
+    }
+</style>
+}
+
+<section class="my__account--section section--padding">
+    <div class="container">
+        <div class="account__wrapper">
+            <div class="account__content detail-page">
+                <h2 class="account__content--title h3 mb-20">
+                    Liste Sorgu Detay &mdash; <span style="color: var(--primary-color);">@Model.RequestNo</span>
+                </h2>
+
+                <!-- Talep Bilgileri -->
+                <div class="info-card">
+                    <div class="info-card__header">
+                        <div class="info-card__title">Talep Bilgileri</div>
+                        @if (isAnswered)
+                        {
+                            <span class="status-badge status-badge--answered">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                Cevaplandı
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-badge--not-answered">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                Cevaplanmadı
+                            </span>
+                        }
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-field"><label>Talep No</label><span>@Model.RequestNo</span></div>
+                        <div class="info-field"><label>Ad Soyad</label><span>@(Model.NameSurname ?? "—")</span></div>
+                        <div class="info-field"><label>Firma</label><span>@(Model.CompanyName ?? "—")</span></div>
+                        <div class="info-field"><label>Telefon</label><span>@(Model.PhoneNumber ?? "—")</span></div>
+                        <div class="info-field"><label>E-posta</label><span>@(Model.Email ?? "—")</span></div>
+                        <div class="info-field"><label>Marka</label><span>@(Model.Brand ?? "—")</span></div>
+                        <div class="info-field"><label>Model</label><span>@(Model.Model ?? "—")</span></div>
+                        <div class="info-field"><label>Versiyon</label><span>@(Model.Year ?? "—")</span></div>
+                        <div class="info-field"><label>Motor</label><span>@(Model.Engine ?? "—")</span></div>
+                        <div class="info-field"><label>Plaka</label><span>@(Model.LicensePlate ?? "—")</span></div>
+                        <div class="info-field"><label>Şasi No</label><span>@(Model.ChassisNumber ?? "—")</span></div>
+                        <div class="info-field"><label>Tarih</label><span>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span></div>
+                        @if (!string.IsNullOrEmpty(Model.Note))
+                        {
+                            <div class="info-field" style="grid-column: 1 / -1;">
+                                <label>Not</label><span>@Model.Note</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Parçalar -->
+                @for (int i = 0; i < Model.Parts.Count; i++)
+                {
+                    var part = Model.Parts[i];
+                    var answer = part.Answer;
+
+                    <div class="part-card">
+                        <div class="part-card__header">
+                            <span class="part-card__header__num">#@(i + 1)</span>
+                            <span class="part-card__header__title">@part.Definition</span>
+                            <span class="part-card__header__meta">Talep Adeti: <b>@part.Quantity</b></span>
+                            @if (!string.IsNullOrEmpty(part.Note))
+                            {
+                                <span class="part-card__header__meta">Not: @part.Note</span>
+                            }
+                            @if (answer != null)
+                            {
+                                <span class="part-card__header__badge">&#10003; Cevaplanmış</span>
+                            }
+                        </div>
+
+                        <div class="part-card__body">
+                            @if (part.PartImages != null && part.PartImages.Any())
+                            {
+                                <div class="part-images">
+                                    @foreach (var img in part.PartImages)
+                                    {
+                                        <a href="@img" target="_blank">
+                                            <img src="@img" alt="Parça görseli" loading="lazy" />
+                                        </a>
+                                    }
+                                </div>
+                            }
+
+                            @if (answer != null)
+                            {
+                                <div class="answer-detail">
+                                    <div class="answer-detail__title">Cevap Bilgileri</div>
+                                    <div class="info-field"><label>Stok Adı</label><span>@(answer.StockName ?? "—")</span></div>
+                                    <div class="info-field"><label>Stok Kodu</label><span>@(answer.StockCode ?? "—")</span></div>
+                                    <div class="info-field"><label>OEM Kodu</label><span>@(answer.OemCode ?? "—")</span></div>
+                                    <div class="info-field"><label>Birim Fiyat</label><span class="price">@answer.UnitPrice.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span></div>
+                                    <div class="info-field"><label>Adet</label><span>@answer.Quantity</span></div>
+                                    <div class="info-field"><label>KDV</label><span>@(answer.KdvIncluded ? "Dahil" : "Hariç")</span></div>
+                                    <div class="info-field"><label>Tutar</label><span class="price">@((answer.UnitPrice * answer.Quantity).ToString("C2", new System.Globalization.CultureInfo("tr-TR")))</span></div>
+                                    @if (!string.IsNullOrEmpty(answer.Description))
+                                    {
+                                        <div class="info-field" style="grid-column: 1 / -1;"><label>Açıklama</label><span>@answer.Description</span></div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p style="color: var(--foreground-sub-color); font-size: 1.3rem; margin: 0;">Henüz cevaplanmadı.</p>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (isAnswered && answeredParts.Any())
+                {
+                    <div class="totals-card">
+                        <span class="totals-card__label">Genel Toplam</span>
+                        <span class="totals-card__value">
+                            @answeredParts.Sum(p => p.Answer!.UnitPrice * p.Answer.Quantity).ToString("C2", new System.Globalization.CultureInfo("tr-TR"))
+                        </span>
+                    </div>
+                }
+
+                <!-- Aksiyonlar -->
+                <div class="detail-actions">
+                    <a href="/liste-sorgu" class="btn-action btn-action--outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        Liste Sorgulara Dön
+                    </a>
+
+                    @if (isAdmin && !isAnswered)
+                    {
+                        <a href="/liste-sorgu/cevapla/@Model.RequestNo" class="btn-action btn-action--primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Cevapla
+                        </a>
+                    }
+
+                    @if (isAnswered)
+                    {
+                        <button type="button" class="btn-action btn-action--primary" id="btnSiparis" data-request-no="@Model.RequestNo">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                            Sipariş
+                        </button>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+(function () {
+    var $btn = $('#btnSiparis');
+    if (!$btn.length) return;
+
+    $btn.on('click', async function () {
+        var requestNo = $btn.data('request-no');
+        $btn.prop('disabled', true).text('Ekleniyor...');
+
+        try {
+            await makeRequest('/sepet/liste-sorgudan-ekle/' + encodeURIComponent(requestNo), 'POST');
+            toastr.success('Ürünler sepete eklendi. Sepete yönlendiriliyorsunuz...');
+            setTimeout(function () { window.location.href = '/sepet'; }, 1200);
+        } catch (err) {
+            toastr.error(err?.responseJSON?.detail || err?.responseJSON?.title || 'Sepete eklenirken bir hata oluştu');
+            $btn.prop('disabled', false).html(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Sipariş'
+            );
+        }
+    });
+})();
+</script>
+}

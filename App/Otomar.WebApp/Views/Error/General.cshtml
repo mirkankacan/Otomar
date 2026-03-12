@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Bir Hata Oluştu";
+    Layout = "~/Views/Shared/_ErrorLayout.cshtml";
+}
+
+<div class="error-icon">
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M40 10L72 66H8Z" stroke="#ED1D24" stroke-width="2.5" stroke-linejoin="round"/>
+        <line x1="40" y1="30" x2="40" y2="48" stroke="#ED1D24" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="40" cy="56" r="2.5" fill="#ED1D24"/>
+    </svg>
+</div>
+
+<div class="error-code" style="font-size: clamp(3rem, 10vw, 5rem);">Hata</div>
+<div class="error-line"></div>
+<h1 class="error-title">Bir Şeyler Ters Gitti</h1>
+<p class="error-desc">
+    Beklenmeyen bir hata oluştu. Lütfen sayfayı yenileyerek tekrar deneyin.
+    Sorun devam ederse bizimle iletişime geçebilirsiniz.
+</p>
+<div class="error-btns">
+    <a href="/ana-sayfa" class="ebtn ebtn-red">Ana Sayfaya Dön</a>
+    <a href="/iletisim" class="ebtn ebtn-ghost">İletişim</a>
+</div>

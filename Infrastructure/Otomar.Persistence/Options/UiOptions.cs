@@ -1,0 +1,19 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Otomar.Persistence.Options
+{
+    public class UiOptions
+    {
+        [Required]
+        public string BaseUrl { get; set; } = default!;
+
+        [Required]
+        public string PaymentSuccessUrl { get; set; } = default!;
+
+        [Required]
+        public string PaymentFailureUrl { get; set; } = default!;
+
+        [Required]
+        public string WebRootPath { get; set; } = default!;
+    }
+}
