@@ -5,12 +5,19 @@ using Otomar.Application.Interfaces.Repositories;
 
 namespace Otomar.Persistence.Repositories
 {
-    public class CategoryRepository(IUnitOfWork unitOfWork) : ICategoryRepository
+    public class CategoryRepository : ICategoryRepository
     {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public CategoryRepository(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         public async Task<IEnumerable<BrandDto>> GetBrandsAsync()
         {
             var query = "SELECT * FROM IdtMarkaTanim WITH (NOLOCK) WHERE AKTIF=1 ORDER BY MARKA_ADI ASC";
-            return await unitOfWork.Connection.QueryAsync<BrandDto>(query);
+            return await _unitOfWork.Connection.QueryAsync<BrandDto>(query);
         }
 
         public async Task<(IEnumerable<BrandModelYearDto> Brands, IEnumerable<ModelDto> Models, IEnumerable<YearDto> Years)> GetBrandsModelsYearsRawAsync()
@@ -31,9 +38,9 @@ namespace Otomar.Persistence.Repositories
                 FROM IdtAracKasaAdı WITH (NOLOCK)
                 ORDER BY KASA_ADI;";
 
-            var brands = await unitOfWork.Connection.QueryAsync<BrandModelYearDto>(brandQuery);
-            var models = await unitOfWork.Connection.QueryAsync<ModelDto>(modelQuery);
-            var years = await unitOfWork.Connection.QueryAsync<YearDto>(yearQuery);
+            var brands = await _unitOfWork.Connection.QueryAsync<BrandModelYearDto>(brandQuery);
+            var models = await _unitOfWork.Connection.QueryAsync<ModelDto>(modelQuery);
+            var years = await _unitOfWork.Connection.QueryAsync<YearDto>(yearQuery);
 
             return (brands, models, years);
         }
@@ -58,8 +65,8 @@ namespace Otomar.Persistence.Repositories
                 FROM IdtStokAltGrup WITH (NOLOCK)
                 ORDER BY SIRA;";
 
-            var categories = await unitOfWork.Connection.QueryAsync<CategoryDto>(mainQuery);
-            var subCategories = await unitOfWork.Connection.QueryAsync<SubCategoryDto>(subQuery);
+            var categories = await _unitOfWork.Connection.QueryAsync<CategoryDto>(mainQuery);
+            var subCategories = await _unitOfWork.Connection.QueryAsync<SubCategoryDto>(subQuery);
 
             return (categories, subCategories);
         }
@@ -67,25 +74,25 @@ namespace Otomar.Persistence.Repositories
         public async Task<IEnumerable<FeaturedCategoryDto>> GetFeaturedCategoriesAsync()
         {
             var query = "SELECT Name AS KATEGORI_ADI, ItemsCount AS TOPLAM_URUN_SAYISI, Icon AS IKON FROM IdvFeaturedCategories WITH (NOLOCK)";
-            return await unitOfWork.Connection.QueryAsync<FeaturedCategoryDto>(query);
+            return await _unitOfWork.Connection.QueryAsync<FeaturedCategoryDto>(query);
         }
 
         public async Task<IEnumerable<ManufacturerDto>> GetManufacturersAsync()
         {
             var query = "SELECT * FROM IdvAktifStokMarka WITH (NOLOCK) ORDER BY MARKA_ADI ASC";
-            return await unitOfWork.Connection.QueryAsync<ManufacturerDto>(query);
+            return await _unitOfWork.Connection.QueryAsync<ManufacturerDto>(query);
         }
 
         public async Task<IEnumerable<ModelDto>> GetModelsByBrandAsync(int brandId)
         {
             var query = "SELECT * FROM IdtAracModel WITH (NOLOCK) WHERE MARKA_KODU=@brandId AND AKTIF=1 ORDER BY MODEL_ADI ASC";
-            return await unitOfWork.Connection.QueryAsync<ModelDto>(query, new { brandId });
+            return await _unitOfWork.Connection.QueryAsync<ModelDto>(query, new { brandId });
         }
 
         public async Task<IEnumerable<YearDto>> GetYearsByModelAsync(int modelId)
         {
             var query = "SELECT * FROM IdtAracKasaAdı WITH (NOLOCK) WHERE AKTIF=1 AND MODEL_ID=@modelId ORDER BY KASA_ADI ASC";
-            return await unitOfWork.Connection.QueryAsync<YearDto>(query, new { modelId });
+            return await _unitOfWork.Connection.QueryAsync<YearDto>(query, new { modelId });
         }
     }
 }

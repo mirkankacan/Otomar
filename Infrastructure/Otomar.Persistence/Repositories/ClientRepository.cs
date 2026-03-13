@@ -5,26 +5,33 @@ using Otomar.Shared.Dtos.Client;
 
 namespace Otomar.Persistence.Repositories
 {
-    public class ClientRepository(IUnitOfWork unitOfWork) : IClientRepository
+    public class ClientRepository : IClientRepository
     {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public ClientRepository(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         private const string ClientColumns = "CARI_KOD, CARI_TEL, CARI_ISIM_TRK, CARI_EMAIL_TRK, CARI_ADRES_TRK, CARI_IL_TRK, CARI_ILCE_TRK, VERGI_DAIRESI_TRK, VERGI_NUMARASI, TCKIMLIKNO, KULL7S";
 
         public async Task<ClientDto?> GetByCodeAsync(string clientCode)
         {
             var query = $@"SELECT TOP 1 {ClientColumns} FROM IdvSanalPosCari WITH (NOLOCK) WHERE CARI_KOD = @clientCode";
-            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, new { clientCode });
+            return await _unitOfWork.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, new { clientCode });
         }
 
         public async Task<ClientDto?> GetByTaxNumberAsync(string taxNumber)
         {
             var query = $@"SELECT TOP 1 {ClientColumns} FROM IdvSanalPosCari WITH (NOLOCK) WHERE VERGI_NUMARASI = @taxNumber";
-            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, new { taxNumber });
+            return await _unitOfWork.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, new { taxNumber });
         }
 
         public async Task<ClientDto?> GetByTcNumberAsync(string tcNumber)
         {
             var query = $@"SELECT TOP 1 {ClientColumns} FROM IdvSanalPosCari WITH (NOLOCK) WHERE TCKIMLIKNO = @tcNumber";
-            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, new { tcNumber });
+            return await _unitOfWork.Connection.QueryFirstOrDefaultAsync<ClientDto>(query, new { tcNumber });
         }
 
         public async Task<IEnumerable<TransactionDto>> GetTransactionsByCodeAsync(string clientCode)
@@ -50,7 +57,7 @@ namespace Otomar.Persistence.Repositories
                     FORMAT(BAKIYE, 'c2', 'tr-TR') AS BAKIYE
                 FROM OTOMAR2026.DBO.IDF_SATIS_CARI_HAREKET(@clientCode)
                 ORDER BY TARIH_RAW DESC, INC_KEY_NUMBER DESC;";
-            return await unitOfWork.Connection.QueryAsync<TransactionDto>(query, new { clientCode });
+            return await _unitOfWork.Connection.QueryAsync<TransactionDto>(query, new { clientCode });
         }
 
         public async Task<IEnumerable<TransactionDto>> GetTransactionsByCodeAsync(string clientCode, int pageNumber, int pageSize)
@@ -78,7 +85,7 @@ namespace Otomar.Persistence.Repositories
                 ORDER BY TARIH_RAW DESC, INC_KEY_NUMBER DESC
                 OFFSET (@pageNumber - 1) * @pageSize ROWS
                 FETCH NEXT @pageSize ROWS ONLY;";
-            return await unitOfWork.Connection.QueryAsync<TransactionDto>(query, new { clientCode, pageNumber, pageSize });
+            return await _unitOfWork.Connection.QueryAsync<TransactionDto>(query, new { clientCode, pageNumber, pageSize });
         }
     }
 }

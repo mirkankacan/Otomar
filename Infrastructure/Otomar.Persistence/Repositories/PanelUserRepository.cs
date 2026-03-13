@@ -5,8 +5,15 @@ using Otomar.Domain.Entities;
 
 namespace Otomar.Persistence.Repositories
 {
-    public class PanelUserRepository(IUnitOfWork unitOfWork) : IPanelUserRepository
+    public class PanelUserRepository : IPanelUserRepository
     {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public PanelUserRepository(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         private const string GetPanelUserSql = """
             SELECT TOP 1
                 LTRIM(RTRIM(KULLANICI_ADI)) AS KullaniciAdi,
@@ -19,7 +26,7 @@ namespace Otomar.Persistence.Repositories
 
         public async Task<PanelKullanici?> GetByUsernameAsync(string username)
         {
-            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<PanelKullanici>(
+            return await _unitOfWork.Connection.QueryFirstOrDefaultAsync<PanelKullanici>(
                 GetPanelUserSql, new { Username = username.Trim() });
         }
     }

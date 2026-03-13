@@ -10,8 +10,15 @@ namespace Otomar.Persistence.Repositories
     /// <summary>
     /// Dapper-based product data access.
     /// </summary>
-    public class ProductRepository(IUnitOfWork unitOfWork) : IProductRepository
+    public class ProductRepository : IProductRepository
     {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public ProductRepository(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         private const string SelectColumns = @"
             ID,
             STOK_KODU,
@@ -37,7 +44,7 @@ namespace Otomar.Persistence.Repositories
         /// <inheritdoc />
         public async Task<List<(string FilterType, string FilterValue)>> GetUserGlobalFiltersAsync(string userId)
         {
-            var filters = await unitOfWork.Connection.QueryAsync<(string FilterType, string FilterValue)>(
+            var filters = await _unitOfWork.Connection.QueryAsync<(string FilterType, string FilterValue)>(
                 "SELECT FilterType, FilterValue FROM UserGlobalFilters WHERE UserId = @userId",
                 new { userId });
 
@@ -61,7 +68,7 @@ namespace Otomar.Persistence.Repositories
                 SELECT TOP 8 {SelectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY SATIS_FIYAT ASC;
                 SELECT TOP 8 {SelectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY SATIS_FIYAT DESC;";
 
-            using var multi = await unitOfWork.Connection.QueryMultipleAsync(sql, parameters);
+            using var multi = await _unitOfWork.Connection.QueryMultipleAsync(sql, parameters);
             return new FeaturedProductDto
             {
                 Latest = await multi.ReadAsync<ProductDto>(),
@@ -79,7 +86,7 @@ namespace Otomar.Persistence.Repositories
                 FROM IdvStock WITH (NOLOCK)
                 WHERE STOK_KODU = @code";
 
-            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<ProductDto>(query, new { code = code.Trim() });
+            return await _unitOfWork.Connection.QueryFirstOrDefaultAsync<ProductDto>(query, new { code = code.Trim() });
         }
 
         /// <inheritdoc />
@@ -90,8 +97,9 @@ namespace Otomar.Persistence.Repositories
                 FROM IdvStock WITH (NOLOCK)
                 WHERE ID = @id";
 
-            var connection = unitOfWork?.Connection ?? unitOfWork.Connection;
-            var transaction = unitOfWork?.Transaction;
+            var uow = unitOfWork ?? _unitOfWork;
+            var connection = uow.Connection;
+            var transaction = uow.Transaction;
 
             return await connection.QueryFirstOrDefaultAsync<ProductDto>(query, new { id }, transaction);
         }
@@ -132,7 +140,7 @@ namespace Otomar.Persistence.Repositories
             parameters.Add("pageSize", filter.PageSize);
 
             var totalCountQuery = $"SELECT COUNT(*) FROM IdvStock WITH (NOLOCK) {whereClause}";
-            var totalCount = await unitOfWork.Connection.QuerySingleAsync<int>(totalCountQuery, parameters);
+            var totalCount = await _unitOfWork.Connection.QuerySingleAsync<int>(totalCountQuery, parameters);
 
             var query = $@"
                 SELECT {SelectColumns}
@@ -141,7 +149,7 @@ namespace Otomar.Persistence.Repositories
                 {orderByClause}
                 OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
 
-            var result = await unitOfWork.Connection.QueryAsync<ProductDto>(query, parameters);
+            var result = await _unitOfWork.Connection.QueryAsync<ProductDto>(query, parameters);
 
             return new PagedResult<ProductDto>(result, filter.PageNumber, filter.PageSize, totalCount);
         }
@@ -207,7 +215,7 @@ namespace Otomar.Persistence.Repositories
             FROM SimilarProducts
             ORDER BY Priority";
 
-            return await unitOfWork.Connection.QueryAsync<SimilarProductDto?>(query, new { code = code.Trim() });
+            return await _unitOfWork.Connection.QueryAsync<SimilarProductDto?>(query, new { code = code.Trim() });
         }
 
         #region Private Helpers

@@ -11,8 +11,15 @@ namespace Otomar.Persistence.Repositories
     /// <summary>
     /// Sipariş verilerine erişim implementasyonu.
     /// </summary>
-    public class OrderRepository(IUnitOfWork unitOfWork) : IOrderRepository
+    public class OrderRepository : IOrderRepository
     {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public OrderRepository(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         #region Create Methods
 
         /// <inheritdoc />
@@ -143,8 +150,9 @@ namespace Otomar.Persistence.Repositories
                 LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId
                 WHERE o.Code = @orderCode";
 
-            var connection = unitOfWork?.Connection ?? unitOfWork.Connection;
-            var transaction = unitOfWork?.Transaction;
+            var uow = unitOfWork ?? _unitOfWork;
+            var connection = uow.Connection;
+            var transaction = uow.Transaction;
 
             var rows = await connection.QueryAsync(query, new { orderCode }, transaction);
             var rowList = rows.ToList();
@@ -188,7 +196,7 @@ namespace Otomar.Persistence.Repositories
                 LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId
                 WHERE o.Id = @id";
 
-            var rows = await unitOfWork.Connection.QueryAsync(query, new { id });
+            var rows = await _unitOfWork.Connection.QueryAsync(query, new { id });
             var rowList = rows.ToList();
 
             if (rowList.Count == 0)
@@ -229,7 +237,7 @@ namespace Otomar.Persistence.Repositories
                 LEFT JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
                 LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId";
 
-            var rows = await unitOfWork.Connection.QueryAsync(query);
+            var rows = await _unitOfWork.Connection.QueryAsync(query);
             var rowList = rows.ToList();
 
             if (rowList.Count == 0)
@@ -271,7 +279,7 @@ namespace Otomar.Persistence.Repositories
                 LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId
                 WHERE o.BuyerId = @userId";
 
-            var rows = await unitOfWork.Connection.QueryAsync(query, new { userId });
+            var rows = await _unitOfWork.Connection.QueryAsync(query, new { userId });
             var rowList = rows.ToList();
 
             if (rowList.Count == 0)
@@ -289,7 +297,7 @@ namespace Otomar.Persistence.Repositories
             parameters.Add("pageSize", pageSize);
 
             const string countQuery = "SELECT COUNT(1) FROM IdtOrders o WITH (NOLOCK) WHERE o.BuyerId = @userId";
-            var totalCount = await unitOfWork.Connection.ExecuteScalarAsync<int>(countQuery, parameters);
+            var totalCount = await _unitOfWork.Connection.ExecuteScalarAsync<int>(countQuery, parameters);
             if (totalCount == 0)
                 return (Enumerable.Empty<OrderDto>(), 0);
 
@@ -298,7 +306,7 @@ namespace Otomar.Persistence.Repositories
                 WHERE o.BuyerId = @userId
                 ORDER BY o.CreatedAt DESC
                 OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
-            var orderIds = (await unitOfWork.Connection.QueryAsync<Guid>(idsQuery, parameters)).ToList();
+            var orderIds = (await _unitOfWork.Connection.QueryAsync<Guid>(idsQuery, parameters)).ToList();
             if (orderIds.Count == 0)
                 return (Enumerable.Empty<OrderDto>(), totalCount);
 
@@ -333,7 +341,7 @@ namespace Otomar.Persistence.Repositories
                 LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId
                 WHERE o.BuyerId = @userId AND o.Id IN @orderIds";
 
-            var rows = await unitOfWork.Connection.QueryAsync(query, parameters);
+            var rows = await _unitOfWork.Connection.QueryAsync(query, parameters);
             var rowList = rows.ToList();
 
             var ordersDict = MapOrderDtoDictFromRows(rowList, includeExtendedPayment: false);
@@ -367,7 +375,7 @@ namespace Otomar.Persistence.Repositories
                 INNER JOIN IdtClientOrderItems ICOI ON ICO.Id = ICOI.OrderId
                 WHERE ICO.Id = @id;";
 
-            var rows = await unitOfWork.Connection.QueryAsync(query, new { id });
+            var rows = await _unitOfWork.Connection.QueryAsync(query, new { id });
             var rowList = rows.ToList();
 
             if (rowList.Count == 0)
@@ -396,7 +404,7 @@ namespace Otomar.Persistence.Repositories
                 INNER JOIN IdtClientOrderItems ICOI ON ICO.Id = ICOI.OrderId
                 ORDER BY CreatedAt DESC;";
 
-            var rows = await unitOfWork.Connection.QueryAsync(query);
+            var rows = await _unitOfWork.Connection.QueryAsync(query);
             var rowList = rows.ToList();
 
             if (rowList.Count == 0)
@@ -426,7 +434,7 @@ namespace Otomar.Persistence.Repositories
                 WHERE CreatedBy = @createdBy
                 ORDER BY CreatedAt DESC;";
 
-            var rows = await unitOfWork.Connection.QueryAsync(query, new { createdBy = userId });
+            var rows = await _unitOfWork.Connection.QueryAsync(query, new { createdBy = userId });
             var rowList = rows.ToList();
 
             if (rowList.Count == 0)

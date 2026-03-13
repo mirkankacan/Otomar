@@ -10,8 +10,15 @@ namespace Otomar.Persistence.Repositories
     /// Ödeme verilerine erişim implementasyonu.
     /// Tüm SQL sorguları bu katmanda bulunur; tekrarlanan SELECT blokları const ile DRY tutulur.
     /// </summary>
-    public class PaymentRepository(IUnitOfWork unitOfWork) : IPaymentRepository
+    public class PaymentRepository : IPaymentRepository
     {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public PaymentRepository(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         #region SQL Column Constants
 
         private const string PaymentSelectColumns = @"
@@ -118,7 +125,7 @@ namespace Otomar.Persistence.Repositories
                         FROM IdtPayments WITH (NOLOCK)
                         WHERE Id = @paymentId";
 
-            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, new { paymentId });
+            return await _unitOfWork.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, new { paymentId });
         }
 
         /// <inheritdoc />
@@ -128,7 +135,7 @@ namespace Otomar.Persistence.Repositories
                         FROM IdtPayments WITH (NOLOCK)
                         WHERE OrderCode = @orderCode";
 
-            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, new { orderCode });
+            return await _unitOfWork.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, new { orderCode });
         }
 
         /// <inheritdoc />
@@ -137,7 +144,7 @@ namespace Otomar.Persistence.Repositories
             var query = $@"SELECT {PaymentSelectColumns}
                         FROM IdtPayments WITH (NOLOCK)";
 
-            return await unitOfWork.Connection.QueryAsync<PaymentDto>(query);
+            return await _unitOfWork.Connection.QueryAsync<PaymentDto>(query);
         }
 
         /// <inheritdoc />
@@ -147,7 +154,7 @@ namespace Otomar.Persistence.Repositories
                         FROM IdtPayments WITH (NOLOCK)
                         WHERE UserId = @userId";
 
-            return await unitOfWork.Connection.QueryAsync<PaymentDto>(query, new { userId });
+            return await _unitOfWork.Connection.QueryAsync<PaymentDto>(query, new { userId });
         }
     }
 }
