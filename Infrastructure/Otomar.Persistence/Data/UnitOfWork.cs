@@ -1,18 +1,36 @@
-using Otomar.Application.Contracts.Persistence;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using Otomar.Application.Interfaces;
 using System.Data;
 
 namespace Otomar.Persistence.Data
 {
     /// <summary>
-    /// IUnitOfWork implementasyonu. IAppDbContext üzerinden connection alır,
-    /// transaction yaşam döngüsünü yönetir.
+    /// IUnitOfWork implementasyonu.
+    /// Connection lifecycle ve transaction yönetimini birlikte sağlar.
+    /// Scoped lifetime ile request başına tek instance kullanılır.
     /// </summary>
-    public class UnitOfWork(IAppDbContext context) : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
+        private readonly IDbConnection _connection;
         private IDbTransaction? _transaction;
         private bool _disposed;
 
-        public IDbConnection Connection => context.Connection;
+        public UnitOfWork(IConfiguration configuration)
+        {
+            var connectionString = configuration.GetConnectionString("SqlConnection");
+            _connection = new SqlConnection(connectionString);
+        }
+
+        public IDbConnection Connection
+        {
+            get
+            {
+                if (_connection.State != ConnectionState.Open)
+                    _connection.Open();
+                return _connection;
+            }
+        }
 
         public IDbTransaction? Transaction => _transaction;
 
@@ -42,6 +60,8 @@ namespace Otomar.Persistence.Data
             {
                 _transaction?.Dispose();
                 _transaction = null;
+                _connection?.Close();
+                _connection?.Dispose();
                 _disposed = true;
             }
         }

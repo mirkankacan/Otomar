@@ -4,7 +4,8 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Otomar.Shared.Common;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
+using Otomar.Shared.Interfaces;
 using Otomar.Shared.Dtos.Cart;
 using Otomar.Shared.Dtos.Product;
 using Otomar.Application.Options;
@@ -25,6 +26,7 @@ public class CartServiceTests
     private readonly Mock<IDistributedCache> _cacheMock;
     private readonly Mock<IProductService> _productServiceMock;
     private readonly Mock<IListSearchService> _listSearchServiceMock;
+    private readonly Mock<ICartSessionService> _cartSessionServiceMock;
     private readonly Mock<IIdentityService> _identityServiceMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<ILogger<CartService>> _loggerMock;
@@ -37,6 +39,7 @@ public class CartServiceTests
         _cacheMock = new Mock<IDistributedCache>();
         _productServiceMock = new Mock<IProductService>();
         _listSearchServiceMock = new Mock<IListSearchService>();
+        _cartSessionServiceMock = new Mock<ICartSessionService>();
         _identityServiceMock = new Mock<IIdentityService>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _loggerMock = new Mock<ILogger<CartService>>();
@@ -57,10 +60,15 @@ public class CartServiceTests
         // Authenticated user ile HttpContext setup
         SetupAuthenticatedUser("test-user-id");
 
+        // CartSessionService mock — authenticated user için cart key
+        _cartSessionServiceMock.Setup(x => x.GetCartKey()).Returns("otomar:cart:user:test-user-id");
+        _cartSessionServiceMock.Setup(x => x.GetSessionId()).Returns((string?)null);
+
         _sut = new CartService(
             _cacheMock.Object,
             _productServiceMock.Object,
             _listSearchServiceMock.Object,
+            _cartSessionServiceMock.Object,
             _shippingOptions,
             _redisOptions,
             _loggerMock.Object,

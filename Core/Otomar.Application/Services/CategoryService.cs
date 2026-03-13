@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Otomar.Shared.Common;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Dtos.Category;
-using Otomar.Application.Contracts.Persistence.Repositories;
+using Otomar.Application.Interfaces.Repositories;
 using System.Net;
 
 namespace Otomar.Application.Services

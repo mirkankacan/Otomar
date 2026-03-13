@@ -1,11 +1,11 @@
 using Dapper;
-using Otomar.Application.Contracts.Persistence;
-using Otomar.Application.Contracts.Persistence.Repositories;
+using Otomar.Application.Interfaces;
+using Otomar.Application.Interfaces.Repositories;
 using Otomar.Domain.Entities;
 
 namespace Otomar.Persistence.Repositories
 {
-    public class PanelUserRepository(IAppDbContext context) : IPanelUserRepository
+    public class PanelUserRepository(IUnitOfWork unitOfWork) : IPanelUserRepository
     {
         private const string GetPanelUserSql = """
             SELECT TOP 1
@@ -19,7 +19,7 @@ namespace Otomar.Persistence.Repositories
 
         public async Task<PanelKullanici?> GetByUsernameAsync(string username)
         {
-            return await context.Connection.QueryFirstOrDefaultAsync<PanelKullanici>(
+            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<PanelKullanici>(
                 GetPanelUserSql, new { Username = username.Trim() });
         }
     }

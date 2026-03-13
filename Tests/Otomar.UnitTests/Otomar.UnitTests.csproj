@@ -30,6 +30,7 @@
     <ProjectReference Include="..\..\Core\Otomar.Application\Otomar.Application.csproj" />
     <ProjectReference Include="..\..\Infrastructure\Otomar.Persistence\Otomar.Persistence.csproj" />
     <ProjectReference Include="..\..\App\Otomar.WebApp\Otomar.WebApp.csproj" />
+    <ProjectReference Include="..\..\Api\Otomar.WebApi\Otomar.WebApi.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Otomar.Shared.Common;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
+using Otomar.Shared.Interfaces;
 using Otomar.Shared.Dtos.Cart;
-using Otomar.Application.Helpers;
 using Otomar.Application.Options;
-using Otomar.Application.Contracts.Persistence;
+using Otomar.Application.Interfaces;
 using System.Net;
 using System.Text.Json;
 
@@ -16,6 +16,7 @@ namespace Otomar.Application.Services
         IDistributedCache cache,
         IProductService productService,
         IListSearchService listSearchService,
+        ICartSessionService cartSessionService,
         ShippingOptions shippingOptions,
         RedisOptions redisOptions,
         ILogger<CartService> logger,
@@ -24,10 +25,9 @@ namespace Otomar.Application.Services
     {
         private readonly TimeSpan _cartExpiration = TimeSpan.FromDays(redisOptions.CartExpirationDays);
 
-        // CartKey'i otomatik al
         private string GetCartKey()
         {
-            return CartHelper.GetCartKey(httpContextAccessor.HttpContext!, redisOptions);
+            return cartSessionService.GetCartKey();
         }
 
         public async Task<ServiceResult<CartDto>> AddToCartAsync(
@@ -379,20 +379,16 @@ namespace Otomar.Application.Services
                 var context = httpContextAccessor.HttpContext;
                 if (context == null) return;
 
-                // Kullanıcı authenticated değilse merge gerekmez
                 if (context.User?.Identity?.IsAuthenticated != true) return;
 
-                // Session ID yoksa merge edilecek sepet yok
-                var sessionId = CartHelper.GetSessionId(context);
+                var sessionId = cartSessionService.GetSessionId();
                 if (string.IsNullOrEmpty(sessionId)) return;
 
-                // Session sepetinde veri var mı kontrol et
                 var sessionCartKey = $"{redisOptions.InstanceName}cart:session:{sessionId}";
                 var sessionCartJson = await cache.GetStringAsync(sessionCartKey, cancellationToken);
                 if (string.IsNullOrEmpty(sessionCartJson)) return;
 
-                await CartHelper.MergeCartsOnLoginAsync(context, cache, redisOptions, shippingOptions);
-                logger.LogInformation("Session sepeti user sepetine birleştirildi. SessionId: {SessionId}", sessionId);
+                await cartSessionService.MergeCartsOnLoginAsync(cancellationToken);
             }
             catch (Exception ex)
             {
@@ -432,7 +428,7 @@ namespace Otomar.Application.Services
 
         public string GetCurrentCartKey()
         {
-            return CartHelper.GetCartKey(httpContextAccessor.HttpContext!, redisOptions);
+            return cartSessionService.GetCartKey();
         }
 
         public async Task<ServiceResult<CartDto>> AddToCartFromListSearchAsync(

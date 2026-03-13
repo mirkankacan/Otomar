@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Otomar.Shared.Dtos.ListSearch;
 using Otomar.WebApp.Extensions;
 using Otomar.WebApp.Filters;
-using Otomar.WebApp.Services.Interfaces;
+using Otomar.Shared.Interfaces;
 using Otomar.WebApp.Services.Refit;
 
 namespace Otomar.WebApp.Controllers

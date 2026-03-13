@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Otomar.Application.Contracts.Persistence.Repositories;
+using Otomar.Application.Interfaces.Repositories;
 using Otomar.Application.Services;
 using Otomar.Shared.Dtos.Client;
 using System.Net;

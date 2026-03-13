@@ -139,7 +139,9 @@ namespace Otomar.WebApi.Extensions
             });
 
             services.AddCarter();
-            services.AddScoped<Otomar.Application.Contracts.Services.IRealtimeNotifier, Otomar.WebApi.Services.SignalRNotifier>();
+            services.AddScoped<Otomar.Application.Interfaces.Services.IRealtimeNotifier, Otomar.WebApi.Services.SignalRNotifier>();
+            services.AddScoped<Otomar.Application.Interfaces.Services.IClientInfoProvider, Otomar.WebApi.Services.ClientInfoProvider>();
+            services.AddScoped<Otomar.Application.Interfaces.Services.ICartSessionService, Otomar.WebApi.Services.CartSessionService>();
 
             return services;
         }

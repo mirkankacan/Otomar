@@ -2,7 +2,7 @@
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Otomar.Shared.Common;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Enums;
 using Otomar.Persistence.Options;
 

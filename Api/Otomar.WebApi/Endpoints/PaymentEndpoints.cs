@@ -1,6 +1,6 @@
 ﻿using Carter;
 using Microsoft.AspNetCore.Mvc;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Dtos.Payment;
 using Otomar.Persistence.Options;
 using Otomar.WebApi.Extensions;

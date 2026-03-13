@@ -1,4 +1,4 @@
-using Otomar.WebApp.Services.Interfaces;
+using Otomar.Shared.Interfaces;
 using System.Security.Claims;
 
 namespace Otomar.WebApp.Services

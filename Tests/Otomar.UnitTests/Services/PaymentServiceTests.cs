@@ -2,9 +2,10 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Otomar.Application.Contracts.Services;
-using Otomar.Application.Contracts.Persistence;
-using Otomar.Application.Contracts.Persistence.Repositories;
+using Otomar.Application.Interfaces.Services;
+using Otomar.Shared.Interfaces;
+using Otomar.Application.Interfaces;
+using Otomar.Application.Interfaces.Repositories;
 using Otomar.Application.Options;
 using Otomar.Application.Services;
 using Otomar.Shared.Dtos.Payment;
@@ -21,6 +22,9 @@ public class PaymentServiceTests
 {
     private readonly Mock<IHttpContextAccessor> _accessorMock;
     private readonly Mock<IIdentityService> _identityServiceMock;
+    private readonly Mock<IClientInfoProvider> _clientInfoProviderMock;
+    private readonly Mock<ICartSessionService> _cartSessionServiceMock;
+    private readonly Mock<IIsBankPaymentService> _isBankPaymentServiceMock;
     private readonly Mock<ILogger<PaymentService>> _loggerMock;
     private readonly Mock<IOrderService> _orderServiceMock;
     private readonly Mock<ICartService> _cartServiceMock;
@@ -37,6 +41,12 @@ public class PaymentServiceTests
     {
         _accessorMock = new Mock<IHttpContextAccessor>();
         _identityServiceMock = new Mock<IIdentityService>();
+        _clientInfoProviderMock = new Mock<IClientInfoProvider>();
+        _clientInfoProviderMock.Setup(x => x.GetClientIp()).Returns("127.0.0.1");
+        _clientInfoProviderMock.Setup(x => x.GetUserAgent()).Returns("TestAgent");
+        _cartSessionServiceMock = new Mock<ICartSessionService>();
+        _cartSessionServiceMock.Setup(x => x.GetCartKey()).Returns("test:cart:user:test-user");
+        _isBankPaymentServiceMock = new Mock<IIsBankPaymentService>();
         _loggerMock = new Mock<ILogger<PaymentService>>();
         _orderServiceMock = new Mock<IOrderService>();
         _cartServiceMock = new Mock<ICartService>();
@@ -72,9 +82,11 @@ public class PaymentServiceTests
         };
 
         _sut = new PaymentService(
-            new HttpClient(),
             _accessorMock.Object,
             _identityServiceMock.Object,
+            _clientInfoProviderMock.Object,
+            _cartSessionServiceMock.Object,
+            _isBankPaymentServiceMock.Object,
             _paymentOptions,
             _redisOptions,
             _loggerMock.Object,

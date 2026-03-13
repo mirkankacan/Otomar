@@ -1,12 +1,13 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Otomar.Shared.Common;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
+using Otomar.Shared.Interfaces;
 using Otomar.Shared.Dtos.Cart;
 using Otomar.Shared.Dtos.Order;
 using Otomar.Shared.Enums;
-using Otomar.Application.Contracts.Persistence;
-using Otomar.Application.Contracts.Persistence.Repositories;
+using Otomar.Application.Interfaces;
+using Otomar.Application.Interfaces.Repositories;
 using Otomar.Application.Helpers;
 using Otomar.Application.Options;
 using System.Net;

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
 using Otomar.Application.Services;
 
 namespace Otomar.Application.Extensions

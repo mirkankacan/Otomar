@@ -1,6 +1,6 @@
 using Dapper;
-using Otomar.Application.Contracts.Persistence;
-using Otomar.Application.Contracts.Persistence.Repositories;
+using Otomar.Application.Interfaces;
+using Otomar.Application.Interfaces.Repositories;
 using Otomar.Shared.Dtos.ListSearch;
 using Otomar.Shared.Enums;
 
@@ -9,7 +9,7 @@ namespace Otomar.Persistence.Repositories
     /// <summary>
     /// Liste sorgu (ListSearch) veritabanı işlemleri için repository implementasyonu.
     /// </summary>
-    public class ListSearchRepository(IAppDbContext context) : IListSearchRepository
+    public class ListSearchRepository(IUnitOfWork unitOfWork) : IListSearchRepository
     {
         #region Write Operations
 
@@ -74,7 +74,7 @@ namespace Otomar.Persistence.Repositories
         public async Task<(string? RequestNo, string? CreatedBy)?> GetListSearchCreatorInfoAsync(Guid listSearchId)
         {
             var query = "SELECT RequestNo, CreatedBy FROM IdtListSearches WITH (NOLOCK) WHERE Id = @Id;";
-            var row = await context.Connection.QueryFirstOrDefaultAsync<dynamic>(query, new { Id = listSearchId });
+            var row = await unitOfWork.Connection.QueryFirstOrDefaultAsync<dynamic>(query, new { Id = listSearchId });
 
             if (row == null)
                 return null;
@@ -138,7 +138,7 @@ namespace Otomar.Persistence.Repositories
                 SELECT *
                 FROM IdtListSearches WITH (NOLOCK)
                 WHERE Id = @id;";
-            var listSearchRow = await context.Connection.QueryFirstOrDefaultAsync<dynamic>(listSearchQuery, new { id });
+            var listSearchRow = await unitOfWork.Connection.QueryFirstOrDefaultAsync<dynamic>(listSearchQuery, new { id });
 
             if (listSearchRow == null)
                 return null;
@@ -153,7 +153,7 @@ namespace Otomar.Persistence.Repositories
                 SELECT *
                 FROM IdtListSearches WITH (NOLOCK)
                 WHERE RequestNo = @requestNo;";
-            var listSearchRow = await context.Connection.QueryFirstOrDefaultAsync<dynamic>(listSearchQuery, new { requestNo });
+            var listSearchRow = await unitOfWork.Connection.QueryFirstOrDefaultAsync<dynamic>(listSearchQuery, new { requestNo });
 
             if (listSearchRow == null)
                 return null;
@@ -170,7 +170,7 @@ namespace Otomar.Persistence.Repositories
                 ORDER BY CreatedAt DESC
                 OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;";
 
-            var listSearches = await context.Connection.QueryAsync<dynamic>(listSearchQuery, new { offset, pageSize });
+            var listSearches = await unitOfWork.Connection.QueryAsync<dynamic>(listSearchQuery, new { offset, pageSize });
             var listSearchList = listSearches.ToList();
 
             if (!listSearchList.Any())
@@ -187,7 +187,7 @@ namespace Otomar.Persistence.Repositories
                 FROM IdtListSearches WITH (NOLOCK)
                 ORDER BY CreatedAt DESC;";
 
-            var listSearches = await context.Connection.QueryAsync<dynamic>(listSearchQuery);
+            var listSearches = await unitOfWork.Connection.QueryAsync<dynamic>(listSearchQuery);
             var listSearchList = listSearches.ToList();
 
             if (!listSearchList.Any())
@@ -205,7 +205,7 @@ namespace Otomar.Persistence.Repositories
                 WHERE CreatedBy = @userId
                 ORDER BY CreatedAt DESC;";
 
-            var listSearches = await context.Connection.QueryAsync<dynamic>(listSearchQuery, new { userId });
+            var listSearches = await unitOfWork.Connection.QueryAsync<dynamic>(listSearchQuery, new { userId });
             var listSearchList = listSearches.ToList();
 
             if (!listSearchList.Any())
@@ -229,14 +229,14 @@ namespace Otomar.Persistence.Repositories
                 SELECT Id as PartId, ListSearchId, Definition, Quantity, PartImages, Note as ItemNote
                 FROM IdtListSearchParts WITH (NOLOCK)
                 WHERE ListSearchId = @ListSearchId;";
-            var parts = await context.Connection.QueryAsync<dynamic>(partsQuery, new { ListSearchId = listSearchId });
+            var parts = await unitOfWork.Connection.QueryAsync<dynamic>(partsQuery, new { ListSearchId = listSearchId });
             var partsList = parts.ToList();
 
             var answersQuery = @"
                 SELECT Id as AnswerId, ListSearchId, ListSearchPartId, StockCode, OemCode, StockName, Description, UnitPrice, Quantity, KdvIncluded, AnsweredBy, AnsweredAt
                 FROM IdtListSearchAnswers WITH (NOLOCK)
                 WHERE ListSearchId = @ListSearchId;";
-            var answers = await context.Connection.QueryAsync<dynamic>(answersQuery, new { ListSearchId = listSearchId });
+            var answers = await unitOfWork.Connection.QueryAsync<dynamic>(answersQuery, new { ListSearchId = listSearchId });
             var answersDict = answers.ToDictionary(a => (int)a.ListSearchPartId);
 
             return MapListSearchDto(listSearchRow, partsList, answersDict);
@@ -254,14 +254,14 @@ namespace Otomar.Persistence.Repositories
                 FROM IdtListSearchParts WITH (NOLOCK)
                 WHERE ListSearchId IN @ListSearchIds
                 ORDER BY ListSearchId;";
-            var parts = await context.Connection.QueryAsync<dynamic>(partsQuery, new { ListSearchIds = listSearchIds });
+            var parts = await unitOfWork.Connection.QueryAsync<dynamic>(partsQuery, new { ListSearchIds = listSearchIds });
             var partsList = parts.ToList();
 
             var answersQuery = @"
                 SELECT Id as AnswerId, ListSearchId, ListSearchPartId, StockCode, OemCode, StockName, Description, UnitPrice, Quantity, KdvIncluded, AnsweredBy, AnsweredAt
                 FROM IdtListSearchAnswers WITH (NOLOCK)
                 WHERE ListSearchId IN @ListSearchIds;";
-            var answers = await context.Connection.QueryAsync<dynamic>(answersQuery, new { ListSearchIds = listSearchIds });
+            var answers = await unitOfWork.Connection.QueryAsync<dynamic>(answersQuery, new { ListSearchIds = listSearchIds });
             var answersDict = answers.ToDictionary(a => (int)a.ListSearchPartId);
 
             var partsGrouped = partsList

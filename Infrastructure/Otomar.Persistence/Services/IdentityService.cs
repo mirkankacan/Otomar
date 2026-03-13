@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Http;
-using Otomar.Application.Contracts.Services;
+using Otomar.Shared.Interfaces;
 using System.Security.Claims;
 
 namespace Otomar.Persistence.Services

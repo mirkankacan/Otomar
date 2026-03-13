@@ -1,0 +1,15 @@
+﻿using Otomar.Shared.Common;
+using Otomar.Shared.Dtos.Client;
+
+namespace Otomar.Application.Interfaces.Services
+{
+    public interface IClientService
+    {
+        Task<ServiceResult<IEnumerable<TransactionDto>>> GetClientTransactionsByCodeAsync(string clientCode);
+        Task<ServiceResult<IEnumerable<TransactionDto>>> GetClientTransactionsByCodeAsync(string clientCode, int pageNumber, int pageSize);
+
+        Task<ServiceResult<ClientDto>> GetClientByTaxTcNumberAsync(string taxNumber);
+
+        Task<ServiceResult<ClientDto>> GetClientByCodeAsync(string clientCode);
+    }
+}

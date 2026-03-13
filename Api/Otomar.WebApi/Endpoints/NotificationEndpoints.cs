@@ -1,6 +1,7 @@
 using Carter;
 using Microsoft.AspNetCore.Mvc;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
+using Otomar.Shared.Interfaces;
 using Otomar.Shared.Dtos.Notification;
 using Otomar.WebApi.Extensions;
 

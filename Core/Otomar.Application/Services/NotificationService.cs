@@ -1,7 +1,8 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Otomar.Application.Contracts.Persistence.Repositories;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Repositories;
+using Otomar.Application.Interfaces.Services;
+using Otomar.Shared.Interfaces;
 using Otomar.Shared.Common;
 using Otomar.Shared.Dtos.Notification;
 using System.Net;

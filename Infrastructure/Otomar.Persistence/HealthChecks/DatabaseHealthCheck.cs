@@ -1,17 +1,17 @@
 ﻿using Dapper;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Otomar.Application.Contracts.Persistence;
+using Otomar.Application.Interfaces;
 
 namespace Otomar.Persistence.HealthChecks
 {
     public class DatabaseHealthCheck : IHealthCheck
     {
-        private readonly IAppDbContext _context;
+        private readonly IUnitOfWork _context;
         private readonly ILogger<DatabaseHealthCheck> _logger;
 
         public DatabaseHealthCheck(
-            IAppDbContext context,
+            IUnitOfWork context,
             ILogger<DatabaseHealthCheck> logger)
         {
             _context = context;

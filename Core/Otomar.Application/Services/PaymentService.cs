@@ -1,9 +1,10 @@
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Otomar.Application.Contracts.Services;
-using Otomar.Application.Contracts.Persistence;
-using Otomar.Application.Contracts.Persistence.Repositories;
+using Otomar.Application.Interfaces.Services;
+using Otomar.Shared.Interfaces;
+using Otomar.Application.Interfaces;
+using Otomar.Application.Interfaces.Repositories;
 using Otomar.Shared.Common;
 using Otomar.Shared.Dtos.Order;
 using Otomar.Shared.Dtos.Notification;
@@ -16,7 +17,7 @@ using System.Net;
 
 namespace Otomar.Application.Services
 {
-    public class PaymentService(HttpClient httpClient, IHttpContextAccessor accessor, IIdentityService identityService, PaymentOptions paymentOptions, RedisOptions redisOptions, ILogger<PaymentService> logger, IOrderService orderService, ICartService cartService, IProductService productService, IEmailService emailService, INotificationService notificationService, IUnitOfWork paymentUnitOfWork, IPaymentRepository paymentRepository) : IPaymentService
+    public class PaymentService(IHttpContextAccessor accessor, IIdentityService identityService, IClientInfoProvider clientInfoProvider, ICartSessionService cartSessionService, IIsBankPaymentService isBankPaymentService, PaymentOptions paymentOptions, RedisOptions redisOptions, ILogger<PaymentService> logger, IOrderService orderService, ICartService cartService, IProductService productService, IEmailService emailService, INotificationService notificationService, IUnitOfWork paymentUnitOfWork, IPaymentRepository paymentRepository) : IPaymentService
     {
         public async Task<ServiceResult<InitializePaymentResponseDto>> InitializeVirtualPosPaymentAsync(InitializeVirtualPosPaymentDto dto, CancellationToken cancellationToken)
         {
@@ -97,7 +98,7 @@ namespace Otomar.Application.Services
 
                 var amountStr = IsBankHelper.IsBankAmountConvert(cart.Data.Total);
                 dto.Order.Code = orderCode;
-                dto.Order.CartSessionId = CartHelper.GetCartKey(accessor.HttpContext!, redisOptions);
+                dto.Order.CartSessionId = cartSessionService.GetCartKey();
                 var parameters = BuildPaymentParameters(
                     orderCode,
                     amountStr,
@@ -170,7 +171,7 @@ namespace Otomar.Application.Services
         { "Email", email }
     };
 
-            parameters["hash"] = IsBankHelper.GenerateHash(parameters, paymentOptions);
+            parameters["hash"] = isBankPaymentService.GenerateHash(parameters);
 
             return parameters;
         }
@@ -213,7 +214,7 @@ namespace Otomar.Application.Services
                 logger.LogDebug("Sanal POS API isteği gönderiliyor. URL: {Url}, MdStatus: {MdStatus}",
                    paymentOptions.ApiUrl, mdStatus);
 
-                var isBankResponse = await IsBankHelper.IsBankPaymentRequest(httpClient, parameters, paymentOptions, cancellationToken);
+                var isBankResponse = await isBankPaymentService.SendPaymentRequestAsync(parameters, cancellationToken);
                 if (isBankResponse == null)
                 {
                     logger.LogError($"Bankadan cevap alınamadı");
@@ -251,7 +252,7 @@ namespace Otomar.Application.Services
                         orderCode,
                         totalAmount,
                         isPaymentSuccessful ? PaymentStatus.Completed : PaymentStatus.Failed,
-                        IpHelper.GetClientIp(accessor),
+                        clientInfoProvider.GetClientIp(),
                         isBankResponse.Response,
                         isBankResponse.AuthCode,
                         isBankResponse.HostRefNum,

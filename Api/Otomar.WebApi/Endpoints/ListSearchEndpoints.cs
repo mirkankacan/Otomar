@@ -1,6 +1,6 @@
 using Carter;
 using Microsoft.AspNetCore.Mvc;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Dtos.ListSearch;
 using Otomar.WebApi.Extensions;
 

@@ -194,8 +194,8 @@ public class CardHelperTests
         // Act
         var result = CardHelper.MaskCardNumber(cardNumber);
 
-        // Assert - Çıktı: "4111 11** **11" (ilk 6 görünür, ortada ****, son 4'ten 2'si görünür, 4'lü gruplara bölünür)
-        result.Should().Be("4111 11** **11");
+        // Assert - 16 haneli kart: ilk 6 + 6 yıldız + son 4 = "4111 11** **** 1111"
+        result.Should().Be("4111 11** **** 1111");
     }
 
     [Theory]

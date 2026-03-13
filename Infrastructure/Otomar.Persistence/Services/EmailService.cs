@@ -3,7 +3,7 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MimeKit;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Dtos.ListSearch;
 using Otomar.Shared.Dtos.Order;
 using Otomar.Shared.Dtos.Payment;

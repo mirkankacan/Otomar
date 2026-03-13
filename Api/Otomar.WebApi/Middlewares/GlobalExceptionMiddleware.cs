@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Otomar.Application.Contracts.Services;
-using Otomar.Application.Helpers;
+using Otomar.Application.Interfaces.Services;
+using Otomar.Shared.Interfaces;
 using Serilog.Context;
 using System.Net;
 using System.Text.Json;
@@ -11,14 +11,14 @@ namespace Otomar.WebApi.Middlewares
     public class GlobalExceptionMiddleware : IMiddleware
     {
         private readonly ILogger<GlobalExceptionMiddleware> _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IIdentityService _identityService;
+        private readonly IClientInfoProvider _clientInfoProvider;
 
-        public GlobalExceptionMiddleware(ILogger<GlobalExceptionMiddleware> logger, IHttpContextAccessor httpContextAccessor, IIdentityService identityService)
+        public GlobalExceptionMiddleware(ILogger<GlobalExceptionMiddleware> logger, IIdentityService identityService, IClientInfoProvider clientInfoProvider)
         {
             _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
             _identityService = identityService;
+            _clientInfoProvider = clientInfoProvider;
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -41,8 +41,8 @@ namespace Otomar.WebApi.Middlewares
 
             var clientCode = _identityService.GetClientCode() ?? null;
             var userId = _identityService.GetUserId() ?? null;
-            var clientIp = IpHelper.GetClientIp(_httpContextAccessor);
-            var userAgent = IpHelper.GetUserAgent(_httpContextAccessor);
+            var clientIp = _clientInfoProvider.GetClientIp();
+            var userAgent = _clientInfoProvider.GetUserAgent();
             var requestId = context.TraceIdentifier;
             var action = $"{request.Method} {request.Path}";
 

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.Shared.Dtos.Payment;
 using Otomar.Shared.Enums;
-using Otomar.WebApp.Services.Interfaces;
+using Otomar.Shared.Interfaces;
 using Otomar.WebApp.Services.Refit;
 using Refit;
 

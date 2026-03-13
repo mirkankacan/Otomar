@@ -5,6 +5,7 @@ using Otomar.WebApp.Middlewares;
 using Otomar.WebApp.Options;
 using Otomar.WebApp.Services;
 using Otomar.WebApp.Services.Interfaces;
+using Otomar.Shared.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

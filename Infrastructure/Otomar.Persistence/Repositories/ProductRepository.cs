@@ -1,6 +1,6 @@
 using Dapper;
-using Otomar.Application.Contracts.Persistence;
-using Otomar.Application.Contracts.Persistence.Repositories;
+using Otomar.Application.Interfaces;
+using Otomar.Application.Interfaces.Repositories;
 using Otomar.Shared.Common;
 using Otomar.Shared.Dtos.Product;
 using System.Web;
@@ -10,7 +10,7 @@ namespace Otomar.Persistence.Repositories
     /// <summary>
     /// Dapper-based product data access.
     /// </summary>
-    public class ProductRepository(IAppDbContext context) : IProductRepository
+    public class ProductRepository(IUnitOfWork unitOfWork) : IProductRepository
     {
         private const string SelectColumns = @"
             ID,
@@ -37,7 +37,7 @@ namespace Otomar.Persistence.Repositories
         /// <inheritdoc />
         public async Task<List<(string FilterType, string FilterValue)>> GetUserGlobalFiltersAsync(string userId)
         {
-            var filters = await context.Connection.QueryAsync<(string FilterType, string FilterValue)>(
+            var filters = await unitOfWork.Connection.QueryAsync<(string FilterType, string FilterValue)>(
                 "SELECT FilterType, FilterValue FROM UserGlobalFilters WHERE UserId = @userId",
                 new { userId });
 
@@ -61,7 +61,7 @@ namespace Otomar.Persistence.Repositories
                 SELECT TOP 8 {SelectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY SATIS_FIYAT ASC;
                 SELECT TOP 8 {SelectColumns} FROM IdvStock WITH (NOLOCK) WHERE {baseWhere}{globalWhere} ORDER BY SATIS_FIYAT DESC;";
 
-            using var multi = await context.Connection.QueryMultipleAsync(sql, parameters);
+            using var multi = await unitOfWork.Connection.QueryMultipleAsync(sql, parameters);
             return new FeaturedProductDto
             {
                 Latest = await multi.ReadAsync<ProductDto>(),
@@ -79,7 +79,7 @@ namespace Otomar.Persistence.Repositories
                 FROM IdvStock WITH (NOLOCK)
                 WHERE STOK_KODU = @code";
 
-            return await context.Connection.QueryFirstOrDefaultAsync<ProductDto>(query, new { code = code.Trim() });
+            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<ProductDto>(query, new { code = code.Trim() });
         }
 
         /// <inheritdoc />
@@ -90,7 +90,7 @@ namespace Otomar.Persistence.Repositories
                 FROM IdvStock WITH (NOLOCK)
                 WHERE ID = @id";
 
-            var connection = unitOfWork?.Connection ?? context.Connection;
+            var connection = unitOfWork?.Connection ?? unitOfWork.Connection;
             var transaction = unitOfWork?.Transaction;
 
             return await connection.QueryFirstOrDefaultAsync<ProductDto>(query, new { id }, transaction);
@@ -132,7 +132,7 @@ namespace Otomar.Persistence.Repositories
             parameters.Add("pageSize", filter.PageSize);
 
             var totalCountQuery = $"SELECT COUNT(*) FROM IdvStock WITH (NOLOCK) {whereClause}";
-            var totalCount = await context.Connection.QuerySingleAsync<int>(totalCountQuery, parameters);
+            var totalCount = await unitOfWork.Connection.QuerySingleAsync<int>(totalCountQuery, parameters);
 
             var query = $@"
                 SELECT {SelectColumns}
@@ -141,7 +141,7 @@ namespace Otomar.Persistence.Repositories
                 {orderByClause}
                 OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
 
-            var result = await context.Connection.QueryAsync<ProductDto>(query, parameters);
+            var result = await unitOfWork.Connection.QueryAsync<ProductDto>(query, parameters);
 
             return new PagedResult<ProductDto>(result, filter.PageNumber, filter.PageSize, totalCount);
         }
@@ -207,7 +207,7 @@ namespace Otomar.Persistence.Repositories
             FROM SimilarProducts
             ORDER BY Priority";
 
-            return await context.Connection.QueryAsync<SimilarProductDto?>(query, new { code = code.Trim() });
+            return await unitOfWork.Connection.QueryAsync<SimilarProductDto?>(query, new { code = code.Trim() });
         }
 
         #region Private Helpers

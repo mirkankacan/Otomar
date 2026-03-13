@@ -1,8 +1,9 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Otomar.Application.Contracts.Persistence.Repositories;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Repositories;
+using Otomar.Application.Interfaces.Services;
+using Otomar.Shared.Interfaces;
 using Otomar.Application.Services;
 using Otomar.Shared.Common;
 using Otomar.Shared.Dtos.Notification;

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Dtos.Notification;
 using Otomar.WebApi.Hubs;
 

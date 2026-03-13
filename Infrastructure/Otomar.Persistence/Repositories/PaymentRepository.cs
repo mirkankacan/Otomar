@@ -1,6 +1,6 @@
 using Dapper;
-using Otomar.Application.Contracts.Persistence;
-using Otomar.Application.Contracts.Persistence.Repositories;
+using Otomar.Application.Interfaces;
+using Otomar.Application.Interfaces.Repositories;
 using Otomar.Shared.Dtos.Payment;
 using Otomar.Shared.Enums;
 
@@ -10,7 +10,7 @@ namespace Otomar.Persistence.Repositories
     /// Ödeme verilerine erişim implementasyonu.
     /// Tüm SQL sorguları bu katmanda bulunur; tekrarlanan SELECT blokları const ile DRY tutulur.
     /// </summary>
-    public class PaymentRepository(IAppDbContext context) : IPaymentRepository
+    public class PaymentRepository(IUnitOfWork unitOfWork) : IPaymentRepository
     {
         #region SQL Column Constants
 
@@ -118,7 +118,7 @@ namespace Otomar.Persistence.Repositories
                         FROM IdtPayments WITH (NOLOCK)
                         WHERE Id = @paymentId";
 
-            return await context.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, new { paymentId });
+            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, new { paymentId });
         }
 
         /// <inheritdoc />
@@ -128,7 +128,7 @@ namespace Otomar.Persistence.Repositories
                         FROM IdtPayments WITH (NOLOCK)
                         WHERE OrderCode = @orderCode";
 
-            return await context.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, new { orderCode });
+            return await unitOfWork.Connection.QueryFirstOrDefaultAsync<PaymentDto>(query, new { orderCode });
         }
 
         /// <inheritdoc />
@@ -137,7 +137,7 @@ namespace Otomar.Persistence.Repositories
             var query = $@"SELECT {PaymentSelectColumns}
                         FROM IdtPayments WITH (NOLOCK)";
 
-            return await context.Connection.QueryAsync<PaymentDto>(query);
+            return await unitOfWork.Connection.QueryAsync<PaymentDto>(query);
         }
 
         /// <inheritdoc />
@@ -147,7 +147,7 @@ namespace Otomar.Persistence.Repositories
                         FROM IdtPayments WITH (NOLOCK)
                         WHERE UserId = @userId";
 
-            return await context.Connection.QueryAsync<PaymentDto>(query, new { userId });
+            return await unitOfWork.Connection.QueryAsync<PaymentDto>(query, new { userId });
         }
     }
 }

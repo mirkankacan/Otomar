@@ -1,113 +1,60 @@
 using Otomar.Shared.Dtos.Payment;
-using Otomar.Application.Options;
 using System.Globalization;
-using System.Text;
-using System.Xml.Linq;
-using System.Xml.Serialization;
 
 namespace Otomar.Application.Helpers
 {
+    /// <summary>
+    /// İş Bankası sanal POS entegrasyonu için pure utility fonksiyonları.
+    /// Durum kontrolü, format dönüşümü gibi side effect içermeyen işlemler.
+    /// </summary>
     public static class IsBankHelper
     {
-        public static string ParseIsBankRequest(Dictionary<string, string> parameters, PaymentOptions paymentOptions)
-        {
-            var xml = new XElement("CC5Request",
-                new XElement("Name", paymentOptions.Username),
-                new XElement("Password", paymentOptions.Password),
-                new XElement("ClientId", paymentOptions.ClientId),
-                new XElement("Type", parameters["TranType"]),
-                new XElement("Email", parameters["Email"]),
-                new XElement("OrderId", parameters["oid"]),
-                new XElement("Total", parameters["amount"]),
-                new XElement("Currency", parameters["currency"]),
-                new XElement("Instalment", parameters["Instalment"]),
-                new XElement("Number", parameters["md"]),
-                new XElement("PayerAuthenticationCode", parameters["cavv"]),
-                new XElement("PayerSecurityLevel", parameters["eci"]),
-                new XElement("PayerTxnId", parameters["xid"])
-            );
-
-            return xml.ToString();
-        }
+        /// <summary>
+        /// Tutarı İş Bankası formatına çevirir (virgül ile ayrılmış, 2 hane).
+        /// </summary>
+        /// <param name="amount">Tutar.</param>
+        /// <returns>Banka formatında tutar (örn: "123,45").</returns>
         public static string IsBankAmountConvert(decimal amount)
         {
             return amount.ToString("F2", CultureInfo.InvariantCulture).Replace(".", ",");
         }
-        public static string GenerateHash(Dictionary<string, string> formData, PaymentOptions paymentOptions)
-        {
-            var sortedParams = formData
-                .Where(p => !string.Equals(p.Key, "encoding", StringComparison.OrdinalIgnoreCase) &&
-                            !string.Equals(p.Key, "hash", StringComparison.OrdinalIgnoreCase))
-                .OrderBy(p => p.Key.ToLower(new CultureInfo("en-US", false)))
-                .ToList();
 
-            var hashVal = new StringBuilder();
-            var paramsKeys = new StringBuilder();
-
-            foreach (var pair in sortedParams)
-            {
-                var escapedValue = pair.Value?.Replace("\\", "\\\\").Replace("|", "\\|") ?? string.Empty;
-                var lowerKey = pair.Key.ToLower(new CultureInfo("en-US", false));
-
-                hashVal.Append(escapedValue).Append("|");
-                paramsKeys.Append(lowerKey).Append("|");
-            }
-
-            hashVal.Append(paymentOptions.StoreKey);
-
-            using var sha = System.Security.Cryptography.SHA512.Create();
-            var hashBytes = Encoding.UTF8.GetBytes(hashVal.ToString());
-            var computedHash = sha.ComputeHash(hashBytes);
-
-            return Convert.ToBase64String(computedHash);
-        }
-
-        public static bool ValidateHash(Dictionary<string, string> parameters, PaymentOptions paymentOptions)
-        {
-            var receivedHash = parameters.GetValueOrDefault("hash");
-
-            if (string.IsNullOrEmpty(receivedHash))
-                return false;
-
-            var calculatedHash = IsBankHelper.GenerateHash(parameters, paymentOptions);
-
-            return calculatedHash.Equals(receivedHash, StringComparison.Ordinal);
-        }
-
-        public static async Task<IsBankResponseDto> IsBankPaymentRequest(HttpClient httpClient, Dictionary<string, string> parameters, PaymentOptions paymentOptions, CancellationToken cancellationToken)
-        {
-            var requestAsXmlString = IsBankHelper.ParseIsBankRequest(parameters, paymentOptions);
-            using var responseFromBank = await httpClient.PostAsync(paymentOptions.ApiUrl, new StringContent(requestAsXmlString, Encoding.UTF8, "text/xml"), cancellationToken);
-            string responseAsString = await responseFromBank.Content.ReadAsStringAsync(cancellationToken);
-            var responseAsDto = IsBankHelper.ParseIsBankResponse(responseAsString);
-            return responseAsDto;
-        }
-
-        public static IsBankResponseDto ParseIsBankResponse(string responseAsString)
-        {
-            var serializer = new XmlSerializer(typeof(IsBankResponseDto));
-            using var reader = new StringReader(responseAsString);
-            return (IsBankResponseDto)serializer.Deserialize(reader);
-        }
-
+        /// <summary>
+        /// Banka cevabının başarılı olup olmadığını kontrol eder.
+        /// </summary>
+        /// <param name="dto">Banka cevap DTO'su.</param>
+        /// <returns>Ödeme onaylanmışsa true.</returns>
         public static bool IsPaymentSuccess(IsBankResponseDto dto)
         {
-            return dto.Response.Equals("Approved", StringComparison.OrdinalIgnoreCase) && dto.ProcReturnCode == "00";
+            return dto.Response.Equals("Approved", StringComparison.OrdinalIgnoreCase)
+                && dto.ProcReturnCode == "00";
         }
+
+        /// <summary>
+        /// ProcReturnCode ile işlem başarısını kontrol eder.
+        /// </summary>
+        /// <param name="procReturnCode">Banka işlem kodu.</param>
+        /// <returns>"00" ise true.</returns>
         public static bool IsSuccess(string procReturnCode)
         {
             return procReturnCode == "00";
         }
+
+        /// <summary>
+        /// 3D Secure MdStatus değerinin geçerli olup olmadığını kontrol eder.
+        /// </summary>
+        /// <param name="mdStatus">MdStatus değeri.</param>
+        /// <returns>Geçerli statülerden biriyse (1-4) true.</returns>
         public static bool IsThreeDSecureValid(string mdStatus)
         {
-            var validStatuses = new[] { "1", "2", "3", "4" };
-            if (!validStatuses.Contains(mdStatus))
-            {
-                return false;
-            }
-            return true;
+            return mdStatus is "1" or "2" or "3" or "4";
         }
 
+        /// <summary>
+        /// 3D Secure MdStatus değerinin Türkçe açıklamasını döndürür.
+        /// </summary>
+        /// <param name="mdStatus">MdStatus değeri.</param>
+        /// <returns>İnsan-okunabilir durum mesajı.</returns>
         public static string GetThreeDSecureStatusMessage(string mdStatus)
         {
             return mdStatus switch
@@ -115,7 +62,7 @@ namespace Otomar.Application.Helpers
                 "1" => "3D Secure doğrulama başarılı (Full Secure)",
                 "2" or "3" or "4" => "3D Secure doğrulama kısmen başarılı (Half Secure)",
                 "5" or "6" or "7" or "8" => "Kart 3D Secure programına kayıtlı değil veya işlem reddedildi",
-                "0" => "3D Secure doğrulama başarsız",
+                "0" => "3D Secure doğrulama başarısız",
                 _ => $"Bilinmeyen durum: {mdStatus}"
             };
         }

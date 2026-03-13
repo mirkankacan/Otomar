@@ -7,18 +7,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
-using Otomar.Application.Contracts.Providers;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces;
+using Otomar.Application.Interfaces.Repositories;
+using Otomar.Application.Interfaces.Services;
+using Otomar.Application.Options;
 using Otomar.Domain.Entities;
 using Otomar.Persistence.Authentication;
-using Otomar.Application.Contracts.Persistence;
 using Otomar.Persistence.Data;
 using Otomar.Persistence.Data.Contexts;
-using Otomar.Application.Options;
 using Otomar.Persistence.Options;
-using Otomar.Application.Contracts.Persistence.Repositories;
 using Otomar.Persistence.Repositories;
 using Otomar.Persistence.Services;
+using Otomar.Shared.Interfaces;
 
 namespace Otomar.Persistence.Extensions
 {
@@ -28,7 +28,6 @@ namespace Otomar.Persistence.Extensions
         {
             services.AddDbContext<IdentityDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("SqlConnection")));
-            services.AddScoped<IAppDbContext, AppDbContext>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
@@ -111,6 +110,7 @@ namespace Otomar.Persistence.Extensions
             services.AddScoped<IListSearchRepository, ListSearchRepository>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<IIsBankPaymentService, IsBankPaymentService>();
 
             return services;
         }

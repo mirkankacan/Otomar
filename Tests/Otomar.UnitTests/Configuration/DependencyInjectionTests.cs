@@ -2,12 +2,12 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Otomar.Application.Contracts.Persistence.Repositories;
-using Otomar.Application.Contracts.Providers;
-using Otomar.Application.Contracts.Services;
+using Otomar.Application.Interfaces.Repositories;
+using Otomar.Application.Interfaces.Services;
 using Otomar.Application.Extensions;
 using Otomar.Persistence.Extensions;
 using Otomar.Persistence.Options;
+using Otomar.Shared.Interfaces;
 
 namespace Otomar.UnitTests.Configuration
 {
@@ -136,8 +136,10 @@ namespace Otomar.UnitTests.Configuration
             services.AddApplicationServices();
             services.AddPersistenceServices(_configuration);
 
-            // WebApi katmanında kayıtlı olan IRealtimeNotifier'ı mock olarak ekle
+            // WebApi katmanında kayıtlı olan servisleri mock olarak ekle
             services.AddScoped<IRealtimeNotifier>(_ => Mock.Of<IRealtimeNotifier>());
+            services.AddScoped<IClientInfoProvider>(_ => Mock.Of<IClientInfoProvider>());
+            services.AddScoped<ICartSessionService>(_ => Mock.Of<ICartSessionService>());
 
             // Act
             var buildAction = () => services.BuildServiceProvider(new ServiceProviderOptions
