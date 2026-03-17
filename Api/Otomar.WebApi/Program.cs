@@ -30,7 +30,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-//builder.Services.AddHealthCheckServices(builder.Configuration);
+builder.Services.AddHealthCheckServices(builder.Configuration);
 builder.Services.AddOutputCache(options =>
 {
     // Genel kategori cache policy - parametresiz endpoint'ler için
@@ -107,7 +107,7 @@ if (app.Environment.IsDevelopment())
     }
 }
 
-//app.MapHealthCheckServices();
+app.MapHealthCheckServices();
 
 app.MapCarter();
 app.MapHub<Otomar.WebApi.Hubs.NotificationHub>("/hubs/notification");

@@ -15,7 +15,7 @@ namespace Otomar.Application.Services
         SignInManager<ApplicationUser> signInManager,
         IJwtProvider jwtProvider,
         IHttpContextAccessor httpContextAccessor,
-        IPanelUserRepository panelUserRepository,
+        IUserRepository panelUserRepository,
         ILogger<AuthService> logger) : IAuthService
     {
         public async Task<ServiceResult<TokenDto>> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken = default)
@@ -87,7 +87,7 @@ namespace Otomar.Application.Services
         {
             try
             {
-                var panelUser = await panelUserRepository.GetByUsernameAsync(email);
+                var panelUser = await panelUserRepository.GetPanelUserByUsernameAsync(email);
 
                 if (panelUser == null)
                     return (false, null);
@@ -135,7 +135,7 @@ namespace Otomar.Application.Services
         {
             try
             {
-                var panelUser = await panelUserRepository.GetByUsernameAsync(user.Email!);
+                var panelUser = await panelUserRepository.GetPanelUserByUsernameAsync(user.Email!);
 
                 if (panelUser == null || panelUser.Sifre != attemptedPassword)
                     return false;

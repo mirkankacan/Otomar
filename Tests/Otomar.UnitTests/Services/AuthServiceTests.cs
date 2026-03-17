@@ -24,7 +24,7 @@ public class AuthServiceTests
     private readonly Mock<SignInManager<ApplicationUser>> _signInManagerMock;
     private readonly Mock<IJwtProvider> _jwtProviderMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-    private readonly Mock<IPanelUserRepository> _panelUserRepositoryMock;
+    private readonly Mock<IUserRepository> _panelUserRepositoryMock;
     private readonly Mock<ILogger<AuthService>> _loggerMock;
     private readonly AuthService _sut;
 
@@ -44,7 +44,7 @@ public class AuthServiceTests
 
         _jwtProviderMock = new Mock<IJwtProvider>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _panelUserRepositoryMock = new Mock<IPanelUserRepository>();
+        _panelUserRepositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<AuthService>>();
 
         _sut = new AuthService(

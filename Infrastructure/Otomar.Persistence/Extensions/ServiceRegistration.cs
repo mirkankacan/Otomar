@@ -104,7 +104,7 @@ namespace Otomar.Persistence.Extensions
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IClientRepository, ClientRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
-            services.AddScoped<IPanelUserRepository, PanelUserRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<IListSearchRepository, ListSearchRepository>();

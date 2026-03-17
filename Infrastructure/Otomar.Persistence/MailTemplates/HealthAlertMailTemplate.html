@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Sağlık Uyarısı • OTOMAR Yedek Parça</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; color: #333; line-height: 1.6;">
+    <table style="width: 100%; max-width: 800px; margin: 20px auto; background: #fff; border: 2px solid #000; padding: 20px; border-spacing: 0;">
+        <!-- Header -->
+        <tr>
+            <td style="text-align: center; padding: 20px 0; border-bottom: 1px solid #ccc;">
+                <img src="https://otomar.com.tr/assets/img/logo/otomarlogoclean.webp" alt="Otomar Logo" style="max-width: 250px; display: block; margin: 0 auto;">
+            </td>
+        </tr>
+
+        <!-- Alert Banner -->
+        <tr>
+            <td style="padding: 10px 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="background-color: {{BannerBg}}; border: 1px solid {{BannerBorder}}; border-radius: 6px; padding: 15px; text-align: center;">
+                            <p style="margin: 0; color: {{BannerText}}; font-weight: bold; font-size: 18px;">{{BannerTitle}}</p>
+                            <p style="margin: 8px 0 0; color: {{BannerText}}; font-size: 14px;">{{BannerSubtitle}}</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Details -->
+        <tr>
+            <td style="padding: 20px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ccc; background: #f5f5f5; font-weight: bold; width: 35%;">Kontrol Adı</td>
+                        <td style="padding: 10px; border: 1px solid #ccc;">{{CheckName}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ccc; background: #f5f5f5; font-weight: bold;">Durum</td>
+                        <td style="padding: 10px; border: 1px solid #ccc; font-weight: bold; color: {{StatusColor}};">{{Status}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ccc; background: #f5f5f5; font-weight: bold;">Mesaj</td>
+                        <td style="padding: 10px; border: 1px solid #ccc;">{{Description}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ccc; background: #f5f5f5; font-weight: bold;">Hata</td>
+                        <td style="padding: 10px; border: 1px solid #ccc; color: #b91c1c;">{{ErrorMessage}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ccc; background: #f5f5f5; font-weight: bold;">Zaman (UTC)</td>
+                        <td style="padding: 10px; border: 1px solid #ccc;">{{Timestamp}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+            <td style="text-align: center; padding: 20px 0; border-top: 1px solid #ccc; font-size: 12px; color: #666;">
+                Bu e-posta OTOMAR Yedek Parça sistem izleme servisi tarafından otomatik olarak gönderilmiştir.
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

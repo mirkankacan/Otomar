@@ -114,6 +114,15 @@ namespace Otomar.WebApp.Extensions
                 })
                 .AddHttpMessageHandler<BearerTokenHandler>();
 
+            services.AddRefitClient<IUserApi>()
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = baseAddress;
+                    c.DefaultRequestHeaders.Add("Accept", "application/json");
+                    c.Timeout = timeout;
+                })
+                .AddHttpMessageHandler<BearerTokenHandler>();
+
             return services;
         }
     }

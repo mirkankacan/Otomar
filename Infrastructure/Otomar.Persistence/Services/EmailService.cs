@@ -4,10 +4,10 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using Otomar.Application.Interfaces.Services;
+using Otomar.Persistence.Options;
 using Otomar.Shared.Dtos.ListSearch;
 using Otomar.Shared.Dtos.Order;
 using Otomar.Shared.Dtos.Payment;
-using Otomar.Persistence.Options;
 using System.Globalization;
 using System.Net;
 
@@ -77,7 +77,7 @@ namespace Otomar.Persistence.Services
                          .Replace("{{ShippingPhone}}", WebUtility.HtmlEncode(order.ShippingAddress.Phone));
 
             const string subject = "Ödemede Hata ❌";
-            await SendInternalAsync(subject, body, null, null, null, isHtml: true, cancellationToken);
+            await SendInternalAsync(subject, body, null, null, null, isHtml: true, true, cancellationToken);
         }
 
         public async Task SendPaymentSuccessMailAsync(OrderDto order, CancellationToken cancellationToken)
@@ -138,7 +138,7 @@ namespace Otomar.Persistence.Services
                           .Replace("{{ShippingPhone}}", WebUtility.HtmlEncode(order.ShippingAddress.Phone));
 
             const string subject = "Sipariş Onayı ✅";
-            await SendInternalAsync(subject, body, order.Email, null, null, isHtml: true, cancellationToken);
+            await SendInternalAsync(subject, body, order.Email, null, null, isHtml: true, false, cancellationToken);
         }
 
         public async Task SendVirtualPosPaymentSuccessMailAsync(OrderDto order, PaymentDto payment, CancellationToken cancellationToken)
@@ -164,7 +164,7 @@ namespace Otomar.Persistence.Services
                          .Replace("{{OrderCode}}", WebUtility.HtmlEncode(order.Code));
 
             const string subject = "Ödeme Onayı ✅";
-            await SendInternalAsync(subject, body, order.Email, null, null, isHtml: true, cancellationToken);
+            await SendInternalAsync(subject, body, order.Email, null, null, isHtml: true, false, cancellationToken);
         }
 
         public async Task SendListSearchMailAsync(ListSearchDto listSearch, CancellationToken cancellationToken)
@@ -205,7 +205,7 @@ namespace Otomar.Persistence.Services
                          .Replace("{{RedirectUrl}}", redirectUrl);
 
             const string subject = "Liste Sorgu Talebi 📋";
-            await SendInternalAsync(subject, body, null, null, null, isHtml: true, cancellationToken);
+            await SendInternalAsync(subject, body, null, null, null, isHtml: true, false, cancellationToken);
         }
 
         public async Task SendListSearchAnsweredMailAsync(ListSearchDto listSearch, CancellationToken cancellationToken)
@@ -251,7 +251,7 @@ namespace Otomar.Persistence.Services
                          .Replace("{{RedirectUrl}}", redirectUrl);
 
             const string subject = "Liste Sorgunuz Cevaplandı ✅";
-            await SendInternalAsync(subject, body, listSearch.Email, null, null, isHtml: true, cancellationToken);
+            await SendInternalAsync(subject, body, listSearch.Email, null, null, isHtml: true, false, cancellationToken);
         }
 
         public async Task SendClientOrderMailAsync(ClientOrderDto order, CancellationToken cancellationToken)
@@ -289,7 +289,7 @@ namespace Otomar.Persistence.Services
                          .Replace("{{CreatedByFullName}}", WebUtility.HtmlEncode(value: order.CreatedByFullName));
 
             const string subject = "Cari Sipariş Oluşturuldu ✅";
-            await SendInternalAsync(subject, body, null, null, null, isHtml: true, cancellationToken);
+            await SendInternalAsync(subject, body, null, null, null, isHtml: true, false, cancellationToken);
         }
 
         private string ConvertAmountToTurkishWords(decimal amount)
@@ -309,6 +309,33 @@ namespace Otomar.Persistence.Services
             return char.ToUpper(result[0]) + result.Substring(1);
         }
 
+        public async Task SendHealthAlertAsync(string checkName, string status, string? description, string? errorMessage, CancellationToken cancellationToken)
+        {
+            var body = LoadTemplate("HealthAlertMailTemplate.html");
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                logger.LogWarning("HealthAlertMailTemplate.html yüklenemedi, e-posta gönderilmedi.");
+                return;
+            }
+
+            bool isUnhealthy = status == "Unhealthy";
+            body = body
+                .Replace("{{BannerBg}}", isUnhealthy ? "#fee2e2" : "#fff7ed")
+                .Replace("{{BannerBorder}}", isUnhealthy ? "#fca5a5" : "#fed7aa")
+                .Replace("{{BannerText}}", isUnhealthy ? "#991b1b" : "#9a3412")
+                .Replace("{{BannerTitle}}", isUnhealthy ? "Sistem bileşeni hata durumuna geçti!" : "Sistem bileşeninde performans düşüşü tespit edildi!")
+                .Replace("{{BannerSubtitle}}", $"{checkName} servisi beklenmedik bir durumla karşılaştı.")
+                .Replace("{{CheckName}}", WebUtility.HtmlEncode(checkName))
+                .Replace("{{Status}}", WebUtility.HtmlEncode(status))
+                .Replace("{{StatusColor}}", isUnhealthy ? "#b91c1c" : "#c2410c")
+                .Replace("{{Description}}", WebUtility.HtmlEncode(description ?? "—"))
+                .Replace("{{ErrorMessage}}", WebUtility.HtmlEncode(errorMessage ?? "—"))
+                .Replace("{{Timestamp}}", DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss"));
+
+            string subject = $"[OTOMAR] {status}: {checkName} Sağlık Kontrolü";
+            await SendInternalAsync(subject, body, null, cc: null, bcc: null, isHtml: true, true, cancellationToken);
+        }
+
         private async Task SendInternalAsync(
             string subject,
             string body,
@@ -316,16 +343,27 @@ namespace Otomar.Persistence.Services
             string? cc,
             string? bcc,
             bool isHtml,
+            bool isError,
             CancellationToken cancellationToken)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("OTOMAR Yedek Parça", emailOptions.Credentials.UserName));
-            if (!string.IsNullOrEmpty(to))
-            {
-                message.To.Add(MailboxAddress.Parse(to));
-            }
 
-            message.To.Add(MailboxAddress.Parse(emailOptions.Credentials.UserName));
+            if (!isError)
+            {
+                if (!string.IsNullOrEmpty(to))
+                {
+                    message.To.Add(MailboxAddress.Parse(to));
+                }
+                message.To.Add(address: MailboxAddress.Parse(emailOptions.Credentials.UserName));
+            }
+            else
+            {
+                foreach (var err in emailOptions.ErrorTo)
+                {
+                    message.To.Add(MailboxAddress.Parse(err));
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(cc))
             {

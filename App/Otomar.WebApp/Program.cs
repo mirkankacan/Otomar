@@ -1,6 +1,11 @@
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Otomar.WebApp.Extensions;
+using Otomar.WebApp.HealthChecks;
 using Otomar.WebApp.Middlewares;
 using Otomar.WebApp.Options;
 using Otomar.WebApp.Services;
@@ -67,11 +72,11 @@ builder.Services.AddHostedService<FeedGeneratorService>();
 // Refit API Clients
 builder.Services.AddRefitClients(builder.Configuration);
 
-//builder.Services.AddHealthChecks()
-//    .AddCheck<BackendApiHealthCheck>(
-//        "backend-api",
-//        failureStatus: HealthStatus.Unhealthy,
-//        tags: new[] { "api" });
+builder.Services.AddHealthChecks()
+    .AddCheck<BackendApiHealthCheck>(
+        "backend-api",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "api" });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -112,17 +117,17 @@ app.Use(async (context, next) =>
     }
     await next();
 });
-//app.MapHealthChecks("/health", new HealthCheckOptions
-//{
-//    Predicate = _ => true,
-//    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
-//    ResultStatusCodes =
-//    {
-//        [HealthStatus.Healthy] = StatusCodes.Status200OK,
-//        [HealthStatus.Degraded] = StatusCodes.Status200OK,
-//        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
-//    }
-//});
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+    }
+}).AllowAnonymous();
 
 app.UseWebOptimizer();
 

@@ -96,13 +96,14 @@ namespace Otomar.Application.Services
                 }
 
                 // Override olmayan ürünler için fiyat değişikliği kontrolü
-                if (existingItem.UnitPrice != product.SATIS_FIYAT)
+                var currentPrice = Math.Round(product.SATIS_FIYAT, 2, MidpointRounding.AwayFromZero);
+                if (existingItem.UnitPrice != currentPrice)
                 {
                     logger.LogWarning(
                         "Sepete ekleme sırasında fiyat değişikliği tespit edildi. Ürün: {ProductId}, Eski: {OldPrice:C2}, Yeni: {NewPrice:C2}",
-                        dto.ProductId, existingItem.UnitPrice, product.SATIS_FIYAT);
+                        dto.ProductId, existingItem.UnitPrice, currentPrice);
 
-                    existingItem.UnitPrice = Math.Round(product.SATIS_FIYAT, 2, MidpointRounding.AwayFromZero);
+                    existingItem.UnitPrice = currentPrice;
                 }
 
                 // Varsa miktarı artır
@@ -189,14 +190,15 @@ namespace Otomar.Application.Services
                 var product = productResult.Data;
 
                 // Override fiyatlı ürünlerin fiyatını güncelleme (teklif fiyatı korunur)
-                if (!item.ListSearchAnswerId.HasValue && item.UnitPrice != product.SATIS_FIYAT)
+                var currentPrice = Math.Round(product.SATIS_FIYAT, 2, MidpointRounding.AwayFromZero);
+                if (!item.ListSearchAnswerId.HasValue && item.UnitPrice != currentPrice)
                 {
                     logger.LogWarning(
                         "Sepet güncelleme sırasında fiyat değişikliği tespit edildi. Ürün: {ProductId}, Eski: {OldPrice:C2}, Yeni: {NewPrice:C2}",
-                        dto.ProductId, item.UnitPrice, product.SATIS_FIYAT);
+                        dto.ProductId, item.UnitPrice, currentPrice);
 
                     // Fiyatı otomatik güncelle
-                    item.UnitPrice = Math.Round(product.SATIS_FIYAT, 2, MidpointRounding.AwayFromZero);
+                    item.UnitPrice = currentPrice;
                 }
 
                 // Stok bilgisini güncelle
@@ -287,13 +289,14 @@ namespace Otomar.Application.Services
                         var product = productResult.Data;
 
                         // Override fiyatlı ürünlerin fiyatını güncelleme (teklif fiyatı korunur)
-                        if (!item.ListSearchAnswerId.HasValue && item.UnitPrice != product.SATIS_FIYAT)
+                        var currentPrice = Math.Round(product.SATIS_FIYAT, 2, MidpointRounding.AwayFromZero);
+                        if (!item.ListSearchAnswerId.HasValue && item.UnitPrice != currentPrice)
                         {
                             logger.LogInformation(
                                 "Sepet görüntüleme sırasında fiyat değişikliği tespit edildi. Ürün: {ProductId}, Eski: {OldPrice:C2}, Yeni: {NewPrice:C2}",
-                                item.ProductId, item.UnitPrice, product.SATIS_FIYAT);
+                                item.ProductId, item.UnitPrice, currentPrice);
 
-                            item.UnitPrice = Math.Round(product.SATIS_FIYAT, 2, MidpointRounding.AwayFromZero);
+                            item.UnitPrice = currentPrice;
                             priceUpdated = true;
                         }
 

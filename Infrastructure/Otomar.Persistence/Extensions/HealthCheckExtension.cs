@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Otomar.Application.Options;
 using Otomar.Persistence.HealthChecks;
 using Otomar.Persistence.Options;
 
@@ -17,6 +18,8 @@ namespace Otomar.Persistence.Extensions
         {
             var connectionString = configuration.GetConnectionString("SqlConnection");
             var uiOptions = configuration.GetSection(nameof(UiOptions)).Get<UiOptions>()!;
+            var redisOptions = configuration.GetSection(nameof(RedisOptions)).Get<RedisOptions>()!;
+            var paymentOptions = configuration.GetSection(nameof(PaymentOptions)).Get<PaymentOptions>()!;
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             //  Health Checks
@@ -38,6 +41,19 @@ namespace Otomar.Persistence.Extensions
                 //  Email SMTP
                 .AddCheck<EmailServiceHealthCheck>(
                     "email-smtp",
+                    failureStatus: HealthStatus.Degraded,
+                    tags: new[] { "external" })
+
+                //  Redis Cache
+                .AddRedis(
+                    redisConnectionString: redisOptions.ConnectionString,
+                    name: "redis",
+                    failureStatus: HealthStatus.Degraded,
+                    tags: new[] { "cache" })
+
+                //  Ödeme Servisi (İş Bank)
+                .AddCheck<PaymentGatewayHealthCheck>(
+                    "payment-gateway",
                     failureStatus: HealthStatus.Degraded,
                     tags: new[] { "external" });
 
@@ -68,6 +84,8 @@ namespace Otomar.Persistence.Extensions
                     }
                 })
                 .AddInMemoryStorage();
+
+            services.AddSingleton<IHealthCheckPublisher, HealthAlertPublisher>();
 
             return services;
         }

@@ -17,6 +17,7 @@ namespace Otomar.Application.Extensions
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IClientService, ClientService>();
+            services.AddScoped<IUserService, UserService>();
 
             return services;
         }

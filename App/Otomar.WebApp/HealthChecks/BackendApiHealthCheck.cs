@@ -11,7 +11,7 @@ namespace Otomar.WebApp.HealthChecks
         {
             try
             {
-                var startTime = DateTime.Now;
+                var startTime = DateTime.UtcNow;
                 var client = httpClientFactory.CreateClient();
                 client.Timeout = TimeSpan.FromSeconds(10);
 
@@ -19,7 +19,7 @@ namespace Otomar.WebApp.HealthChecks
                     $"{apiOptions.BaseUrl}/health",
                     cancellationToken);
 
-                var duration = DateTime.Now - startTime;
+                var duration = DateTime.UtcNow - startTime;
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -30,7 +30,7 @@ namespace Otomar.WebApp.HealthChecks
                             { "api_url", apiOptions.BaseUrl },
                             { "status_code", (int)response.StatusCode },
                             { "response_time_ms", duration.TotalMilliseconds },
-                            { "timestamp", DateTime.Now }
+                            { "timestamp", DateTime.UtcNow }
                         });
                 }
 
@@ -44,7 +44,7 @@ namespace Otomar.WebApp.HealthChecks
                             { "status_code", (int)response.StatusCode },
                             { "response_time_ms", duration.TotalMilliseconds },
                             { "threshold_ms", 5000 },
-                            { "timestamp", DateTime.Now }
+                            { "timestamp", DateTime.UtcNow }
                         });
                 }
 
@@ -55,7 +55,7 @@ namespace Otomar.WebApp.HealthChecks
                         { "api_url", apiOptions.BaseUrl },
                         { "status_code", (int)response.StatusCode },
                         { "response_time_ms", duration.TotalMilliseconds },
-                        { "timestamp", DateTime.Now }
+                        { "timestamp", DateTime.UtcNow }
                     });
             }
             catch (Exception ex)
@@ -68,7 +68,7 @@ namespace Otomar.WebApp.HealthChecks
                     data: new Dictionary<string, object>
                     {
                         { "api_url", apiOptions.BaseUrl },
-                        { "timestamp", DateTime.Now },
+                        { "timestamp", DateTime.UtcNow },
                         { "error", ex.Message }
                     });
             }

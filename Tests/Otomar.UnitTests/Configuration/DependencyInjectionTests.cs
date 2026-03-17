@@ -58,6 +58,7 @@ namespace Otomar.UnitTests.Configuration
         [InlineData(typeof(IOrderService))]
         [InlineData(typeof(IPaymentService))]
         [InlineData(typeof(IProductService))]
+        [InlineData(typeof(IUserService))]
         public void ApplicationServices_AreRegistered(Type serviceType)
         {
             // Arrange
@@ -80,7 +81,7 @@ namespace Otomar.UnitTests.Configuration
         [InlineData(typeof(IListSearchRepository))]
         [InlineData(typeof(INotificationRepository))]
         [InlineData(typeof(IOrderRepository))]
-        [InlineData(typeof(IPanelUserRepository))]
+        [InlineData(typeof(IUserRepository))]
         [InlineData(typeof(IPaymentRepository))]
         [InlineData(typeof(IProductRepository))]
         public void PersistenceRepositories_AreRegistered(Type serviceType)

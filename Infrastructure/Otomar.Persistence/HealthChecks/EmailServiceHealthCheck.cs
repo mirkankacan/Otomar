@@ -6,19 +6,10 @@ using Otomar.Persistence.Options;
 
 namespace Otomar.Persistence.HealthChecks
 {
-    public class EmailServiceHealthCheck : IHealthCheck
+    public class EmailServiceHealthCheck(
+        EmailOptions emailOptions,
+        ILogger<EmailServiceHealthCheck> logger) : IHealthCheck
     {
-        private readonly EmailOptions _emailOptions;
-        private readonly ILogger<EmailServiceHealthCheck> _logger;
-
-        public EmailServiceHealthCheck(
-            EmailOptions emailOptions,
-            ILogger<EmailServiceHealthCheck> logger)
-        {
-            _emailOptions = emailOptions;
-            _logger = logger;
-        }
-
         public async Task<HealthCheckResult> CheckHealthAsync(
             HealthCheckContext context,
             CancellationToken cancellationToken = default)
@@ -28,16 +19,16 @@ namespace Otomar.Persistence.HealthChecks
                 var startTime = DateTime.UtcNow;
                 using var client = new SmtpClient();
 
-                var secureOption = _emailOptions.EnableSsl
+                var secureOption = emailOptions.EnableSsl
                     ? SecureSocketOptions.SslOnConnect
                     : SecureSocketOptions.StartTlsWhenAvailable;
 
-                if (_emailOptions.Port == 587)
+                if (emailOptions.Port == 587)
                     secureOption = SecureSocketOptions.StartTls;
 
                 await client.ConnectAsync(
-                    _emailOptions.Host,
-                    _emailOptions.Port,
+                    emailOptions.Host,
+                    emailOptions.Port,
                     secureOption,
                     cancellationToken);
 
@@ -49,8 +40,8 @@ namespace Otomar.Persistence.HealthChecks
                         "SMTP sunucusuna bağlanılamadı",
                         data: new Dictionary<string, object>
                         {
-                            { "smtp_host", _emailOptions.Host },
-                            { "smtp_port", _emailOptions.Port },
+                            { "smtp_host", emailOptions.Host },
+                            { "smtp_port", emailOptions.Port },
                             { "timestamp", DateTime.UtcNow }
                         });
                 }
@@ -61,23 +52,23 @@ namespace Otomar.Persistence.HealthChecks
                     "Email servisi çalışıyor",
                     data: new Dictionary<string, object>
                     {
-                        { "smtp_host", _emailOptions.Host },
-                        { "smtp_port", _emailOptions.Port },
+                        { "smtp_host", emailOptions.Host },
+                        { "smtp_port", emailOptions.Port },
                         { "response_time_ms", duration.TotalMilliseconds },
                         { "timestamp", DateTime.UtcNow }
                     });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Email service health check başarısız");
+                logger.LogError(ex, "Email service health check başarısız");
 
                 return HealthCheckResult.Unhealthy(
                     "Email servisi erişilemez",
                     exception: ex,
                     data: new Dictionary<string, object>
                     {
-                        { "smtp_host", _emailOptions.Host },
-                        { "smtp_port", _emailOptions.Port },
+                        { "smtp_host", emailOptions.Host },
+                        { "smtp_port", emailOptions.Port },
                         { "timestamp", DateTime.UtcNow },
                         { "error", ex.Message }
                     });

@@ -5,21 +5,12 @@ using Otomar.Application.Interfaces;
 
 namespace Otomar.Persistence.HealthChecks
 {
-    public class DatabaseHealthCheck : IHealthCheck
+    public class DatabaseHealthCheck(
+        IUnitOfWork context,
+        ILogger<DatabaseHealthCheck> logger) : IHealthCheck
     {
-        private readonly IUnitOfWork _context;
-        private readonly ILogger<DatabaseHealthCheck> _logger;
-
-        public DatabaseHealthCheck(
-            IUnitOfWork context,
-            ILogger<DatabaseHealthCheck> logger)
-        {
-            _context = context;
-            _logger = logger;
-        }
-
         public async Task<HealthCheckResult> CheckHealthAsync(
-            HealthCheckContext context,
+            HealthCheckContext healthCheckContext,
             CancellationToken cancellationToken = default)
         {
             try
@@ -27,7 +18,7 @@ namespace Otomar.Persistence.HealthChecks
                 var startTime = DateTime.UtcNow;
 
                 // Stok tablosundan hızlı count (gerçek yük testi)
-                var stockCount = await _context.Connection.QueryFirstOrDefaultAsync<int>(
+                var stockCount = await context.Connection.QueryFirstOrDefaultAsync<int>(
                     new CommandDefinition(
                         "SELECT COUNT(1) FROM IdvStock WITH (NOLOCK)",
                         cancellationToken: cancellationToken));
@@ -58,7 +49,7 @@ namespace Otomar.Persistence.HealthChecks
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Database health check başarısız");
+                logger.LogError(ex, "Database health check başarısız");
                 return HealthCheckResult.Unhealthy(
                     "Veritabanı hatası",
                     exception: ex,

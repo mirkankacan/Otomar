@@ -10,6 +10,138 @@
     };
 }
 
+@section Styles {
+    <style>
+        .profile__avatar-circle {
+            width: 80px;
+            height: 80px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .profile__avatar-circle span {
+            color: #fff;
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .profile__header {
+            background: var(--bg-offwhite-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem 2.4rem;
+            margin-bottom: 2.4rem;
+            display: flex;
+            align-items: center;
+            gap: 1.6rem;
+        }
+
+        .profile__header-info h2 {
+            margin-bottom: 0.4rem;
+        }
+
+        .profile__header-info p {
+            margin: 0;
+            color: var(--foreground-sub-color);
+            font-size: 1.35rem;
+        }
+
+        .profile__block {
+            background: var(--body-background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem 2.4rem;
+            margin-bottom: 2rem;
+        }
+
+        .profile__block-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--foreground-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.8rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .profile__field label {
+            display: block;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--foreground-color);
+            margin-bottom: 0.6rem;
+        }
+
+        .profile__input {
+            width: 100%;
+            padding: 1rem 1.4rem;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1.4rem;
+            color: var(--foreground-color);
+            background: var(--body-background-color);
+            transition: border-color 0.2s ease;
+            outline: none;
+        }
+
+        .profile__input:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(237, 29, 36, 0.1);
+        }
+
+        .profile__input.is-conflict {
+            border-color: #dc3545;
+        }
+
+        .profile__input-hint {
+            font-size: 1.2rem;
+            color: var(--foreground-sub-color);
+            margin-top: 0.4rem;
+        }
+
+        .profile__input-hint.is-error {
+            color: #dc3545;
+        }
+
+        .profile__actions {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            margin-top: 0.8rem;
+        }
+
+        .profile__btn-cancel {
+            padding: 0.9rem 2rem;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--foreground-sub-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .profile__btn-cancel:hover {
+            border-color: var(--foreground-color);
+            color: var(--foreground-color);
+        }
+
+        #profile-form-loading,
+        #password-form-loading {
+            display: none;
+        }
+    </style>
+}
+
 <!-- Profilim / Kullanıcı Bilgileri -->
 <section class="my__account--section section--padding">
     <div class="container">
@@ -21,94 +153,391 @@
                     <li class="account__menu--list"><a href="/liste-sorgu">Liste Sorgular</a></li>
                     <li class="account__menu--list"><a href="/cari/hesap-hareketleri">Cari Hesap Hareketleri</a></li>
                     <li class="account__menu--list active"><a href="/profilim">Kullanıcı Bilgileri</a></li>
-                    <li class="account__menu--list"><a href="/cikis-yap">Çıkış Yap</a></li>
+                    <li class="account__menu--list"><a href="javascript:void(0)" onclick="logout()">Çıkış Yap</a></li>
                 </ul>
             </div>
+
             <div class="account__wrapper">
                 <div class="account__content account__details">
-                    <div class="profile__header mb-30 p-4 border-radius-10" style="background: linear-gradient(135deg, var(--bg-offwhite-color, #f8f9fa) 0%, var(--body-background-color) 100%); border: 1px solid var(--border-color);">
-                        <div class="d-flex align-items-center flex-wrap gap-3">
-                            <div class="profile__avatar border-radius-50 overflow-hidden flex-shrink-0" style="width: 72px; height: 72px; background: var(--secondary-color); display: flex; align-items: center; justify-content: center;">
-                                <span class="text-white fw-bold" style="font-size: 1.8rem;">@(User.Identity?.Name?.Length > 0 ? User.Identity.Name[0].ToString().ToUpperInvariant() : "?")</span>
-                            </div>
-                            <div>
-                                <h2 class="account__content--title h3 mb-5">Profilim</h2>
-                                <p class="text-secondary mb-0" style="font-size: 1.4rem;">Hesap bilgilerinizi buradan görüntüleyebilir ve güncelleyebilirsiniz.</p>
-                            </div>
+
+                    <!-- Profil başlığı -->
+                    <div class="profile__header">
+                        <div class="profile__avatar-circle" id="profileAvatarCircle">
+                            <span id="profileAvatarLetter">?</span>
+                        </div>
+                        <div class="profile__header-info">
+                            <h2 class="account__content--title h4 mb-0" id="profileHeaderName">Yükleniyor...</h2>
+                            <p id="profileHeaderEmail"></p>
                         </div>
                     </div>
 
-                    <form id="profileForm" class="profile__form">
-                        <div class="profile__block mb-30">
-                            <h3 class="account__content--title h4 mb-20 pb-2" style="border-bottom: 2px solid var(--border-color);">Kişisel Bilgiler</h3>
-                            <div class="row">
-                                <div class="col-lg-6 col-md-6 mb-20">
-                                    <label class="contact__form--label d-block mb-8" for="profileFirstName">Ad</label>
-                                    <input class="contact__form--input w-100 border-radius-5" id="profileFirstName" name="firstName" type="text" placeholder="Adınız" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                    <!-- Kişisel Bilgiler Formu -->
+                    <div class="profile__block">
+                        <div class="profile__block-title">Kişisel Bilgiler</div>
+                        <form id="profileForm" novalidate>
+                            <div class="row g-3 mb-20">
+                                <div class="col-lg-6 col-md-6">
+                                    <div class="profile__field">
+                                        <label for="profileName">Ad <span style="color:var(--secondary-color)">*</span></label>
+                                        <input class="profile__input" id="profileName" name="name" type="text" placeholder="Adınız" autocomplete="given-name">
+                                    </div>
                                 </div>
-                                <div class="col-lg-6 col-md-6 mb-20">
-                                    <label class="contact__form--label d-block mb-8" for="profileLastName">Soyad</label>
-                                    <input class="contact__form--input w-100 border-radius-5" id="profileLastName" name="lastName" type="text" placeholder="Soyadınız" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                <div class="col-lg-6 col-md-6">
+                                    <div class="profile__field">
+                                        <label for="profileSurname">Soyad</label>
+                                        <input class="profile__input" id="profileSurname" name="surname" type="text" placeholder="Soyadınız" autocomplete="family-name">
+                                    </div>
                                 </div>
-                                <div class="col-lg-6 col-md-6 mb-20">
-                                    <label class="contact__form--label d-block mb-8" for="profileEmail">E-posta</label>
-                                    <input class="contact__form--input w-100 border-radius-5" id="profileEmail" name="email" type="email" placeholder="ornek@email.com" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                <div class="col-lg-6 col-md-6">
+                                    <div class="profile__field">
+                                        <label for="profileEmail">E-posta <span style="color:var(--secondary-color)">*</span></label>
+                                        <div class="email-input-wrapper position-relative">
+                                            <input class="profile__input" id="profileEmail" name="email" type="email" placeholder="ornek@@email.com" autocomplete="email">
+                                            <ul id="profileEmailDomainSuggestions" class="email-domain-suggestions list-unstyled mb-0" role="listbox" aria-hidden="true"></ul>
+                                        </div>
+                                        <p class="profile__input-hint" id="profileEmailHint"></p>
+                                    </div>
                                 </div>
-                                <div class="col-lg-6 col-md-6 mb-20">
-                                    <label class="contact__form--label d-block mb-8" for="profilePhone">Telefon</label>
-                                    <input class="contact__form--input w-100 border-radius-5" id="profilePhone" name="phone" type="tel" placeholder="05XX XXX XX XX" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
+                                <div class="col-lg-6 col-md-6">
+                                    <div class="profile__field">
+                                        <label for="profilePhone">Telefon</label>
+                                        <input class="profile__input" id="profilePhone" name="phoneNumber" type="tel" placeholder="05XX XXX XX XX" autocomplete="tel">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                            <div class="profile__actions">
+                                <button type="submit" class="primary__btn" id="profileSaveBtn">Kaydet</button>
+                                <span id="profile-form-loading" class="text-secondary" style="font-size:1.3rem;">Kaydediliyor...</span>
+                            </div>
+                        </form>
+                    </div>
 
-                        <div class="profile__block mb-30">
-                            <h3 class="account__content--title h4 mb-20 pb-2" style="border-bottom: 2px solid var(--border-color);">Adres</h3>
-                            <div class="mb-20">
-                                <label class="contact__form--label d-block mb-8" for="profileAddress">Adres</label>
-                                <textarea class="contact__form--input w-100 border-radius-5" id="profileAddress" name="address" rows="3" placeholder="Açık adresiniz" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color); resize: vertical;"></textarea>
+                    <!-- Şifre Değiştirme Formu -->
+                    <div class="profile__block">
+                        <div class="profile__block-title">Şifre Değiştir</div>
+                        <p style="font-size:1.35rem; color:var(--foreground-sub-color); margin-bottom:1.8rem;">
+                            Şifrenizi değiştirmek istemiyorsanız bu alanları boş bırakın.
+                        </p>
+                        <form id="passwordForm" novalidate>
+                            <div class="row g-3 mb-20">
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="profile__field">
+                                        <label for="profileCurrentPassword">Mevcut Şifre <span style="color:var(--secondary-color)">*</span></label>
+                                        <input class="profile__input" id="profileCurrentPassword" name="currentPassword" type="password" placeholder="••••••••" autocomplete="current-password">
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="profile__field">
+                                        <label for="profileNewPassword">Yeni Şifre <span style="color:var(--secondary-color)">*</span></label>
+                                        <input class="profile__input" id="profileNewPassword" name="newPassword" type="password" placeholder="••••••••" autocomplete="new-password">
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="profile__field">
+                                        <label for="profileConfirmPassword">Yeni Şifre (Tekrar) <span style="color:var(--secondary-color)">*</span></label>
+                                        <input class="profile__input" id="profileConfirmPassword" name="confirmPassword" type="password" placeholder="••••••••" autocomplete="new-password">
+                                        <p class="profile__input-hint" id="passwordMatchHint"></p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="row">
-                                <div class="col-lg-4 col-md-6 mb-20">
-                                    <label class="contact__form--label d-block mb-8" for="profileCity">İl</label>
-                                    <input class="contact__form--input w-100 border-radius-5" id="profileCity" name="city" type="text" placeholder="İl" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
-                                </div>
-                                <div class="col-lg-4 col-md-6 mb-20">
-                                    <label class="contact__form--label d-block mb-8" for="profileDistrict">İlçe</label>
-                                    <input class="contact__form--input w-100 border-radius-5" id="profileDistrict" name="district" type="text" placeholder="İlçe" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
-                                </div>
-                                <div class="col-lg-4 col-md-6 mb-20">
-                                    <label class="contact__form--label d-block mb-8" for="profilePostalCode">Posta Kodu</label>
-                                    <input class="contact__form--input w-100 border-radius-5" id="profilePostalCode" name="postalCode" type="text" placeholder="Posta kodu" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
-                                </div>
+                            <div class="profile__actions">
+                                <button type="submit" class="primary__btn" id="passwordSaveBtn">Şifreyi Güncelle</button>
+                                <span id="password-form-loading" class="text-secondary" style="font-size:1.3rem;">Kaydediliyor...</span>
                             </div>
-                        </div>
+                        </form>
+                    </div>
 
-                        <div class="profile__block mb-30">
-                            <h3 class="account__content--title h4 mb-20 pb-2" style="border-bottom: 2px solid var(--border-color);">Şifre Değiştir</h3>
-                            <p class="text-secondary mb-20" style="font-size: 1.4rem;">Şifrenizi değiştirmek istemiyorsanız bu alanları boş bırakın.</p>
-                            <div class="row">
-                                <div class="col-lg-4 col-md-6 mb-20">
-                                    <label class="contact__form--label d-block mb-8" for="profileCurrentPassword">Mevcut Şifre</label>
-                                    <input class="contact__form--input w-100 border-radius-5" id="profileCurrentPassword" name="currentPassword" type="password" placeholder="••••••••" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
-                                </div>
-                                <div class="col-lg-4 col-md-6 mb-20">
-                                    <label class="contact__form--label d-block mb-8" for="profileNewPassword">Yeni Şifre</label>
-                                    <input class="contact__form--input w-100 border-radius-5" id="profileNewPassword" name="newPassword" type="password" placeholder="••••••••" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
-                                </div>
-                                <div class="col-lg-4 col-md-6 mb-20">
-                                    <label class="contact__form--label d-block mb-8" for="profileConfirmPassword">Yeni Şifre (Tekrar)</label>
-                                    <input class="contact__form--input w-100 border-radius-5" id="profileConfirmPassword" name="confirmPassword" type="password" placeholder="••••••••" style="padding: 1rem 1.5rem; border: 1px solid var(--border-color);">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex flex-wrap gap-2 align-items-center">
-                            <button type="submit" class="primary__btn">Kaydet</button>
-                            <a href="/hesabim" class="btn border border-secondary text-secondary border-radius-5 px-4 py-2" style="font-size: 1.4rem; font-weight: 600;">İptal</a>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        $(function () {
+            initPhoneMask();
+            initEmailSuggestions();
+            loadProfile();
+            bindProfileForm();
+            bindPasswordForm();
+            bindPasswordMatchCheck();
+        });
+
+        // ── Telefon maskesi (IMask) ──────────────────────────────────────────
+        function initPhoneMask() {
+            if (typeof IMask === 'undefined') return;
+            var el = document.getElementById('profilePhone');
+            if (!el) return;
+            new IMask(el, {
+                mask: '+9\\0 Zdd ddd dd dd',
+                definitions: { 'Z': /[1-9]/, 'd': /[0-9]/ },
+                lazy: false
+            });
+        }
+
+        // ── E-posta alan adı önerileri ───────────────────────────────────────
+        function initEmailSuggestions() {
+            var emailDomains = [
+                'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'hotmail.com.tr', 'live.com', 'live.com.tr',
+                'msn.com', 'icloud.com', 'me.com', 'mac.com', 'yahoo.com', 'yahoo.com.tr', 'yandex.com', 'yandex.com.tr',
+                'protonmail.com', 'proton.me', 'mail.com', 'gmx.com', 'gmx.net', 'tutanota.com', 'zoho.com',
+                'aol.com', 'mail.ru', 'outlook.com.tr', 'windowslive.com', 'btinternet.com', 'sky.com', 'ymail.com'
+            ];
+            var $emailInput = $('#profileEmail');
+            var $list = $('#profileEmailDomainSuggestions');
+            var selectedIndex = -1;
+
+            function getLocalPart() {
+                var val = ($emailInput.val() || '').trim();
+                var at = val.indexOf('@@');
+                if (at === -1) return null;
+                return { local: val.substring(0, at), afterAt: val.substring(at + 1).toLowerCase() };
+            }
+
+            function showSuggestions(partial) {
+                partial = (partial || '').toLowerCase();
+                var matches = emailDomains.filter(function (d) { return d.indexOf(partial) === 0; });
+                if (matches.length === 0) matches = emailDomains.slice(0, 8);
+                else if (matches.length > 10) matches = matches.slice(0, 10);
+
+                $list.empty().attr('aria-hidden', 'true');
+                selectedIndex = -1;
+                if (matches.length === 0) return;
+
+                matches.forEach(function (domain) {
+                    $list.append(
+                        $('<li class="email-domain-suggestions__item" role="option" data-domain="' + domain + '">').text('@@' + domain)
+                    );
+                });
+                $list.attr('aria-hidden', 'false');
+            }
+
+            function hideSuggestions() {
+                $list.empty().attr('aria-hidden', 'true');
+                selectedIndex = -1;
+            }
+
+            function applyDomain(domain) {
+                var p = getLocalPart();
+                var local = p ? p.local : ($emailInput.val() || '').replace(/@@.*$/, '').trim();
+                $emailInput.val(local + '@@' + domain);
+                hideSuggestions();
+                $emailInput.trigger('input');
+            }
+
+            $emailInput.on('input', function () {
+                var p = getLocalPart();
+                if (!p) { hideSuggestions(); return; }
+                showSuggestions(p.afterAt);
+                // e-posta format ipucu temizle
+                $('#profileEmailHint').text('').removeClass('is-error');
+                $emailInput.removeClass('is-conflict');
+            });
+
+            $emailInput.on('keydown', function (e) {
+                var $items = $list.find('.email-domain-suggestions__item');
+                if ($items.length === 0) return;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, $items.length - 1);
+                    $items.removeClass('is-active').eq(selectedIndex).addClass('is-active')[0].scrollIntoView({ block: 'nearest' });
+                    return;
+                }
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, 0);
+                    $items.removeClass('is-active').eq(selectedIndex).addClass('is-active')[0].scrollIntoView({ block: 'nearest' });
+                    return;
+                }
+                if (e.key === 'Enter' || e.key === 'Tab') {
+                    if (selectedIndex >= 0 && $items.length > selectedIndex) {
+                        e.preventDefault();
+                        applyDomain($items.eq(selectedIndex).data('domain'));
+                    }
+                    if (e.key === 'Tab') hideSuggestions();
+                    return;
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    hideSuggestions();
+                }
+            });
+
+            $list.on('click', '.email-domain-suggestions__item', function () {
+                applyDomain($(this).data('domain'));
+            });
+
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.email-input-wrapper').length) hideSuggestions();
+            });
+
+            // blur'da format validasyonu
+            $emailInput.on('blur', function () {
+                var val = $(this).val().trim();
+                if (val && !Validator.isValidEmail(val)) {
+                    $('#profileEmailHint').text('Geçerli bir e-posta adresi giriniz.').addClass('is-error');
+                    $emailInput.addClass('is-conflict');
+                } else {
+                    $('#profileEmailHint').text('').removeClass('is-error');
+                    $emailInput.removeClass('is-conflict');
+                }
+            });
+        }
+
+        // ── Profil veri yükleme ──────────────────────────────────────────────
+        async function loadProfile() {
+            try {
+                var data = await makeRequest('/kullanici/profil', 'GET');
+                if (!data) return;
+
+                var name = data.name || data.Name || '';
+                var surname = data.surname || data.Surname || '';
+                var email = data.email || data.Email || '';
+                var phone = data.phoneNumber || data.PhoneNumber || '';
+
+                $('#profileName').val(name);
+                $('#profileSurname').val(surname);
+                $('#profileEmail').val(email);
+
+                // IMask'ı tetikle (dispatch input event)
+                if (phone) {
+                    var el = document.getElementById('profilePhone');
+                    if (el && el.maskRef) {
+                        el.maskRef.value = phone;
+                        el.maskRef.updateValue();
+                    } else {
+                        $('#profilePhone').val(phone);
+                    }
+                }
+
+                var displayName = [name, surname].filter(Boolean).join(' ') || 'Kullanıcı';
+                $('#profileHeaderName').text(displayName);
+                $('#profileHeaderEmail').text(email);
+                $('#profileAvatarLetter').text(name.length > 0 ? name[0].toUpperCase() : '?');
+            } catch (e) {
+                $('#profileHeaderName').text('Profil yüklenemedi');
+            }
+        }
+
+        // ── Kişisel bilgiler formu ───────────────────────────────────────────
+        function bindProfileForm() {
+            $('#profileForm').on('submit', async function (e) {
+                e.preventDefault();
+
+                var name = $('#profileName').val().trim();
+                var email = $('#profileEmail').val().trim();
+                var phone = $('#profilePhone').val().trim();
+
+                if (!name) {
+                    toastr.warning('Ad alanı zorunludur.');
+                    $('#profileName').focus();
+                    return;
+                }
+                if (!email) {
+                    toastr.warning('E-posta alanı zorunludur.');
+                    $('#profileEmail').focus();
+                    return;
+                }
+                if (!Validator.isValidEmail(email)) {
+                    $('#profileEmailHint').text('Geçerli bir e-posta adresi giriniz.').addClass('is-error');
+                    $('#profileEmail').addClass('is-conflict').focus();
+                    return;
+                }
+                if (phone && !Validator.isValidPhone(phone)) {
+                    toastr.warning('Geçerli bir telefon numarası giriniz.');
+                    $('#profilePhone').focus();
+                    return;
+                }
+
+                var dto = {
+                    name: name,
+                    surname: $('#profileSurname').val().trim() || null,
+                    email: email,
+                    phoneNumber: phone || null
+                };
+
+                $('#profileSaveBtn').prop('disabled', true);
+                $('#profile-form-loading').show();
+
+                try {
+                    await makeRequest('/kullanici/profil', 'PUT', dto);
+                    toastr.success('Profil bilgileriniz başarıyla güncellendi.', 'Kaydedildi');
+
+                    var displayName = [dto.name, dto.surname].filter(Boolean).join(' ');
+                    $('#profileHeaderName').text(displayName);
+                    $('#profileHeaderEmail').text(dto.email);
+                    $('#profileAvatarLetter').text(dto.name[0].toUpperCase());
+                    $('#profileEmailHint').text('').removeClass('is-error');
+                    $('#profileEmail').removeClass('is-conflict');
+                } catch (e) {
+                    // makeRequest zaten toastr gösterir
+                } finally {
+                    $('#profileSaveBtn').prop('disabled', false);
+                    $('#profile-form-loading').hide();
+                }
+            });
+        }
+
+        // ── Şifre değiştirme formu ───────────────────────────────────────────
+        function bindPasswordForm() {
+            $('#passwordForm').on('submit', async function (e) {
+                e.preventDefault();
+
+                var current = $('#profileCurrentPassword').val();
+                var newPass = $('#profileNewPassword').val();
+                var confirm = $('#profileConfirmPassword').val();
+
+                if (!current || !newPass || !confirm) {
+                    toastr.warning('Tüm şifre alanları zorunludur.');
+                    return;
+                }
+                if (newPass !== confirm) {
+                    $('#passwordMatchHint').text('Şifreler uyuşmuyor.').addClass('is-error');
+                    $('#profileConfirmPassword').focus();
+                    return;
+                }
+
+                var dto = {
+                    currentPassword: current,
+                    newPassword: newPass,
+                    confirmPassword: confirm
+                };
+
+                $('#passwordSaveBtn').prop('disabled', true);
+                $('#password-form-loading').show();
+
+                try {
+                    await makeRequest('/kullanici/sifre-degistir', 'POST', dto);
+                    toastr.success('Şifreniz başarıyla güncellendi.', 'Kaydedildi');
+                    $('#passwordForm')[0].reset();
+                    $('#passwordMatchHint').text('').removeClass('is-error').css('color', '');
+                } catch (e) {
+                    // makeRequest zaten toastr gösterir
+                } finally {
+                    $('#passwordSaveBtn').prop('disabled', false);
+                    $('#password-form-loading').hide();
+                }
+            });
+        }
+
+        // ── Şifre uyuşma kontrolü (real-time) ───────────────────────────────
+        function bindPasswordMatchCheck() {
+            function check() {
+                var newPass = $('#profileNewPassword').val();
+                var confirm = $('#profileConfirmPassword').val();
+                if (!confirm) {
+                    $('#passwordMatchHint').text('').removeClass('is-error').css('color', '');
+                    return;
+                }
+                if (newPass !== confirm) {
+                    $('#passwordMatchHint').text('Şifreler uyuşmuyor.').addClass('is-error').css('color', '');
+                } else {
+                    $('#passwordMatchHint').text('Şifreler uyuşuyor.').removeClass('is-error').css('color', '#198754');
+                }
+            }
+
+            $('#profileNewPassword, #profileConfirmPassword').on('input', check);
+        }
+    </script>
+}
