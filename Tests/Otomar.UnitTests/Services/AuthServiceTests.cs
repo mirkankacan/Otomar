@@ -53,6 +53,7 @@ public class AuthServiceTests
             _jwtProviderMock.Object,
             _httpContextAccessorMock.Object,
             _panelUserRepositoryMock.Object,
+            new Mock<IEmailService>().Object,
             _loggerMock.Object);
     }
 

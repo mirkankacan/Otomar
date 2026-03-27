@@ -17,6 +17,9 @@ namespace Otomar.WebApp.Controllers
         [HttpGet("giris-yap")]
         public IActionResult Login()
         {
+            if (User.Identity?.IsAuthenticated == true)
+                return Redirect("/hesabim");
+
             return View();
         }
 
@@ -122,12 +125,72 @@ namespace Otomar.WebApp.Controllers
             return await authApi.RefreshTokenAsync(dto, cancellationToken).ToActionResultAsync();
         }
 
+        [HttpGet("sifremi-unuttum")]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost("sifremi-unuttum")]
+        [ValidateAntiForgeryToken]
+        [ValidateRecaptcha("forgot_password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto, CancellationToken cancellationToken = default)
+        {
+            dto.BaseUrl = $"{Request.Scheme}://{Request.Host}";
+            try
+            {
+                await authApi.ForgotPasswordAsync(dto, cancellationToken);
+                return Ok();
+            }
+            catch (ApiException ex)
+            {
+                return new ObjectResult(new
+                {
+                    type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    title = ex.ReasonPhrase ?? "İşlem başarısız",
+                    status = ex.StatusCode,
+                    detail = ex.Content ?? ex.Message
+                })
+                {
+                    StatusCode = (int)ex.StatusCode
+                };
+            }
+        }
+
+        [HttpGet("sifre-sifirla")]
+        public IActionResult ResetPassword([FromQuery] string email, [FromQuery] string token)
+        {
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
+                return RedirectToAction(nameof(ForgotPassword));
+
+            ViewBag.Email = email;
+            ViewBag.Token = token;
+            return View();
+        }
+
         [HttpPost("sifre-sifirla")]
         [ValidateAntiForgeryToken]
         [ValidateRecaptcha("password_reset")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto, CancellationToken cancellationToken = default)
         {
-            return await authApi.ResetPasswordAsync(dto, cancellationToken).ToActionResultAsync();
+            try
+            {
+                await authApi.ResetPasswordAsync(dto, cancellationToken);
+                return Ok();
+            }
+            catch (ApiException ex)
+            {
+                return new ObjectResult(new
+                {
+                    type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    title = ex.ReasonPhrase ?? "Şifre sıfırlama başarısız",
+                    status = ex.StatusCode,
+                    detail = ex.Content ?? ex.Message
+                })
+                {
+                    StatusCode = (int)ex.StatusCode
+                };
+            }
         }
     }
 }

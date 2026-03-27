@@ -17,6 +17,9 @@ namespace Otomar.WebApp.Services.Refit
         [Post("/api/auth/refresh-token")]
         Task<TokenDto> RefreshTokenAsync([Body] CreateTokenByRefreshTokenDto dto, CancellationToken cancellationToken = default);
 
+        [Post("/api/auth/forgot-password")]
+        Task ForgotPasswordAsync([Body] ForgotPasswordDto dto, CancellationToken cancellationToken = default);
+
         [Post("/api/auth/reset-password")]
         Task ResetPasswordAsync([Body] ResetPasswordDto dto, CancellationToken cancellationToken = default);
     }

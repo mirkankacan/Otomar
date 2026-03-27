@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Otomar.Shared.Common;
 using Otomar.Application.Interfaces.Services;
@@ -7,6 +8,7 @@ using Otomar.Shared.Dtos.Auth;
 using Otomar.Domain.Entities;
 using Otomar.Application.Interfaces.Repositories;
 using System.Net;
+using System.Text;
 
 namespace Otomar.Application.Services
 {
@@ -16,6 +18,7 @@ namespace Otomar.Application.Services
         IJwtProvider jwtProvider,
         IHttpContextAccessor httpContextAccessor,
         IUserRepository panelUserRepository,
+        IEmailService emailService,
         ILogger<AuthService> logger) : IAuthService
     {
         public async Task<ServiceResult<TokenDto>> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken = default)
@@ -331,17 +334,95 @@ namespace Otomar.Application.Services
             }
         }
 
+        public async Task<ServiceResult<bool>> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (forgotPasswordDto == null || string.IsNullOrWhiteSpace(forgotPasswordDto.Email))
+                {
+                    return ServiceResult<bool>.Error(
+                        "Geçersiz İstek",
+                        "E-posta adresi boş geçilemez",
+                        HttpStatusCode.BadRequest);
+                }
+
+                // Kullanıcı bulunamasa bile başarılı döndür — e-posta numaralandırma saldırısını önler
+                var user = await userManager.FindByEmailAsync(forgotPasswordDto.Email);
+                if (user == null || !user.IsActive)
+                {
+                    logger.LogInformation("Şifre sıfırlama isteği yapıldı ancak kullanıcı bulunamadı veya pasif: {Email}", forgotPasswordDto.Email);
+                    return ServiceResult<bool>.SuccessAsOk(true);
+                }
+
+                var token = await userManager.GeneratePasswordResetTokenAsync(user);
+                var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+                var resetUrl = $"{forgotPasswordDto.BaseUrl}/sifre-sifirla?email={Uri.EscapeDataString(user.Email!)}&token={encodedToken}";
+
+                await emailService.SendPasswordResetEmailAsync(user.Email!, user.Name ?? user.Email!, resetUrl, cancellationToken);
+
+                logger.LogInformation("Şifre sıfırlama e-postası gönderildi: {Email}", user.Email);
+                return ServiceResult<bool>.SuccessAsOk(true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Şifre sıfırlama e-postası gönderilirken hata oluştu: {Email}", forgotPasswordDto?.Email);
+                return ServiceResult<bool>.Error(
+                    "Şifre Sıfırlama Hatası",
+                    $"İşlem sırasında bir hata oluştu: {ex.Message}",
+                    HttpStatusCode.InternalServerError);
+            }
+        }
+
         public async Task<ServiceResult<bool>> ResetPasswordAsync(ResetPasswordDto resetPasswordDto, CancellationToken cancellationToken = default)
         {
             try
             {
-                // ResetPasswordDto henüz implement edilmemiş, placeholder olarak bırakıldı
-                // İleride email ile şifre sıfırlama token'ı gönderilmesi ve yeni şifre belirlenmesi için kullanılacak
+                if (resetPasswordDto == null ||
+                    string.IsNullOrWhiteSpace(resetPasswordDto.Email) ||
+                    string.IsNullOrWhiteSpace(resetPasswordDto.Token) ||
+                    string.IsNullOrWhiteSpace(resetPasswordDto.Password))
+                {
+                    return ServiceResult<bool>.Error(
+                        "Geçersiz İstek",
+                        "E-posta, token ve şifre alanları zorunludur",
+                        HttpStatusCode.BadRequest);
+                }
 
-                return ServiceResult<bool>.Error(
-                    "Henüz Implement Edilmedi",
-                    "Şifre sıfırlama özelliği henüz implement edilmemiştir",
-                    HttpStatusCode.NotImplemented);
+                if (resetPasswordDto.Password != resetPasswordDto.ConfirmPassword)
+                {
+                    return ServiceResult<bool>.Error(
+                        "Şifre Uyuşmazlığı",
+                        "Şifre ve şifre tekrarı eşleşmiyor",
+                        HttpStatusCode.BadRequest);
+                }
+
+                var user = await userManager.FindByEmailAsync(resetPasswordDto.Email);
+                if (user == null || !user.IsActive)
+                {
+                    return ServiceResult<bool>.Error(
+                        "Geçersiz İstek",
+                        "Şifre sıfırlama işlemi gerçekleştirilemedi",
+                        HttpStatusCode.BadRequest);
+                }
+
+                var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(resetPasswordDto.Token));
+                var result = await userManager.ResetPasswordAsync(user, decodedToken, resetPasswordDto.Password);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    logger.LogWarning("Şifre sıfırlama başarısız: {Email}, Hatalar: {Errors}", user.Email, errors);
+                    return ServiceResult<bool>.Error(
+                        "Şifre Sıfırlama Başarısız",
+                        "Geçersiz veya süresi dolmuş bağlantı. Lütfen tekrar deneyin.",
+                        HttpStatusCode.BadRequest);
+                }
+
+                user.NoHashPassword = null;
+                await userManager.UpdateAsync(user);
+                await userManager.UpdateSecurityStampAsync(user);
+
+                logger.LogInformation("Şifre başarıyla sıfırlandı: {Email}", user.Email);
+                return ServiceResult<bool>.SuccessAsOk(true);
             }
             catch (Exception ex)
             {

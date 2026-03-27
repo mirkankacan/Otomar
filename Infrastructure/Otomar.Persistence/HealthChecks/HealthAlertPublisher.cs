@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Otomar.Application.Interfaces.Services;
@@ -6,7 +7,7 @@ using Otomar.Application.Interfaces.Services;
 namespace Otomar.Persistence.HealthChecks
 {
     public class HealthAlertPublisher(
-        IEmailService emailService,
+        IServiceScopeFactory scopeFactory,
         ILogger<HealthAlertPublisher> logger) : IHealthCheckPublisher
     {
         private readonly ConcurrentDictionary<string, HealthStatus> _previousStatuses = new();
@@ -36,6 +37,8 @@ namespace Otomar.Persistence.HealthChecks
         {
             try
             {
+                await using var scope = scopeFactory.CreateAsyncScope();
+                var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
                 await emailService.SendHealthAlertAsync(
                     checkName,
                     entry.Status.ToString(),
@@ -53,6 +56,8 @@ namespace Otomar.Persistence.HealthChecks
         {
             try
             {
+                await using var scope = scopeFactory.CreateAsyncScope();
+                var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
                 await emailService.SendHealthAlertAsync(
                     checkName,
                     "Healthy",

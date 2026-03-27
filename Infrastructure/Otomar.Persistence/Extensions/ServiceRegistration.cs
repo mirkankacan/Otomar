@@ -43,6 +43,8 @@ namespace Otomar.Persistence.Extensions
             })
                .AddEntityFrameworkStores<IdentityDbContext>()
                .AddDefaultTokenProviders();
+            services.Configure<DataProtectionTokenProviderOptions>(options =>
+                options.TokenLifespan = TimeSpan.FromMinutes(20));
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

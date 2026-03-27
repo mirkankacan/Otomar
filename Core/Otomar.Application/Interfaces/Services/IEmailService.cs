@@ -19,5 +19,7 @@ namespace Otomar.Application.Interfaces.Services
         Task SendPaymentFailedMailAsync(OrderDto order, PaymentDto payment, CancellationToken cancellationToken);
 
         Task SendHealthAlertAsync(string checkName, string status, string? description, string? errorMessage, CancellationToken cancellationToken);
+
+    Task SendPasswordResetEmailAsync(string toEmail, string name, string resetUrl, CancellationToken cancellationToken);
     }
 }

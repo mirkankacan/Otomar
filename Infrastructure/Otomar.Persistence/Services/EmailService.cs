@@ -292,6 +292,23 @@ namespace Otomar.Persistence.Services
             await SendInternalAsync(subject, body, null, null, null, isHtml: true, false, cancellationToken);
         }
 
+        public async Task SendPasswordResetEmailAsync(string toEmail, string name, string resetUrl, CancellationToken cancellationToken)
+        {
+            var body = LoadTemplate("PasswordResetMailTemplate.html");
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                logger.LogWarning("PasswordResetMailTemplate.html yüklenemedi, e-posta gönderilmedi.");
+                return;
+            }
+
+            body = body
+                .Replace("{{Name}}", WebUtility.HtmlEncode(name))
+                .Replace("{{ResetUrl}}", resetUrl);
+
+            const string subject = "Şifre Sıfırlama";
+            await SendInternalAsync(subject, body, toEmail, cc: null, bcc: null, isHtml: true, isError: false, cancellationToken, privateOnly: true);
+        }
+
         private string ConvertAmountToTurkishWords(decimal amount)
         {
             int wholePart = (int)amount;
@@ -344,7 +361,8 @@ namespace Otomar.Persistence.Services
             string? bcc,
             bool isHtml,
             bool isError,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool privateOnly = false)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("OTOMAR Yedek Parça", emailOptions.Credentials.UserName));
@@ -355,7 +373,10 @@ namespace Otomar.Persistence.Services
                 {
                     message.To.Add(MailboxAddress.Parse(to));
                 }
-                message.To.Add(address: MailboxAddress.Parse(emailOptions.Credentials.UserName));
+                if (!privateOnly)
+                {
+                    message.To.Add(address: MailboxAddress.Parse(emailOptions.Credentials.UserName));
+                }
             }
             else
             {
@@ -375,14 +396,17 @@ namespace Otomar.Persistence.Services
                 message.Bcc.Add(MailboxAddress.Parse(bcc));
             }
 
-            foreach (var requiredCc in emailOptions.RequiredCc)
+            if (!privateOnly)
             {
-                message.Cc.Add(MailboxAddress.Parse(requiredCc));
-            }
+                foreach (var requiredCc in emailOptions.RequiredCc)
+                {
+                    message.Cc.Add(MailboxAddress.Parse(requiredCc));
+                }
 
-            foreach (var requiredBcc in emailOptions.RequiredBcc)
-            {
-                message.Bcc.Add(MailboxAddress.Parse(requiredBcc));
+                foreach (var requiredBcc in emailOptions.RequiredBcc)
+                {
+                    message.Bcc.Add(MailboxAddress.Parse(requiredBcc));
+                }
             }
 
             message.Subject = subject;

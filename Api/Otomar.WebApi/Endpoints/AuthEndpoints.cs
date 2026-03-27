@@ -45,6 +45,14 @@ namespace Otomar.WebApi.Endpoints
             .WithName("RefreshToken")
             .AllowAnonymous();
 
+            group.MapPost("/forgot-password", async ([FromBody] ForgotPasswordDto dto, [FromServices] IAuthService authService, CancellationToken cancellationToken) =>
+            {
+                var result = await authService.ForgotPasswordAsync(dto, cancellationToken);
+                return result.ToGenericResult();
+            })
+            .WithName("ForgotPassword")
+            .AllowAnonymous();
+
             group.MapPost("/reset-password", async ([FromBody] ResetPasswordDto dto, [FromServices] IAuthService authService, CancellationToken cancellationToken) =>
             {
                 var result = await authService.ResetPasswordAsync(dto, cancellationToken);
