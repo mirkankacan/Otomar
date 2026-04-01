@@ -10,8 +10,10 @@ const Validator = {
      * @returns {boolean} - Geçerli ise true
      */
     isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+        // Local part: başlayamaz/bitemez nokta ile, ardışık nokta olamaz
+        // Domain: en az bir nokta, 2+ karakterli TLD
+        const emailRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9._%+\-]*[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.\-]*[a-zA-Z0-9])?(?:\.[a-zA-Z]{2,})+$/;
+        return emailRegex.test(email) && !/\.\./.test(email);
     },
     /**
  * Vergi numarası validasyonu (Türkiye)

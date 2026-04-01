@@ -2,6 +2,7 @@ using Carter;
 using Microsoft.AspNetCore.Mvc;
 using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Dtos.Order;
+using Otomar.Shared.Enums;
 using Otomar.WebApi.Extensions;
 
 namespace Otomar.WebApi.Endpoints
@@ -71,6 +72,46 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
              .WithName("GetClientOrdersByUser");
+
+            group.MapPost("/resend-mail", async (
+                [FromBody] ResendOrderMailDto dto,
+                [FromServices] IOrderService orderService,
+                [FromServices] IEmailService emailService,
+                CancellationToken cancellationToken) =>
+            {
+                if (dto.Id is null && string.IsNullOrWhiteSpace(dto.OrderCode))
+                    return Results.BadRequest("Id veya OrderCode alanlarından biri zorunludur.");
+
+                var orderResult = dto.Id.HasValue
+                    ? await orderService.GetOrderByIdAsync(dto.Id.Value)
+                    : await orderService.GetOrderByCodeAsync(dto.OrderCode!);
+
+                if (orderResult.IsFail)
+                    return orderResult.ToGenericResult();
+
+                var order = orderResult.Data!;
+
+                switch (order.OrderType)
+                {
+                    case OrderType.VirtualPOS:
+                        if (order.Payment is null)
+                            return Results.BadRequest("Bu siparişe ait ödeme bilgisi bulunamadı.");
+                        await emailService.SendVirtualPosPaymentSuccessMailAsync(order, order.Payment, cancellationToken);
+                        break;
+
+                    case OrderType.Purchase:
+                        await emailService.SendPaymentSuccessMailAsync(order, cancellationToken);
+                        break;
+
+                    default:
+                        await emailService.SendPaymentSuccessMailAsync(order, cancellationToken);
+                        break;
+                }
+
+                return Results.NoContent();
+            })
+            .WithName("ResendOrderMail")
+            .RequireAuthorization("AdminOnly");
         }
     }
 }
