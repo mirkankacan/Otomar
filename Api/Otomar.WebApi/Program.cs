@@ -20,9 +20,9 @@ builder.Services.AddApplicationServices()
 builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("SignalRPolicy", policy =>
+    options.AddPolicy("DefaultCorsPolicy", policy =>
     {
-        var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? ["https://localhost:5002"];
+        var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? ["https://otomar.com.tr"];
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
@@ -74,7 +74,7 @@ builder.Services.AddOutputCache(options =>
 
 var app = builder.Build();
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseCors("SignalRPolicy");
+app.UseCors("DefaultCorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
@@ -110,6 +110,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapHealthCheckServices();
+
+app.MapGet("/", () => Results.Ok(new { name = "Otomar API", status = "healthy" }));
 
 app.MapCarter();
 app.MapHub<Otomar.WebApi.Hubs.NotificationHub>("/hubs/notification");
