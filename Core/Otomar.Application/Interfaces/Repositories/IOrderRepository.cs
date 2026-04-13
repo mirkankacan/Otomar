@@ -51,6 +51,11 @@ namespace Otomar.Application.Interfaces.Repositories
         Task<IEnumerable<OrderDto>> GetByUserAsync(string userId);
 
         /// <summary>
+        /// Tüm siparişleri sayfalanmış olarak getirir (Admin).
+        /// </summary>
+        Task<(IEnumerable<OrderDto> Orders, int TotalCount)> GetAllPagedAsync(int pageNumber, int pageSize);
+
+        /// <summary>
         /// Kullanıcıya ait siparişleri sayfalanmış olarak getirir.
         /// </summary>
         Task<(IEnumerable<OrderDto> Orders, int TotalCount)> GetByUserPagedAsync(string userId, int pageNumber, int pageSize);

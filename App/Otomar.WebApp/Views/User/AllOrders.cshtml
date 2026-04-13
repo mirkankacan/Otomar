@@ -1,16 +1,16 @@
 @{
-    ViewData["Title"] = "Hesabım";
+    ViewData["Title"] = "Tüm Siparişler";
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["MetaRobots"] = "noindex, nofollow";
     ViewData["BreadcrumbItems"] = new List<BreadcrumbItem>
-{
-new("Ana Sayfa", "/ana-sayfa"),
-new(ViewData["Title"] as string ?? "Hesabım", null),
-};
+    {
+        new("Ana Sayfa", "/ana-sayfa"),
+        new("Hesabım", "/hesabim"),
+        new(ViewData["Title"] as string ?? "Tüm Siparişler", null)
+    };
 }
 @section Styles {
     <style>
-        /* Sipariş kartları – style.css :root değişkenleri ile */
         .orders-page__order-list {
             list-style: none;
             padding: 0;
@@ -166,7 +166,6 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
             height: 12px;
         }
 
-        /* Detay açılış animasyonu */
         .order-row__detail {
             max-height: 0;
             overflow: hidden;
@@ -305,37 +304,66 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
             color: var(--secondary-color);
             border: 1px solid var(--secondary-color);
         }
+
+        .order-row__summary__buyer-email {
+            font-size: 1.15rem;
+            color: var(--foreground-sub-color);
+            margin-top: 0.3rem;
+        }
+
+        .btn-resend-mail {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.4rem;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--foreground-sub-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .btn-resend-mail:hover:not(:disabled) {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+
+        .btn-resend-mail:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 }
-<!-- my account section start -->
+
 <section class="my__account--section section--padding">
     <div class="container">
         <div class="my__account--section__inner border-radius-10 d-flex">
             <div class="account__left--sidebar">
-                <h2 class="account__content--title mb-20">Hesabım</h2>
+                <h2 class="account__content--title mb-20">Yönetim</h2>
                 <ul class="account__menu">
-                    <li class="account__menu--list active"><a href="/hesabim">Sipariş Geçmişi</a></li>
+                    <li class="account__menu--list"><a href="/hesabim">Sipariş Geçmişi</a></li>
                     <li class="account__menu--list"><a href="/liste-sorgu">Liste Sorgular</a></li>
                     <li class="account__menu--list"><a href="/cari/hesap-hareketleri">Cari Hesap Hareketleri</a></li>
                     <li class="account__menu--list"><a href="/profilim">Kullanıcı Bilgileri</a></li>
                     @if (User.IsInRole("Admin"))
                     {
-                        <li class="account__menu--list"><a href="/siparis/admin/tum-siparisler">Tüm Siparişler</a></li>
+                        <li class="account__menu--list active"><a href="/siparis/admin/tum-siparisler">Tüm Siparişler</a></li>
                     }
                     <li class="account__menu--list"><a href="javascript:void(0)" onclick="logout()">Çıkış Yap</a></li>
                 </ul>
             </div>
             <div class="account__wrapper">
                 <div class="account__content">
-                    <h2 class="account__content--title h3 mb-20">Sipariş Geçmişi</h2>
+                    <h2 class="account__content--title h3 mb-20">Tüm Siparişler</h2>
                     <div class="account__table--area">
                         <div id="orders-loading" class="text-center py-5 text-secondary">Siparişler yükleniyor...</div>
-                        <div id="orders-empty" class="text-center py-5 text-secondary" style="display: none;">Henüz
-                            siparişiniz bulunmuyor.</div>
+                        <div id="orders-empty" class="text-center py-5 text-secondary" style="display: none;">Henüz sipariş bulunmuyor.</div>
                         <div class="orders-page__groups__item" id="orders-wrapper" style="display: none;">
                             <ul class="orders-page__order-list" id="orders-list"></ul>
-                            <div id="orders-scroll-sentinel" style="height: 1px; visibility: hidden;"
-                                aria-hidden="true"></div>
+                            <div id="orders-scroll-sentinel" style="height: 1px; visibility: hidden;" aria-hidden="true"></div>
                             <div id="orders-infinite-scroll-loader" class="text-center py-4" style="display: none;">
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Yükleniyor...</span>
@@ -349,11 +377,9 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
         </div>
     </div>
 </section>
-<!-- my account section end -->
 
 @section Scripts {
     <script>
-        // Infinite scroll: /siparis/siparislerim/paged
         var ordersCurrentPage = 0;
         var ordersTotalPages = 0;
         var ordersLoadingMore = false;
@@ -387,18 +413,25 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
                 var code = order.code || order.Code || '—';
                 var orderType = order.orderType != null ? order.orderType : order.OrderType;
                 var turLabel = orderType === 0 ? 'Sanal POS' : (orderType === 1 ? 'Sipariş' : '—');
-                var statusLabel = orderType === 0 ? 'Ödeme Onaylandı' : (orderType === 1 ? 'Sipariş Onaylandı' : 'Sipariş Onaylandı');
+                var statusLabel = orderType === 0 ? 'Ödeme Onaylandı' : 'Sipariş Onaylandı';
                 var date = formatDate(order.createdAt || order.CreatedAt);
                 var total = formatTurkishLira(order.totalAmount != null ? order.totalAmount : order.TotalAmount);
                 var id = order.id || order.Id;
+                var email = order.email || order.Email || '';
                 var orderNumberFormatted = escapeHtml(String(code || id)).replace(/\s/g, ' ');
                 var detailHtml = buildOrderDetailHtml(order);
+
+                var buyerLine = email
+                    ? '<div class="order-row__summary__buyer-email"><i class="fa-regular fa-user" style="margin-right:0.4rem;font-size:1rem;"></i>' + escapeHtml(email) + '</div>'
+                    : '';
+
                 var card = '<li class="orders-page__order-list__item">' +
                     '<div class="order-row" data-order-id="' + escapeHtml(String(id)) + '" role="button" tabindex="0" aria-expanded="false" aria-label="' + orderNumberFormatted + ' numaralı sipariş">' +
                     '<div class="order-row__summary">' +
                     '<div class="order-row__summary__images"><div class="image__placeholder"><i class="fa-solid fa-receipt"></i></div></div>' +
                     '<div class="order-row__summary__order-data">' +
                     '<div class="order-row__summary__order-number"><small>Sipariş No: <b>' + orderNumberFormatted + '</b></small></div>' +
+                    buyerLine +
                     '<div class="order-row__summary__progress-bar"><div class="order-row-summary"><div class="order-row-summary__single-status order-row-summary__single-status--completed">' +
                     '<svg class="order-row__status-icon" width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 0a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm3.36 5.36L6.8 9.92 4.64 7.76l-1.28 1.28 3.44 3.44 5.12-5.12-1.28-1.28z" fill="#5AD363"/></svg>' +
                     '<span>' + escapeHtml(statusLabel) + '</span></div></div></div>' +
@@ -410,7 +443,7 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
                     '</div></li>';
                 $('#orders-list').append(card);
             });
-            $(document).off('click', '.order-row__summary').on('click', '.order-row__summary', function (e) {
+            $(document).off('click', '.order-row__summary').on('click', '.order-row__summary', function () {
                 var $row = $(this).closest('.order-row');
                 if (!$row.length) return;
                 var expanded = $row.attr('aria-expanded') === 'true';
@@ -434,7 +467,7 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
             ordersLoadingMore = true;
             $('#orders-infinite-scroll-loader').show();
             try {
-                var paged = await makeRequest('/siparis/siparislerim/paged?pageNumber=' + nextPage + '&pageSize=' + ORDERS_PAGE_SIZE, 'GET');
+                var paged = await makeRequest('/siparis/admin/tum-siparisler/paged?pageNumber=' + nextPage + '&pageSize=' + ORDERS_PAGE_SIZE, 'GET');
                 var items = Array.isArray(paged) ? paged : (paged.Data || paged.data || []);
                 var totalPages = paged.TotalPages != null ? paged.TotalPages : paged.totalPages;
                 var pageNumber = paged.PageNumber != null ? paged.PageNumber : paged.pageNumber;
@@ -452,7 +485,6 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
         }
 
         function setupInfiniteScroll() {
-            // Son sipariş (sentinel) ekranda görünür görünmez yeni istek at
             var sentinel = document.getElementById('orders-scroll-sentinel');
             if (!sentinel) return;
             if (typeof IntersectionObserver === 'undefined') {
@@ -475,7 +507,7 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
 
         async function loadFirstPage() {
             try {
-                var paged = await makeRequest('/siparis/siparislerim/paged?pageNumber=1&pageSize=' + ORDERS_PAGE_SIZE, 'GET');
+                var paged = await makeRequest('/siparis/admin/tum-siparisler/paged?pageNumber=1&pageSize=' + ORDERS_PAGE_SIZE, 'GET');
                 var items = Array.isArray(paged) ? paged : (paged.Data || paged.data || []);
                 var totalCount = paged.TotalCount != null ? paged.TotalCount : paged.totalCount;
                 var totalPages = paged.TotalPages != null ? paged.TotalPages : paged.totalPages;
@@ -499,6 +531,22 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
             }
         }
 
+        async function resendMail(btn) {
+            var orderId = btn.getAttribute('data-order-id');
+            btn.disabled = true;
+            var originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-regular fa-clock"></i> Gönderiliyor...';
+            try {
+                await makeRequest('/siparis/admin/resend-mail', 'POST', { id: orderId });
+                toastr.success('E-posta başarıyla gönderildi.');
+            } catch (e) {
+                // makeRequest zaten toastr gösterir
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
         function getOrderTypeLabel(orderType) {
             var t = orderType != null ? orderType : -1;
             return t === 0 ? 'Sanal POS' : (t === 1 ? 'Sipariş' : '—');
@@ -519,6 +567,7 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
             var shipping = formatTurkishLira(shippingAmountVal);
             var email = order.email || order.Email || '';
             var identityNumber = order.identityNumber || order.IdentityNumber || '';
+            var buyerId = order.buyerId || order.BuyerId || '';
 
             var html = '';
 
@@ -531,9 +580,12 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
             html += '<div class="order-detail-field"><label>Tarih</label><span>' + createdAt + '</span></div>';
             html += '<div class="order-detail-field"><label>E-posta</label><span>' + (email || '—') + '</span></div>';
             html += '<div class="order-detail-field"><label>TC / Vergi No</label><span>' + (identityNumber || '—') + '</span></div>';
+            if (buyerId) {
+                html += '<div class="order-detail-field"><label>Kullanıcı ID</label><span style="font-size:1rem;word-break:break-all;">' + escapeHtml(buyerId) + '</span></div>';
+            }
             html += '</div></div>';
 
-            // Ürünler (Items)
+            // Ürünler
             var items = order.items || order.Items || [];
             if (items.length > 0) {
                 html += '<div class="order-detail-section">';
@@ -614,6 +666,14 @@ new(ViewData["Title"] as string ?? "Hesabım", null),
             }
             html += '<div class="row-total final"><span>Genel Toplam</span><span>' + total + '</span></div>';
             html += '</div></div>';
+
+            // Aksiyonlar
+            var orderId = order.id || order.Id;
+            html += '<div style="margin-top:1.2rem;">';
+            html += '<button class="btn-resend-mail" data-order-id="' + escapeHtml(String(orderId)) + '" onclick="resendMail(this)">';
+            html += '<i class="fa-regular fa-envelope"></i> E-posta Gönder';
+            html += '</button>';
+            html += '</div>';
 
             return html;
         }

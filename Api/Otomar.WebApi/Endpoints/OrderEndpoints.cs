@@ -4,6 +4,7 @@ using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Dtos.Order;
 using Otomar.Shared.Enums;
 using Otomar.WebApi.Extensions;
+using static Otomar.WebApi.Extensions.RateLimitingRegistration;
 
 namespace Otomar.WebApi.Endpoints
 {
@@ -19,13 +20,22 @@ namespace Otomar.WebApi.Endpoints
                 var result = await orderService.CreateClientOrderAsync(dto, cancellationToken);
                 return result.ToGenericResult();
             })
-         .WithName("CreateClientOrder");
+         .WithName("CreateClientOrder")
+         .RequireRateLimiting(Policies.OrderCreate);
             group.MapGet("/", async ([FromServices] IOrderService orderService) =>
             {
                 var result = await orderService.GetOrdersAsync();
                 return result.ToGenericResult();
             })
           .WithName("GetOrders");
+
+            group.MapGet("/paged", async ([FromServices] IOrderService orderService, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10) =>
+            {
+                var result = await orderService.GetOrdersAsync(pageNumber, pageSize);
+                return result.ToGenericResult();
+            })
+            .WithName("GetOrdersPaged")
+            .RequireAuthorization("AdminOnly");
 
             group.MapGet("/{id:guid}", async (Guid id, [FromServices] IOrderService orderService) =>
             {
@@ -90,12 +100,13 @@ namespace Otomar.WebApi.Endpoints
                     return orderResult.ToGenericResult();
 
                 var order = orderResult.Data!;
+                if (order.Payment is null)
+                    return Results.BadRequest("Bu sipariş/ödemeye ait ödeme bilgisi bulunamadı.");
 
                 switch (order.OrderType)
                 {
                     case OrderType.VirtualPOS:
-                        if (order.Payment is null)
-                            return Results.BadRequest("Bu siparişe ait ödeme bilgisi bulunamadı.");
+
                         await emailService.SendVirtualPosPaymentSuccessMailAsync(order, order.Payment, cancellationToken);
                         break;
 
@@ -104,7 +115,6 @@ namespace Otomar.WebApi.Endpoints
                         break;
 
                     default:
-                        await emailService.SendPaymentSuccessMailAsync(order, cancellationToken);
                         break;
                 }
 

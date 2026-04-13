@@ -23,33 +23,13 @@ namespace Otomar.Persistence.Services
                 logger.LogWarning("PaymentFailedMailTemplate.html yüklenemedi, e-posta gönderilmedi.");
                 return;
             }
-            string eInoviceUser = order.Corporate?.IsEInvoiceUser == true ? "Evet"
-                          : order.Corporate?.IsEInvoiceUser == false ? "Hayır"
-                          : string.Empty;
-            var itemsTableRows = string.Join(Environment.NewLine, order.Items.Select(item =>
-                     $@"
-                    <tr>
-                        <td style='padding: 10px; border: 1px solid #ccc; text-align: left;'>{WebUtility.HtmlEncode(item.ProductName)}</td>
-       <td style='padding: 10px; border: 1px solid #ccc; text-align: right;'>{item.UnitPrice.ToString("C2", new CultureInfo("tr-TR"))}</td>
-                        <td style='padding: 10px; border: 1px solid #ccc; text-align: center;'>{item.Quantity}</td>
-       <td style='padding: 10px; border: 1px solid #ccc; text-align: right;'>{(item.UnitPrice * item.Quantity).ToString("C2", new CultureInfo("tr-TR"))}</td>
-                    </tr>")) +
-                     $@"
-                <tr>
-                <td colspan='3' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Alt Toplam</td>
-                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.SubTotalAmount.ToString("C2", new CultureInfo("tr-TR"))}</td>
-            </tr>
-            <tr>
-                <td colspan='3' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Kargo</td>
-                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.ShippingAmount.Value.ToString("C2", new CultureInfo("tr-TR"))}</td>
-            </tr>
-            <tr>
-                <td colspan='3' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Toplam</td>
-                <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.TotalAmount.ToString("C2", new CultureInfo("tr-TR"))}</td>
-            </tr>";
+
+            var itemsTableRows = BuildOrderItemsTableRows(order);
 
             body = body
                          .Replace("{{OrderCode}}", WebUtility.HtmlEncode(payment.OrderCode))
+                         .Replace("{{PaymentId}}", payment.Id.ToString())
+                         .Replace("{{UserId}}", WebUtility.HtmlEncode(payment.UserId ?? "-"))
                          .Replace("{{Amount}}", payment.TotalAmount.ToString("C2", new CultureInfo("tr-TR")))
                          .Replace("{{CreatedAt}}", payment.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
                          .Replace("{{MaskedCreditCard}}", WebUtility.HtmlEncode(payment.MaskedCreditCard))
@@ -59,17 +39,8 @@ namespace Otomar.Persistence.Services
                          .Replace("{{BankErrMsg}}", WebUtility.HtmlEncode(payment.BankErrMsg ?? "-"))
                          .Replace("{{BankProcReturnCode}}", WebUtility.HtmlEncode(payment.BankProcReturnCode))
                          .Replace("{{Name}}", WebUtility.HtmlEncode(order.BillingAddress.Name))
-                         .Replace("{{IdentityNumber}}", WebUtility.HtmlEncode(order.IdentityNumber))
                          .Replace("{{ItemsTable}}", itemsTableRows)
-                         .Replace("{{BillingStreet}}", WebUtility.HtmlEncode(order.BillingAddress.Street))
-                         .Replace("{{BillingDistrict}}", WebUtility.HtmlEncode(order.BillingAddress.District))
-                         .Replace("{{BillingCity}}", WebUtility.HtmlEncode(order.BillingAddress.City))
-                         .Replace("{{BillingPhone}}", WebUtility.HtmlEncode(order.BillingAddress.Phone))
-                         .Replace("{{CompanyName}}", WebUtility.HtmlEncode(order.Corporate?.CompanyName ?? string.Empty))
-                         .Replace("{{TaxOffice}}", WebUtility.HtmlEncode(order.Corporate?.TaxOffice ?? string.Empty))
-                         .Replace("{{TaxNumber}}", WebUtility.HtmlEncode(order.Corporate?.TaxNumber ?? string.Empty))
-                         .Replace("{{IsEInvoiceUser}}", WebUtility.HtmlEncode(eInoviceUser))
-                         .Replace("{{Email}}", WebUtility.HtmlEncode(order.Email))
+                         .Replace("{{BillingInfoRows}}", BuildBillingInfoRows(order))
                          .Replace("{{ShippingName}}", WebUtility.HtmlEncode(order.ShippingAddress.Name))
                          .Replace("{{ShippingStreet}}", WebUtility.HtmlEncode(order.ShippingAddress.Street))
                          .Replace("{{ShippingDistrict}}", WebUtility.HtmlEncode(order.ShippingAddress.District))
@@ -89,11 +60,67 @@ namespace Otomar.Persistence.Services
                 return;
             }
 
-            string eInoviceUser = order.Corporate?.IsEInvoiceUser == true ? "Evet"
-                                : order.Corporate?.IsEInvoiceUser == false ? "Hayır"
-                                : string.Empty;
+            var itemsTableRows = BuildOrderItemsTableRows(order);
 
-            var itemsTableRows = string.Join(Environment.NewLine, order.Items.Select(item =>
+            body = body
+                          .Replace("{{Name}}", WebUtility.HtmlEncode(order.BillingAddress.Name))
+                          .Replace("{{OrderCode}}", WebUtility.HtmlEncode(order.Code))
+                          .Replace("{{CreatedAt}}", order.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                          .Replace("{{ItemsTable}}", itemsTableRows)
+                          .Replace("{{BillingInfoRows}}", BuildBillingInfoRows(order))
+                          .Replace("{{ShippingName}}", WebUtility.HtmlEncode(order.ShippingAddress.Name))
+                          .Replace("{{ShippingStreet}}", WebUtility.HtmlEncode(order.ShippingAddress.Street))
+                          .Replace("{{ShippingDistrict}}", WebUtility.HtmlEncode(order.ShippingAddress.District))
+                          .Replace("{{ShippingCity}}", WebUtility.HtmlEncode(order.ShippingAddress.City))
+                          .Replace("{{ShippingPhone}}", WebUtility.HtmlEncode(order.ShippingAddress.Phone));
+
+            const string subject = "Sipariş Onayı ✅";
+            await SendInternalAsync(subject, body, order.Email, null, null, isHtml: true, false, cancellationToken);
+        }
+
+        private static string BuildBillingInfoRows(OrderDto order)
+        {
+            const string tdLabel = "style='padding: 5px 10px; font-weight: bold; text-align: left; vertical-align: top;'";
+            const string tdValue = "style='padding: 5px 10px; text-align: left;'";
+            const string tdHeader = "style='padding: 8px 10px; font-weight: bold; font-size: 13px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #eee;' colspan='2'";
+
+            var isCorporate = !string.IsNullOrEmpty(order.Corporate?.TaxNumber) && !string.IsNullOrEmpty(order.Corporate?.TaxOffice) && !string.IsNullOrEmpty(order.Corporate?.CompanyName);
+
+            var rows = new System.Text.StringBuilder();
+
+            // Fatura tipi başlığı
+            rows.AppendLine(isCorporate
+                ? $"<tr><td {tdHeader}>Kurumsal Fatura</td></tr>"
+                : $"<tr><td {tdHeader}>Bireysel Fatura</td></tr>");
+
+            // Bireysel: TC Kimlik No
+            if (!isCorporate && !string.IsNullOrEmpty(order.IdentityNumber))
+                rows.AppendLine($"<tr><td {tdLabel}>TC Kimlik No:</td><td {tdValue}>{WebUtility.HtmlEncode(order.IdentityNumber)}</td></tr>");
+
+            // Kurumsal alanlar
+            if (isCorporate)
+            {
+                rows.AppendLine($"<tr><td {tdLabel}>Firma Adı:</td><td {tdValue}>{WebUtility.HtmlEncode(order.Corporate!.CompanyName ?? string.Empty)}</td></tr>");
+                rows.AppendLine($"<tr><td {tdLabel}>Vergi No / TCKN:</td><td {tdValue}>{WebUtility.HtmlEncode(order.Corporate.TaxNumber)}</td></tr>");
+                rows.AppendLine($"<tr><td {tdLabel}>Vergi Dairesi:</td><td {tdValue}>{WebUtility.HtmlEncode(order.Corporate.TaxOffice ?? string.Empty)}</td></tr>");
+                var eInvoice = order.Corporate.IsEInvoiceUser == true ? "Evet" : "Hayır";
+                rows.AppendLine($"<tr><td {tdLabel}>E-Fatura Mükellefi:</td><td {tdValue}>{WebUtility.HtmlEncode(eInvoice)}</td></tr>");
+            }
+
+            // Ortak alanlar
+            rows.AppendLine($"<tr><td {tdLabel}>Kişi / Yetkilisi:</td><td {tdValue}>{WebUtility.HtmlEncode(order.BillingAddress?.Name ?? string.Empty)}</td></tr>");
+            rows.AppendLine($"<tr><td {tdLabel}>E-Posta:</td><td {tdValue}>{WebUtility.HtmlEncode(order.Email ?? string.Empty)}</td></tr>");
+            rows.AppendLine($"<tr><td {tdLabel}>Telefon:</td><td {tdValue}>{WebUtility.HtmlEncode(order.BillingAddress?.Phone ?? string.Empty)}</td></tr>");
+            rows.AppendLine($"<tr><td {tdLabel}>Adres:</td><td {tdValue}>{WebUtility.HtmlEncode(order.BillingAddress?.Street ?? string.Empty)}</td></tr>");
+            rows.AppendLine($"<tr><td {tdLabel}>Semt / İlçe:</td><td {tdValue}>{WebUtility.HtmlEncode(order.BillingAddress?.District ?? string.Empty)}</td></tr>");
+            rows.AppendLine($"<tr><td {tdLabel}>Şehir:</td><td {tdValue}>{WebUtility.HtmlEncode(order.BillingAddress?.City ?? string.Empty)}</td></tr>");
+
+            return rows.ToString();
+        }
+
+        private static string BuildOrderItemsTableRows(OrderDto order)
+        {
+            return string.Join(Environment.NewLine, order.Items.Select(item =>
                      $@"
                     <tr>
                         <td style='padding: 10px; border: 1px solid #ccc; text-align: left;'>{WebUtility.HtmlEncode(item.ProductName)}</td>
@@ -115,30 +142,6 @@ namespace Otomar.Persistence.Services
                 <td colspan='4' style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>Toplam</td>
                 <td style='padding: 10px; border: 1px solid #ccc; text-align: right; font-weight: bold;'>{order.TotalAmount.ToString("C2", new CultureInfo("tr-TR"))}</td>
             </tr>";
-
-            body = body
-                          .Replace("{{Name}}", WebUtility.HtmlEncode(order.BillingAddress.Name))
-                          .Replace("{{IdentityNumber}}", WebUtility.HtmlEncode(order.IdentityNumber))
-                          .Replace("{{OrderCode}}", WebUtility.HtmlEncode(order.Code))
-                          .Replace("{{CreatedAt}}", order.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
-                          .Replace("{{ItemsTable}}", itemsTableRows)
-                          .Replace("{{BillingStreet}}", WebUtility.HtmlEncode(order.BillingAddress.Street))
-                          .Replace("{{BillingDistrict}}", WebUtility.HtmlEncode(order.BillingAddress.District))
-                          .Replace("{{BillingCity}}", WebUtility.HtmlEncode(order.BillingAddress.City))
-                          .Replace("{{BillingPhone}}", WebUtility.HtmlEncode(order.BillingAddress.Phone))
-                          .Replace("{{CompanyName}}", WebUtility.HtmlEncode(order.Corporate?.CompanyName ?? string.Empty))
-                          .Replace("{{TaxOffice}}", WebUtility.HtmlEncode(order.Corporate?.TaxOffice ?? string.Empty))
-                          .Replace("{{TaxNumber}}", WebUtility.HtmlEncode(order.Corporate?.TaxNumber ?? string.Empty))
-                          .Replace("{{IsEInvoiceUser}}", WebUtility.HtmlEncode(eInoviceUser))
-                          .Replace("{{Email}}", WebUtility.HtmlEncode(order.Email))
-                          .Replace("{{ShippingName}}", WebUtility.HtmlEncode(order.ShippingAddress.Name))
-                          .Replace("{{ShippingStreet}}", WebUtility.HtmlEncode(order.ShippingAddress.Street))
-                          .Replace("{{ShippingDistrict}}", WebUtility.HtmlEncode(order.ShippingAddress.District))
-                          .Replace("{{ShippingCity}}", WebUtility.HtmlEncode(order.ShippingAddress.City))
-                          .Replace("{{ShippingPhone}}", WebUtility.HtmlEncode(order.ShippingAddress.Phone));
-
-            const string subject = "Sipariş Onayı ✅";
-            await SendInternalAsync(subject, body, order.Email, null, null, isHtml: true, false, cancellationToken);
         }
 
         public async Task SendVirtualPosPaymentSuccessMailAsync(OrderDto order, PaymentDto payment, CancellationToken cancellationToken)

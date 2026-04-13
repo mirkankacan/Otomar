@@ -770,6 +770,7 @@
                     <ul class="offcanvas__menu_ul" id="offcanvas-menu-ul">
                         <li class="offcanvas__menu_li"><a class="offcanvas__menu_item" href="/ana-sayfa">ANA SAYFA</a></li>
                         <li class="offcanvas__menu_li"><a class="offcanvas__menu_item" href="/magaza">MAĞAZA</a></li>
+                        <li class="offcanvas__menu_li"><a class="offcanvas__menu_item" href="/odeme/sanal-pos">SANAL POS</a></li>
                     </ul>
                     <div class="offcanvas__account--items">
                         @if (User.Identity?.IsAuthenticated == true)
@@ -1385,10 +1386,13 @@
                   "hideMethod": "fadeOut"
                 }
             function sendWhatsAppMessage() {
-             const phoneNumber = '905432686627';
-             const webUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}`;
-             window.open(webUrl, '_blank');
-         }
+                const phoneNumber = '905432686627';
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                const url = isMobile
+                    ? `https://wa.me/${phoneNumber}`
+                    : `https://web.whatsapp.com/send?phone=${phoneNumber}`;
+                window.open(url, '_blank');
+            }
                 function generateSlug(text) {
             const turkishMap = {
                 'ç': 'c', 'Ç': 'c',

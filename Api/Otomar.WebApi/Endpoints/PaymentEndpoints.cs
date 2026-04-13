@@ -4,6 +4,7 @@ using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Dtos.Payment;
 using Otomar.Persistence.Options;
 using Otomar.WebApi.Extensions;
+using static Otomar.WebApi.Extensions.RateLimitingRegistration;
 
 namespace Otomar.WebApi.Endpoints
 {
@@ -19,14 +20,16 @@ namespace Otomar.WebApi.Endpoints
                 var result = await paymentService.InitializePurchasePaymentAsync(dto, cancellationToken);
                 return result.ToGenericResult();
             })
-             .WithName("InitializePurchasePayment");
+             .WithName("InitializePurchasePayment")
+             .RequireRateLimiting(Policies.PaymentInit);
 
             group.MapPost("/initialize/virtual-pos", async ([FromBody] InitializeVirtualPosPaymentDto dto, [FromServices] IPaymentService paymentService, CancellationToken cancellationToken) =>
             {
                 var result = await paymentService.InitializeVirtualPosPaymentAsync(dto, cancellationToken);
                 return result.ToGenericResult();
             })
-            .WithName("InitializeVirtualPosPayment");
+            .WithName("InitializeVirtualPosPayment")
+            .RequireRateLimiting(Policies.PaymentInit);
             group.MapGet("/", async ([FromServices] IPaymentService paymentService) =>
             {
                 var result = await paymentService.GetPaymentsAsync();
@@ -230,7 +233,8 @@ namespace Otomar.WebApi.Endpoints
             })
             .WithName("ThreeDCallback")
             .DisableAntiforgery()
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .DisableRateLimiting();
         }
     }
 }

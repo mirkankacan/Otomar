@@ -1,6 +1,4 @@
 ﻿using Carter;
-using Microsoft.AspNetCore.Mvc;
-using Otomar.Application.Interfaces.Services;
 using Otomar.Application.Options;
 
 namespace Otomar.WebApi.Endpoints
@@ -12,7 +10,7 @@ namespace Otomar.WebApi.Endpoints
             var group = app.MapGroup("api/options")
                 .WithTags("Options");
 
-            group.MapGet("/shipping", async (ShippingOptions shippingOptions, [FromServices] IClientService clientService) =>
+            group.MapGet("/shipping", async (ShippingOptions shippingOptions) =>
             {
                 return Results.Ok(shippingOptions);
             })

@@ -51,16 +51,6 @@
                                 </div>
                                 <div class="section__shipping--address__content">
                                     <div class="row">
-                                        <div class="col-12 mb-20" id="tcNoField">
-                                            <div class="checkout__input--list">
-                                                <label class="checkout__input--label mb-2" for="txtTcNo">TC Kimlik Numarası<span class="checkout__input--label__star">*</span></label>
-                                                <input class="checkout__input--field border-radius-5" placeholder="TC Kimlik numarası giriniz..." id="txtTcNo" type="text" maxlength="11">
-                                                <div class="invalid-feedback">
-                                                    Geçerli bir TC Kimlik No giriniz (11 haneli).
-                                                </div>
-                                            </div>
-                                        </div>
-
                                         <div class="col-lg-6 col-md-6 col-sm-6 mb-20">
                                             <div class="checkout__input--list ">
                                                 <label class="checkout__input--label mb-2" for="txtName">İsim <span class="checkout__input--label__star">*</span></label>
@@ -142,6 +132,20 @@
                                             </div>
                                         </div>
 
+                                        <div id="bireyselInvoiceSection" class="col-12">
+                                            <div class="row">
+                                                <div class="col-12 mb-20">
+                                                    <div class="checkout__input--list">
+                                                        <label class="checkout__input--label mb-2" for="txtTcNo">TC Kimlik Numarası<span class="checkout__input--label__star">*</span></label>
+                                                        <input class="checkout__input--field border-radius-5" placeholder="TC Kimlik numarası giriniz..." id="txtTcNo" type="text" maxlength="11">
+                                                        <div class="invalid-feedback">
+                                                            Geçerli bir TC Kimlik No giriniz (11 haneli).
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div id="corporateInvoiceSection" class="col-12" style="display: none;">
                                             <div class="row">
                                                 <div class="col-12 mb-20">
@@ -160,16 +164,18 @@
                                                 </div>
                                                 <div class="col-lg-6 col-md-6 mb-20">
                                                     <div class="checkout__input--list">
+                                                
                                                         <label class="checkout__input--label mb-2" for="txtTaxNumber">
-                                                            Vergi Numarası <span class="checkout__input--label__star">*</span>
+                                                            Vergi / TC Kimlik Numarası <span class="checkout__input--label__star">*</span>
                                                         </label>
+                                                   
                                                         <input class="checkout__input--field border-radius-5"
-                                                               placeholder="Vergi numarası giriniz..."
+                                                               placeholder="Vergi no (10 hane) veya TCKN (11 hane)..."
                                                                id="txtTaxNumber"
                                                                type="text"
-                                                               maxlength="10">
+                                                               maxlength="11">
                                                         <div class="invalid-feedback">
-                                                            Geçerli bir vergi numarası giriniz (10 haneli).
+                                                            Geçerli bir vergi numarası (10 haneli) veya TC Kimlik No (11 haneli) giriniz.
                                                         </div>
                                                     </div>
                                                 </div>
@@ -192,7 +198,7 @@
                                                         <input class="checkout__checkbox--input" id="checkboxEinvoice" type="checkbox">
                                                         <span class="checkout__checkbox--checkmark"></span>
                                                         <label class="checkout__checkbox--label" for="checkboxEinvoice">
-                                                            E-Fatuta mükellefiyim
+                                                            E-Fatura mükellefiyim
                                                         </label>
                                                     </div>
                                                 </div>
@@ -558,99 +564,7 @@
                     return { valid: true };
                 });
 
-                // E-posta @@ sonrası domain önerileri (gmail.com, outlook.com, vb.)
-                (function() {
-                    var emailDomains = [
-                        'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'hotmail.com.tr', 'live.com', 'live.com.tr',
-                        'msn.com', 'icloud.com', 'me.com', 'mac.com', 'yahoo.com', 'yahoo.com.tr', 'yandex.com', 'yandex.com.tr',
-                        'protonmail.com', 'proton.me', 'mail.com', 'gmx.com', 'gmx.net', 'tutanota.com', 'zoho.com',
-                        'aol.com', 'mail.ru', 'outlook.com.tr', 'windowslive.com', 'btinternet.com', 'sky.com', 'ymail.com'
-                    ];
-                    var $emailInput = $('#txtEmail');
-                    var $list = $('#emailDomainSuggestions');
-                    var selectedIndex = -1;
-
-                    function getLocalPart() {
-                        var val = ($emailInput.val() || '').trim();
-                        var at = val.indexOf('@@');
-                        if (at === -1) return null;
-                        return { local: val.substring(0, at), afterAt: val.substring(at + 1).toLowerCase() };
-                    }
-
-                    function showSuggestions(partial) {
-                        partial = (partial || '').toLowerCase();
-                        var matches = emailDomains.filter(function(d) { return d.indexOf(partial) === 0; });
-                        if (matches.length === 0) matches = emailDomains.slice(0, 8);
-                        else if (matches.length > 10) matches = matches.slice(0, 10);
-
-                        $list.empty().attr('aria-hidden', 'true');
-                        selectedIndex = -1;
-                        if (matches.length === 0) return;
-
-                        matches.forEach(function(domain, i) {
-                            $list.append(
-                                $('<li class="email-domain-suggestions__item" role="option" data-domain="' + domain + '">').text('@@' + domain)
-                            );
-                        });
-                        $list.attr('aria-hidden', 'false');
-                    }
-
-                    function hideSuggestions() {
-                        $list.empty().attr('aria-hidden', 'true');
-                        selectedIndex = -1;
-                    }
-
-                    function applyDomain(domain) {
-                        var p = getLocalPart();
-                        var local = p ? p.local : ($emailInput.val() || '').replace(/@@.*$/, '').trim() || ' ';
-                        $emailInput.val(local + '@@' + domain);
-                        hideSuggestions();
-                        $emailInput.trigger('input');
-                    }
-
-                    $emailInput.on('input', function() {
-                        var p = getLocalPart();
-                        if (!p) { hideSuggestions(); return; }
-                        showSuggestions(p.afterAt);
-                    });
-
-                    $emailInput.on('keydown', function(e) {
-                        var $items = $list.find('.email-domain-suggestions__item');
-                        if ($items.length === 0) return;
-                        if (e.key === 'ArrowDown') {
-                            e.preventDefault();
-                            selectedIndex = Math.min(selectedIndex + 1, $items.length - 1);
-                            $items.removeClass('is-active').eq(selectedIndex).addClass('is-active')[0].scrollIntoView({ block: 'nearest' });
-                            return;
-                        }
-                        if (e.key === 'ArrowUp') {
-                            e.preventDefault();
-                            selectedIndex = Math.max(selectedIndex - 1, 0);
-                            $items.removeClass('is-active').eq(selectedIndex).addClass('is-active')[0].scrollIntoView({ block: 'nearest' });
-                            return;
-                        }
-                        if (e.key === 'Enter' || e.key === 'Tab') {
-                            if (selectedIndex >= 0 && $items.length > selectedIndex) {
-                                e.preventDefault();
-                                applyDomain($items.eq(selectedIndex).data('domain'));
-                            }
-                            if (e.key === 'Tab') hideSuggestions();
-                            return;
-                        }
-                        if (e.key === 'Escape') {
-                            e.preventDefault();
-                            hideSuggestions();
-                        }
-                    });
-
-                    $list.on('click', '.email-domain-suggestions__item', function() {
-                        applyDomain($(this).data('domain'));
-                    });
-
-                    $(document).on('click', function(e) {
-                        if (!$(e.target).closest('.email-input-wrapper').length) hideSuggestions();
-                    });
-                })();
+                Validator.setupEmailSuggestions('#txtEmail', '#emailDomainSuggestions');
 
                 // TC Kimlik No validasyonu
                 $('#txtTcNo').on('input', function() {
@@ -709,8 +623,12 @@
                 });
 
                 setupFieldValidation('#txtTaxNumber', (value) => {
-                    if (Validator.isEmpty(value)) return { valid: false, message: 'Vergi numarası zorunludur.' };
-                    if (!Validator.isValidTaxNumber(value)) return { valid: false, message: 'Geçerli bir vergi numarası giriniz (10 haneli).' };
+                    if (Validator.isEmpty(value)) return { valid: false, message: 'Vergi numarası veya TCKN zorunludur.' };
+                    if (value.length === 11) {
+                        if (!Validator.isValidTCKN(value)) return { valid: false, message: 'Geçerli bir TC Kimlik No giriniz (11 haneli).' };
+                    } else {
+                        if (!Validator.isValidTaxNumber(value)) return { valid: false, message: 'Geçerli bir vergi numarası giriniz (10 haneli).' };
+                    }
                     return { valid: true };
                 });
 
@@ -786,11 +704,15 @@
                     const isCorporate = $(this).val() === 'corporate';
 
                     if (isCorporate) {
+                        $('#bireyselInvoiceSection').slideUp(300, function() {
+                            $(this).find('input, textarea, select').val('').removeClass('is-valid is-invalid');
+                        });
                         $('#corporateInvoiceSection').slideDown(300);
-                        $('#tcNoField').slideUp(300);
                     } else {
-                        $('#corporateInvoiceSection').slideUp(300);
-                        $('#tcNoField').slideDown(300);
+                        $('#corporateInvoiceSection').slideUp(300, function() {
+                            $(this).find('input, textarea, select').val('').prop('checked', false).removeClass('is-valid is-invalid');
+                        });
+                        $('#bireyselInvoiceSection').slideDown(300);
                     }
                 });
 
@@ -1059,10 +981,15 @@
 
                     const taxNumber = $('#txtTaxNumber').val();
                     if (Validator.isEmpty(taxNumber)) {
-                        markFieldInvalid($('#txtTaxNumber'), 'Vergi numarası zorunludur.');
+                        markFieldInvalid($('#txtTaxNumber'), 'Vergi numarası veya TCKN zorunludur.');
                         isValid = false;
+                    } else if (taxNumber.length === 11) {
+                        if (!Validator.isValidTCKN(taxNumber)) {
+                            markFieldInvalid($('#txtTaxNumber'), 'Geçerli bir TC Kimlik No giriniz (11 haneli).');
+                            isValid = false;
+                        }
                     } else if (!Validator.isValidTaxNumber(taxNumber)) {
-                        markFieldInvalid($('#txtTaxNumber'), 'Geçerli bir vergi numarası giriniz.');
+                        markFieldInvalid($('#txtTaxNumber'), 'Geçerli bir vergi numarası giriniz (10 haneli).');
                         isValid = false;
                     }
 
@@ -1318,7 +1245,7 @@
 
                 var identityNumber = invoiceType === 'individual'
                     ? ($('#txtTcNo').val() || '').replace(/\D/g, '')
-                    : ($('#txtTaxNumber').val() || '').replace(/\D/g, '');
+                    : null;
 
                 var order = {
                     Email: ($('#txtEmail').val() || '').trim(),

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Dtos.User;
 using Otomar.WebApi.Extensions;
+using static Otomar.WebApi.Extensions.RateLimitingRegistration;
 
 namespace Otomar.WebApi.Endpoints
 {
@@ -33,7 +34,8 @@ namespace Otomar.WebApi.Endpoints
                 var result = await userService.ChangePasswordAsync(dto, cancellationToken);
                 return result.ToResult();
             })
-            .WithName("ChangeUserPassword");
+            .WithName("ChangeUserPassword")
+            .RequireRateLimiting(Policies.ChangePassword);
         }
     }
 }

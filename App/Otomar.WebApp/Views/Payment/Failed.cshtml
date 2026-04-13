@@ -244,6 +244,31 @@ else
                         </div>
                     }
 
+                    @if (Model.OrderType == Otomar.Shared.Enums.OrderType.Purchase && Model.Corporate != null)
+                    {
+                        <div class="failed-card">
+                            <div class="failed-card-title">Kurumsal Bilgiler</div>
+                            <div class="failed-address">
+                                @if (!string.IsNullOrEmpty(Model.Corporate.CompanyName))
+                                {
+                                    <div><strong>Şirket Adı:</strong> @Model.Corporate.CompanyName</div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Corporate.TaxNumber))
+                                {
+                                    <div><strong>Vergi No:</strong> @Model.Corporate.TaxNumber</div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Corporate.TaxOffice))
+                                {
+                                    <div><strong>Vergi Dairesi:</strong> @Model.Corporate.TaxOffice</div>
+                                }
+                                @if (Model.Corporate.IsEInvoiceUser.HasValue)
+                                {
+                                    <div><strong>E-Fatura Kullanıcısı:</strong> @(Model.Corporate.IsEInvoiceUser.Value ? "Evet" : "Hayır")</div>
+                                }
+                            </div>
+                        </div>
+                    }
+
                     <p class="failed-help">
                         Yardım mı lazım? <a href="/iletisim">Bize ulaşın</a>.
                     </p>

@@ -402,6 +402,107 @@ const Validator = {
                 this.showError($element, message);
             }
         }
+    },
+
+    /**
+     * E-posta alan adı öneri dropdown'ını kurar.
+     * @ sonrası yazılanla başlayan domain'leri gösterir; eşleşme yoksa listeyi gizler.
+     * @param {string} inputSelector  - E-posta input selector (#txtEmail vb.)
+     * @param {string} listSelector   - Öneri listesi selector (#emailDomainSuggestions vb.)
+     */
+    setupEmailSuggestions(inputSelector, listSelector) {
+        const EMAIL_DOMAINS = [
+            'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'hotmail.com.tr',
+            'live.com', 'live.com.tr', 'msn.com', 'icloud.com', 'me.com', 'mac.com',
+            'yahoo.com', 'yahoo.com.tr', 'yandex.com', 'yandex.com.tr',
+            'protonmail.com', 'proton.me', 'mail.com', 'gmx.com', 'gmx.net',
+            'tutanota.com', 'zoho.com', 'aol.com', 'mail.ru', 'outlook.com.tr',
+            'windowslive.com', 'btinternet.com', 'sky.com', 'ymail.com'
+        ];
+        const MAX_SUGGESTIONS = 8;
+
+        const $input = $(inputSelector);
+        const $list = $(listSelector);
+        if (!$input.length || !$list.length) return;
+
+        let selectedIndex = -1;
+
+        function getAtPosition() {
+            const val = ($input.val() || '').trim();
+            const at = val.lastIndexOf('@');
+            if (at === -1) return null;
+            return { local: val.substring(0, at), afterAt: val.substring(at + 1).toLowerCase() };
+        }
+
+        function show(partial) {
+            partial = (partial || '').toLowerCase();
+            let matches = EMAIL_DOMAINS.filter(d => d.startsWith(partial));
+            // @ sonrası hiç yazılmamışsa top MAX_SUGGESTIONS göster; yazmaya başladıysa sadece eşleşenleri
+            if (partial === '') matches = EMAIL_DOMAINS.slice(0, MAX_SUGGESTIONS);
+            else if (matches.length === 0) { hide(); return; }
+            else if (matches.length > MAX_SUGGESTIONS) matches = matches.slice(0, MAX_SUGGESTIONS);
+
+            $list.empty().attr('aria-hidden', 'true');
+            selectedIndex = -1;
+            matches.forEach(domain => {
+                $('<li class="email-domain-suggestions__item" role="option">')
+                    .attr('data-domain', domain)
+                    .text('@' + domain)
+                    .appendTo($list);
+            });
+            $list.attr('aria-hidden', 'false');
+        }
+
+        function hide() {
+            $list.empty().attr('aria-hidden', 'true');
+            selectedIndex = -1;
+        }
+
+        function apply(domain) {
+            const pos = getAtPosition();
+            const local = pos ? pos.local : ($input.val() || '').replace(/@.*$/, '').trim();
+            $input.val((local || '') + '@' + domain);
+            hide();
+            $input.trigger('input');
+        }
+
+        $input.on('input', function () {
+            const pos = getAtPosition();
+            if (!pos) { hide(); return; }
+            show(pos.afterAt);
+        });
+
+        $input.on('keydown', function (e) {
+            const $items = $list.find('.email-domain-suggestions__item');
+            if (!$items.length) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, $items.length - 1);
+                $items.removeClass('is-active').eq(selectedIndex).addClass('is-active');
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, 0);
+                $items.removeClass('is-active').eq(selectedIndex).addClass('is-active');
+            } else if (e.key === 'Enter' || e.key === 'Tab') {
+                if (selectedIndex >= 0 && selectedIndex < $items.length) {
+                    e.preventDefault();
+                    apply($items.eq(selectedIndex).data('domain'));
+                }
+                if (e.key === 'Tab') hide();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                hide();
+            }
+        });
+
+        $list.on('click', '.email-domain-suggestions__item', function () {
+            apply($(this).data('domain'));
+        });
+
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest($input.parent()).length) hide();
+        });
     }
 };
 

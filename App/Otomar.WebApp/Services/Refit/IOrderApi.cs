@@ -24,6 +24,12 @@ namespace Otomar.WebApp.Services.Refit
         [Get("/api/orders/user/{userId}/paged")]
         Task<PagedResult<OrderDto>> GetOrdersByUserPagedAsync(string userId, [Query] int pageNumber, [Query] int pageSize, CancellationToken cancellationToken = default);
 
+        [Get("/api/orders/paged")]
+        Task<PagedResult<OrderDto>> GetOrdersPagedAsync([Query] int pageNumber, [Query] int pageSize, CancellationToken cancellationToken = default);
+
+        [Post("/api/orders/resend-mail")]
+        Task ResendOrderMailAsync([Body] ResendOrderMailDto dto, CancellationToken cancellationToken = default);
+
         [Get("/api/orders/client-orders")]
         Task<IEnumerable<ClientOrderDto>> GetClientOrdersAsync(CancellationToken cancellationToken = default);
 

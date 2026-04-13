@@ -289,6 +289,70 @@ namespace Otomar.Persistence.Repositories
         }
 
         /// <inheritdoc />
+        public async Task<(IEnumerable<OrderDto> Orders, int TotalCount)> GetAllPagedAsync(int pageNumber, int pageSize)
+        {
+            var parameters = new DynamicParameters();
+            parameters.Add("offset", (pageNumber - 1) * pageSize);
+            parameters.Add("pageSize", pageSize);
+
+            const string countQuery = "SELECT COUNT(1) FROM IdtOrders o WITH (NOLOCK)";
+            var totalCount = await _unitOfWork.Connection.ExecuteScalarAsync<int>(countQuery);
+            if (totalCount == 0)
+                return (Enumerable.Empty<OrderDto>(), 0);
+
+            const string idsQuery = @"
+                SELECT Id FROM IdtOrders o WITH (NOLOCK)
+                ORDER BY o.CreatedAt DESC
+                OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
+            var orderIds = (await _unitOfWork.Connection.QueryAsync<Guid>(idsQuery, parameters)).ToList();
+            if (orderIds.Count == 0)
+                return (Enumerable.Empty<OrderDto>(), totalCount);
+
+            parameters.Add("orderIds", orderIds);
+            const string query = @"
+                SELECT
+                    o.Id, o.Code, o.BuyerId, o.Status, o.CreatedAt, o.UpdatedAt, o.OrderType,
+                    o.TotalAmount, o.ShippingAmount, o.SubTotalAmount,
+                    o.BillingName, o.BillingPhone, o.BillingCity, o.BillingDistrict, o.BillingStreet,
+                    o.ShippingName, o.ShippingPhone, o.ShippingCity, o.ShippingDistrict, o.ShippingStreet,
+                    o.CorporateCompanyName, o.CorporateTaxNumber, o.CorporateTaxOffice, o.IsEInvoiceUser,
+                    o.Email, o.IdentityNumber,
+                    p.Id AS PaymentId,
+                    p.UserId AS PaymentUserId,
+                    p.OrderCode AS PaymentOrderCode,
+                    p.TotalAmount AS PaymentTotalAmount,
+                    p.Status AS PaymentStatus,
+                    p.CreatedAt AS PaymentCreatedAt,
+                    p.BankProcReturnCode,
+                    p.MaskedCreditCard,
+                    p.BankCardBrand,
+                    p.BankCardIssuer,
+                    oi.Id AS ItemId,
+                    oi.ProductId,
+                    oi.ProductName,
+                    oi.ProductCode,
+                    oi.UnitPrice,
+                    oi.Quantity,
+                    oi.OrderId AS ItemOrderId
+                FROM IdtOrders o WITH (NOLOCK)
+                LEFT JOIN IdtPayments p WITH (NOLOCK) ON o.PaymentId = p.Id
+                LEFT JOIN IdtOrderItems oi WITH (NOLOCK) ON o.Id = oi.OrderId
+                WHERE o.Id IN @orderIds";
+
+            var rows = await _unitOfWork.Connection.QueryAsync(query, parameters);
+            var rowList = rows.ToList();
+
+            var ordersDict = MapOrderDtoDictFromRows(rowList, includeExtendedPayment: false);
+
+            var resultList = orderIds
+                .Where(id => ordersDict.ContainsKey(id))
+                .Select(id => ordersDict[id])
+                .ToList();
+
+            return (resultList, totalCount);
+        }
+
+        /// <inheritdoc />
         public async Task<(IEnumerable<OrderDto> Orders, int TotalCount)> GetByUserPagedAsync(string userId, int pageNumber, int pageSize)
         {
             var parameters = new DynamicParameters();

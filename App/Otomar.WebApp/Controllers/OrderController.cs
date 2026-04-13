@@ -55,6 +55,25 @@ namespace Otomar.WebApp.Controllers
             return await orderApi.GetOrdersByUserAsync(userId, cancellationToken).ToActionResultAsync();
         }
 
-     
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin/tum-siparisler")]
+        public IActionResult AllOrders()
+        {
+            return View("~/Views/User/AllOrders.cshtml");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin/tum-siparisler/paged")]
+        public async Task<IActionResult> GetAllOrdersPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+        {
+            return await orderApi.GetOrdersPagedAsync(pageNumber, pageSize, cancellationToken).ToActionResultAsync();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("admin/resend-mail")]
+        public async Task<IActionResult> ResendOrderMail([FromBody] ResendOrderMailDto dto, CancellationToken cancellationToken = default)
+        {
+            return await orderApi.ResendOrderMailAsync(dto, cancellationToken).ToActionResultAsync();
+        }
     }
 }

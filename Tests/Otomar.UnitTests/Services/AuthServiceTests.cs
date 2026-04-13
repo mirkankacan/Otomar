@@ -334,14 +334,15 @@ public class AuthServiceTests
     #region ResetPasswordAsync Tests
 
     [Fact]
-    public async Task ResetPasswordAsync_Always_ReturnsNotImplemented()
+    public async Task ResetPasswordAsync_WithEmptyDto_ReturnsBadRequest()
     {
         // Act
         var result = await _sut.ResetPasswordAsync(new ResetPasswordDto());
 
         // Assert
         result.IsFail.Should().BeTrue();
-        result.StatusCode.Should().Be(HttpStatusCode.NotImplemented);
+        result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        result.Fail!.Title.Should().Be("Geçersiz İstek");
     }
 
     #endregion

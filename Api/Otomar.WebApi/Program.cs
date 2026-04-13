@@ -30,6 +30,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddRateLimitingPolicies();
 builder.Services.AddHealthCheckServices(builder.Configuration);
 builder.Services.AddOutputCache(options =>
 {
@@ -76,6 +77,7 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseCors("SignalRPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.UseOutputCache();
 
 if (app.Environment.IsDevelopment())

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Otomar.Application.Interfaces.Services;
 using Otomar.Shared.Dtos.Auth;
 using Otomar.WebApi.Extensions;
+using static Otomar.WebApi.Extensions.RateLimitingRegistration;
 
 namespace Otomar.WebApi.Endpoints
 {
@@ -19,7 +20,8 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
             .WithName("Login")
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting(Policies.AuthStrict);
 
             group.MapPost("/register", async ([FromBody] RegisterDto dto, [FromServices] IAuthService authService, CancellationToken cancellationToken) =>
             {
@@ -27,7 +29,8 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
             .WithName("Register")
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting(Policies.AuthStrict);
 
             group.MapPost("/logout", async ([FromServices] IAuthService authService, CancellationToken cancellationToken) =>
             {
@@ -43,7 +46,8 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
             .WithName("RefreshToken")
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting(Policies.AuthModerate);
 
             group.MapPost("/forgot-password", async ([FromBody] ForgotPasswordDto dto, [FromServices] IAuthService authService, CancellationToken cancellationToken) =>
             {
@@ -51,7 +55,8 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
             .WithName("ForgotPassword")
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting(Policies.AuthStrict);
 
             group.MapPost("/reset-password", async ([FromBody] ResetPasswordDto dto, [FromServices] IAuthService authService, CancellationToken cancellationToken) =>
             {
@@ -59,7 +64,8 @@ namespace Otomar.WebApi.Endpoints
                 return result.ToGenericResult();
             })
             .WithName("ResetPassword")
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting(Policies.AuthModerate);
         }
     }
 }

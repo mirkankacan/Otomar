@@ -13,6 +13,8 @@ namespace Otomar.Application.Interfaces.Services
 
         Task<ServiceResult<IEnumerable<OrderDto>>> GetOrdersAsync();
 
+        Task<ServiceResult<PagedResult<OrderDto>>> GetOrdersAsync(int pageNumber, int pageSize);
+
         Task<ServiceResult<OrderDto>> GetOrderByIdAsync(Guid id);
 
         Task<ServiceResult<OrderDto>> GetOrderByCodeAsync(string orderCode, IUnitOfWork? unitOfWork = null);

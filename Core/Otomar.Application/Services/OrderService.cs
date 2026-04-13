@@ -311,6 +311,29 @@ namespace Otomar.Application.Services
             }
         }
 
+        public async Task<ServiceResult<PagedResult<OrderDto>>> GetOrdersAsync(int pageNumber, int pageSize)
+        {
+            try
+            {
+                if (pageNumber < 1) pageNumber = 1;
+                if (pageSize < 1) pageSize = 10;
+                if (pageSize > 100) pageSize = 100;
+
+                var (orders, totalCount) = await orderRepository.GetAllPagedAsync(pageNumber, pageSize);
+
+                if (totalCount == 0)
+                    return ServiceResult<PagedResult<OrderDto>>.SuccessAsOk(new PagedResult<OrderDto>(Enumerable.Empty<OrderDto>(), pageNumber, pageSize, 0));
+
+                var paged = new PagedResult<OrderDto>(orders, pageNumber, pageSize, totalCount);
+                return ServiceResult<PagedResult<OrderDto>>.SuccessAsOk(paged);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "GetOrdersPagedAsync işleminde hata. PageNumber: {PageNumber} PageSize: {PageSize}", pageNumber, pageSize);
+                throw;
+            }
+        }
+
         public async Task<ServiceResult<IEnumerable<OrderDto>>> GetOrdersByUserAsync(string userId)
         {
             try
